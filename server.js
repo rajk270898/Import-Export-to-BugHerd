@@ -201,8 +201,21 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
           const priorityId = bug.priority_id ? parseInt(bug.priority_id) : 3; // Default to normal (3)
           const priority = getBugHerdPriority(priorityId);
           
+          // Format the description with additional details
+          let description = bug.description || '';
+          const details = [];
+          
+          if (bug.os) details.push(`OS: ${bug.os}`);
+          if (bug.browser) details.push(`Browser: ${bug.browser} ${bug.browser_version || ''}`.trim());
+          if (bug.resolution) details.push(`Resolution: ${bug.resolution}`);
+          if (bug.browser_size) details.push(`Browser Window: ${bug.browser_size}`);
+          
+          if (details.length > 0) {
+            description += '\n\n' + details.join('\n');
+          }
+          
           const bugData = {
-            description: bug.description || '',
+            description: description,
             // Use priority_name instead of priority
             priority: priority.name,
             status: bug.status || 'backlog',
