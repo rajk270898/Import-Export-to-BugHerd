@@ -112,6 +112,43 @@ app.get('/api/projects', async (req, res) => {
   }
 });
 
+// Helper function to get priority mapping for BugHerd
+function getBugHerdPriority(priorityId) {
+  // BugHerd's priority mapping
+  const priorityMap = {
+    1: { id: 1, name: 'critical' },    // Critical (highest)
+    2: { id: 2, name: 'important' },   // Important
+    3: { id: 3, name: 'normal' },      // Normal
+    4: { id: 4, name: 'minor' },       // Minor (lowest)
+    0: { id: 0, name: 'not set' }      // Not set
+  };
+  
+  // Default to normal if priority is not in the map
+  return priorityMap[parseInt(priorityId)] || priorityMap[3];
+}
+
+// Function to update task priority
+async function updateTaskPriority(projectId, taskId, priority) {
+  try {
+    console.log(`Updating priority for task ${taskId} to ${priority.name}`);
+    const response = await bugherdApi.put(
+      `/projects/${projectId}/tasks/${taskId}.json`,
+      { 
+        task: { 
+          priority: priority.name,
+          // Include required fields that might be needed
+          status: 'backlog' // This will be updated to the actual status in the main flow
+        } 
+      }
+    );
+    console.log(`Priority updated for task ${taskId}:`, response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating priority for task ${taskId}:`, error.message);
+    throw error;
+  }
+}
+
 // Parse CSV file
 const parseCSV = (filePath) => {
   return new Promise((resolve, reject) => {
@@ -161,12 +198,16 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
       for (const bug of bugs) {
         try {
           // Map CSV fields to BugHerd API fields
+          const priorityId = bug.priority_id ? parseInt(bug.priority_id) : 3; // Default to normal (3)
+          const priority = getBugHerdPriority(priorityId);
+          
           const bugData = {
             description: bug.description || '',
-            priority: bug.priority_id ? parseInt(bug.priority_id) : 1, // Default to normal priority
+            // Use priority_name instead of priority
+            priority: priority.name,
             status: bug.status || 'backlog',
             tag_names: bug.tags ? bug.tags.split(',').map(tag => tag.trim()) : [],
-            requester_email: 'support@example.com', // Default email, can be customized
+            requester_email: 'support@example.com',
             requester_name: 'CSV Importer',
             browser: bug.browser || '',
             browser_version: '',
@@ -174,12 +215,51 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
             resolution: bug.resolution || '',
             site_page: bug.site || ''
           };
+          
+          // Add severity as a custom field
+          if (bug.severity) {
+            // First, ensure tag_names exists
+            bugData.tag_names = bugData.tag_names || [];
+            
+            // Add severity as both a tag and custom field
+            const severityValue = bug.severity.toLowerCase().trim();
+            bugData.tag_names.push(`severity:${severityValue}`);
+            
+            // Add as custom field (BugHerd's format)
+            bugData.custom_fields = [
+              {
+                id: 'severity', // This should match your custom field ID in BugHerd
+                value: severityValue
+              }
+            ];
+          }
+          
+          console.log('Creating bug with data:', JSON.stringify({
+            project_id: req.body.projectId,
+            task: bugData
+          }, null, 2));
 
           // Create bug in BugHerd
           const response = await bugherdApi.post(
             `/projects/${req.body.projectId}/tasks.json`,
             { task: bugData }
           );
+          
+          console.log('Bug created successfully:', response.data);
+          
+          // Update priority separately if needed
+          if (priority && priority.id !== 3) { // If not normal priority
+            try {
+              await updateTaskPriority(
+                req.body.projectId,
+                response.data.id,
+                priority
+              );
+            } catch (error) {
+              console.error('Error updating priority, but bug was created:', error.message);
+              // Continue even if priority update fails
+            }
+          }
 
           results.push({
             id: bug.id,
