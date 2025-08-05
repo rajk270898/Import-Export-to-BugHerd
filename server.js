@@ -317,6 +317,147 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
   }
 });
 
+// Export bugs from BugHerd
+app.post('/api/export', async (req, res) => {
+  try {
+    const { projectId, filters } = req.body;
+
+    if (!projectId) {
+      return res.status(400).json({ error: 'Project ID is required' });
+    }
+
+    if (!filters || (!filters.feedback && !filters.taskBoard && !filters.archive)) {
+      return res.status(400).json({ error: 'At least one filter must be enabled' });
+    }
+
+    console.log('Exporting bugs from BugHerd...');
+    console.log('Project ID:', projectId);
+    console.log('Filters:', filters);
+
+    // Get all tasks for the project
+    const response = await bugherdApi.get(`/projects/${projectId}/tasks.json`);
+    
+    if (!response.data || !Array.isArray(response.data)) {
+      return res.status(500).json({ error: 'Failed to fetch tasks from BugHerd' });
+    }
+
+    let tasks = response.data;
+    console.log(`Found ${tasks.length} total tasks`);
+
+    // Filter tasks based on enabled filters
+    let filteredTasks = [];
+    
+    if (filters.feedback) {
+      const feedbackTasks = tasks.filter(task => task.status === 'feedback' || task.status === 'Feedback');
+      filteredTasks = filteredTasks.concat(feedbackTasks);
+      console.log(`Found ${feedbackTasks.length} feedback tasks`);
+    }
+    
+    if (filters.taskBoard) {
+      const taskBoardTasks = tasks.filter(task => 
+        task.status === 'backlog' || 
+        task.status === 'qa team' || 
+        task.status === 'in progress' ||
+        task.status === 'done' ||
+        task.status === 'Backlog' ||
+        task.status === 'QA Team' ||
+        task.status === 'In Progress' ||
+        task.status === 'Done'
+      );
+      filteredTasks = filteredTasks.concat(taskBoardTasks);
+      console.log(`Found ${taskBoardTasks.length} task board tasks`);
+    }
+    
+    if (filters.archive) {
+      const archiveTasks = tasks.filter(task => task.status === 'archive' || task.status === 'Archive');
+      filteredTasks = filteredTasks.concat(archiveTasks);
+      console.log(`Found ${archiveTasks.length} archive tasks`);
+    }
+
+    // Remove duplicates (in case a task matches multiple filters)
+    const uniqueTasks = filteredTasks.filter((task, index, self) => 
+      index === self.findIndex(t => t.id === task.id)
+    );
+
+    console.log(`Exporting ${uniqueTasks.length} unique tasks`);
+
+    // Convert tasks to CSV format with specified columns
+    const csvData = uniqueTasks.map(task => {
+      // Combine site and path for Site URL
+      const siteUrl = task.site_page ? 
+        (task.site_page.startsWith('http') ? task.site_page : `https://${task.site_page}`) : '';
+      
+      return {
+        'BugID': task.id || '',
+        'Bug Status': 'New', // Hardcoded as requested
+        'Bug Type': task.status || '',
+        'Severity': task.priority || '',
+        'Categories': task.tag_names ? task.tag_names.join(', ') : '',
+        'Description': task.description || '',
+        'Site URL': siteUrl,
+        'OS': task.os || '',
+        'Browser': task.browser || '',
+        'Browser Size': task.browser_size || '',
+        'Resolution': task.resolution || '',
+        'Screenshot URL': task.screenshot || ''
+      };
+    });
+
+    // Generate CSV content
+    const csvHeaders = [
+      'BugID',
+      'Bug Status', 
+      'Bug Type',
+      'Severity',
+      'Categories',
+      'Description',
+      'Site URL',
+      'OS',
+      'Browser',
+      'Browser Size',
+      'Resolution',
+      'Screenshot URL'
+    ];
+
+    let csvContent = csvHeaders.join(',') + '\n';
+    
+    csvData.forEach(row => {
+      const csvRow = csvHeaders.map(header => {
+        const value = row[header] || '';
+        // Escape commas and quotes in CSV values
+        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+          return `"${value.replace(/"/g, '""')}"`;
+        }
+        return value;
+      });
+      csvContent += csvRow.join(',') + '\n';
+    });
+
+    // Set response headers for CSV download
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="bugherd_export_${projectId}_${new Date().toISOString().split('T')[0]}.csv"`);
+    
+    res.send(csvContent);
+
+  } catch (error) {
+    console.error('Export error:', error.message);
+    console.error('Error details:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data
+    });
+    
+    if (error.response?.status === 401) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid BugHerd API key. Please check your .env file and ensure BUGHERD_API_KEY is set correctly.'
+      });
+    }
+    
+    handleApiError(error, res);
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);

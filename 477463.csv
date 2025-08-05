@@ -1,9 +1,9 @@
-id,priority,status_id,status,tags,description,requester_email,os,browser,browser_size,resolution,screenshot,site
-15,critical,1992000,QA Team,Hello,Hello,khajanchirajvinay@gmail.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/ovip9zvapo7xhogxnzjf0q/screenshot.jpg,https://www.google.com
-16,critical,1992001,Suggestion,Suggestion,Suggestion,khajanchirajvinay@gmail.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/ovip9zvapo7xhogxnzjf0q/screenshot.jpg,https://www.google.com
-17,important,1992000,QA Team,Hello,Important,khajanchirajvinay@gmail.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/ovip9zvapo7xhogxnzjf0q/screenshot.jpg,https://www.google.com
-18,important,1992001,Suggestion,Suggestion,S_Important,khajanchirajvinay@gmail.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/ovip9zvapo7xhogxnzjf0q/screenshot.jpg,https://www.google.com
-19,normal,1992000,QA Team,Hello,Red,khajanchirajvinay@gmail.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/ovip9zvapo7xhogxnzjf0q/screenshot.jpg,https://www.google.com
-20,normal,1992001,Suggestion,Suggestion,E,khajanchirajvinay@gmail.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/faleykj25f6n59wn9m78vw/screenshot.jpg,https://www.google.com
-21,minor,1992001,Suggestion,Hello,G,khajanchirajvinay@gmail.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/uey59awqsrdnmqbsorzxxa/screenshot.jpg,https://www.google.com
-22,not set,1992000,QA Team,Hello,O,khajanchirajvinay@gmail.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/jra1b1zqud8ifruucjw7aq/screenshot.jpg,https://www.google.com
+id,priority,status,tags,description,requester_email,os,browser,browser_size,resolution,site
+15,critical,QA Team,Hello,Hello,khajanchirajvinay@gmail.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://www.google.com
+16,critical,Suggestion,Suggestion,Suggestion,khajanchirajvinay@gmail.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://www.google.com
+17,important,QA Team,Hello,Important,khajanchirajvinay@gmail.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://www.google.com
+18,important,Suggestion,Suggestion,S_Important,khajanchirajvinay@gmail.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://www.google.com
+19,normal,QA Team,Hello,Red,khajanchirajvinay@gmail.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://www.google.com
+20,normal,Suggestion,Suggestion,E,khajanchirajvinay@gmail.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://www.google.com
+21,minor,Suggestion,Hello,G,khajanchirajvinay@gmail.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://www.google.com
+22,not set,QA Team,Hello,O,khajanchirajvinay@gmail.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://www.google.com

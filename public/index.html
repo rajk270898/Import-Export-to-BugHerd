@@ -3,163 +3,1040 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BugHerd CSV/Excel Uploader</title>
+    <title>BugHerd CSV/Excel Tool</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary-color: #f8fafc;
+            --accent-color: #10b981;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #f8f9fa;
-            padding-top: 2rem;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--text-dark);
+            line-height: 1.6;
         }
-        .upload-container {
-            max-width: 600px;
-            margin: 0 auto;
+
+        .main-container {
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .app-card {
             background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            max-width: 800px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .logo {
+
+        .app-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: white;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .app-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .app-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .app-body {
+            padding: 2.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-label i {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .form-text {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            padding-left: 0.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group:hover .form-label {
+            color: var(--primary-color);
+        }
+
+        .form-group:hover .form-text {
+            color: var(--primary-color);
+        }
+
+        .form-select, .form-control {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .form-select {
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .select-display {
+            display: block;
+            padding: 0.5rem 0.5rem;
+            color: var(--text-dark);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-select::after {
+            content: '';
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .form-select:hover::after {
+            border-top-color: var(--primary-color);
+        }
+
+        .form-select:focus::after {
+            border-top-color: var(--primary-color);
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .form-select:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(99, 102, 241, 0.02);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+        }
+
+        .form-select:focus, .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), 0 4px 12px rgba(99, 102, 241, 0.15);
+            outline: none;
+            transform: translateY(-1px);
+        }
+
+        /* Custom dropdown styling */
+        .form-select {
+            position: relative;
+        }
+
+        .form-select option {
+            padding: 1rem 1.25rem;
+            font-size: 1rem;
+            background: white;
+            color: var(--text-dark);
+            border: none;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            margin: 2px 0;
+            position: relative;
+        }
+
+        .form-select option:hover {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: white;
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .form-select option:checked {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Modern dropdown container */
+        .dropdown-container {
+            position: relative;
+        }
+
+        .dropdown-container::before {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(to bottom, rgba(99, 102, 241, 0.1), transparent);
+            border-radius: 0 0 12px 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .form-select:focus + .dropdown-container::before {
+            opacity: 1;
+        }
+
+        /* Custom dropdown list styling */
+        .form-select:focus {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        /* Enhanced dropdown arrow */
+        .form-select::after {
+            content: '';
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .form-select:focus::after {
+            border-top-color: var(--primary-color);
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        /* Dropdown list container */
+        .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            /* border: 2px solid var(--primary-color); */
+            border-top: none;
+            border-radius: 50px;
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-list.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Custom option styling */
+        .dropdown-option {
+            padding: 1rem 1.25rem;
+            font-size: 1rem;
+            color: var(--text-dark);
+            background: white;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dropdown-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+            transition: left 0.3s ease;
+        }
+
+        .dropdown-option:hover::before {
+            left: 100%;
+        }
+
+        .dropdown-option:hover {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: white;
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .dropdown-option.selected {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Option icons */
+        .option-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-option:hover .option-icon {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* Dropdown animations */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-list.show {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        /* Enhanced select styling */
+        .form-select {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .form-select:focus {
+            outline: none;
+        }
+
+        /* Dropdown backdrop */
+        .dropdown-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-backdrop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Refresh button styling */
+        .refresh-btn {
+            position: absolute;
+            right: 3rem;
+            top: 50%;
+            z-index: 10;
+            padding: 0.5rem;
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;    
+            background: white;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        /* Adjust dropdown container for refresh button */
+        .dropdown-container {
+            position: relative;
+        }
+
+        /* Modern select wrapper */
+        .select-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .select-wrapper::after {
+            content: '';
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid var(--text-muted);
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .select-wrapper:hover::after {
+            border-top-color: var(--primary-color);
+        }
+
+        .form-select:focus + .select-wrapper::after {
+            border-top-color: var(--primary-color);
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .input-group {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .input-group:hover {
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .input-group .btn {
+            border-radius: 0 12px 12px 0;
+            border: 2px solid var(--border-color);
+            border-left: none;
+            background: white;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+        }
+
+        .input-group .btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: scale(1.05);
+        }
+
+        .input-group .btn:active {
+            transform: scale(0.95);
+        }
+
+        .input-group .btn i {
+            transition: all 0.3s ease;
+        }
+
+        .input-group .btn:hover i {
+            transform: rotate(180deg);
+        }
+
+        .upload-area {
+            border: 3px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 3rem 2rem;
             text-align: center;
             margin-bottom: 2rem;
-        }
-        .logo img {
-            max-width: 200px;
-        }
-        .upload-area {
-            border: 2px dashed #ccc;
-            border-radius: 8px;
-            padding: 2rem;
-            text-align: center;
-            margin-bottom: 1.5rem;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            background: var(--secondary-color);
+            position: relative;
+            overflow: hidden;
         }
-        .upload-area:hover {
-            border-color: #0d6efd;
-            background-color: #f8f9ff;
-        }
-        .upload-area.dragover {
-            border-color: #0d6efd;
-            background-color: #e9ecef;
-        }
-        #fileInput {
-            display: none;
-        }
-        .file-info {
-            margin-top: 1rem;
-            font-size: 0.9rem;
-            color: #6c757d;
-        }
-        .btn-upload {
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
             width: 100%;
-            padding: 0.75rem;
-            font-weight: 500;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+            transition: left 0.5s;
         }
-        #results {
-            margin-top: 2rem;
-            display: none;
+
+        .upload-area:hover::before {
+            left: 100%;
         }
-        .progress {
-            height: 10px;
+
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.05);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: var(--primary-color);
             margin-bottom: 1rem;
         }
-        .result-item {
-            padding: 0.75rem;
+
+        .upload-title {
+            font-size: 1.5rem;
+            font-weight: 600;
             margin-bottom: 0.5rem;
-            border-radius: 4px;
-            font-size: 0.9rem;
+            color: var(--text-dark);
         }
-        .result-item.success {
-            background-color: #d1e7dd;
-            color: #0f5132;
-        }
-        .result-item.error {
-            background-color: #f8d7da;
-            color: #842029;
-        }
-        .form-group {
+
+        .upload-subtitle {
+            color: var(--text-muted);
             margin-bottom: 1.5rem;
         }
+
+        .btn {
+            border-radius: 12px;
+            padding: 0.875rem 2rem;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-success {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            background: var(--border-color) !important;
+            color: var(--text-muted) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        .form-select:disabled {
+            background-color: var(--secondary-color);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .form-select:disabled:hover {
+            transform: none;
+            box-shadow: none;
+            border-color: var(--border-color);
+        }
+
+        /* Loading animation for refresh button */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-loading i {
+            animation: spin 1s linear infinite;
+        }
+
+        .export-filters {
+            background: var(--secondary-color);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .export-filters h6 {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .toggle-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-item:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-label {
+            font-weight: 500;
+            color: var(--text-dark);
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .filter-description {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
         .loading-spinner {
             display: inline-block;
             width: 1rem;
             height: 1rem;
-            border: 0.2rem solid rgba(0, 0, 0, 0.1);
+            border: 0.2rem solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            border-top-color: #0d6efd;
+            border-top-color: white;
             animation: spin 1s ease-in-out infinite;
             margin-right: 0.5rem;
         }
+
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .results {
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #065f46;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+            background: var(--border-color);
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 4px;
+        }
+
+        .file-info {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            background: rgba(99, 102, 241, 0.1);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .table th {
+            background: var(--secondary-color);
+            border: none;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .table td {
+            border-color: var(--border-color);
+            vertical-align: middle;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem;
+            }
+            
+            .app-body {
+                padding: 1.5rem;
+            }
+            
+            .app-header {
+                padding: 2rem 1.5rem;
+            }
+            
+            .app-header h1 {
+                font-size: 2rem;
+            }
+            
+            .toggle-group {
+                gap: 0.75rem;
+            }
+            
+            .toggle-item {
+                padding: 0.5rem;
+            }
+
+            .form-select, .form-control {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+
+            .input-group .btn {
+                padding: 0.75rem 0.875rem;
+            }
+
+            .form-label {
+                font-size: 0.9rem;
+            }
+
+            .form-text {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Focus styles for accessibility */
+        .form-select:focus-visible,
+        .form-control:focus-visible,
+        .btn:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        /* Smooth transitions for all interactive elements */
+        * {
+            transition: all 0.2s ease;
+        }
+
+        /* Custom scrollbar for dropdowns */
+        .form-select::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .form-select::-webkit-scrollbar-track {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        .form-select::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .form-select::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-hover);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="upload-container">
-            <div class="logo">
-                <h2>BugHerd CSV/Excel Uploader</h2>
-                <p class="text-muted">Upload your bug reports directly to BugHerd</p>
+    <div class="main-container">
+        <div class="app-card">
+            <div class="app-header">
+                <h1><i class="bi bi-bug"></i> BugHerd Tool</h1>
+                <p>Import and Export bugs seamlessly</p>
             </div>
 
-            <div class="form-group">
-                <label for="projectSelect" class="form-label">Select Project</label>
-                <div class="input-group">
-                    <select class="form-select" id="projectSelect" required>
-                        <option value="" selected disabled>Loading projects...</option>
-                    </select>
-                    <button class="btn btn-outline-secondary" type="button" id="refreshProjects">
-                        <i class="bi bi-arrow-clockwise"></i>
-                    </button>
-                </div>
-                <div class="form-text">Select the project where bugs should be created</div>
-            </div>
-
-            <div class="upload-area" id="dropArea">
-                <input type="file" id="fileInput" accept=".csv, .xlsx">
-                <div class="mb-3">
-                    <i class="bi bi-cloud-upload" style="font-size: 2.5rem; color: #0d6efd;"></i>
-                    <h5>Drag & Drop your file here</h5>
-                    <p class="text-muted">or click to browse</p>
-                </div>
-                <button class="btn btn-primary" id="browseBtn">Select File</button>
-                <div class="file-info" id="fileInfo">No file selected</div>
-            </div>
-
-            <div class="d-grid gap-2">
-                <button class="btn btn-success btn-upload" id="uploadBtn" disabled>
-                    <span id="uploadBtnText">Upload to BugHerd</span>
-                    <span id="uploadBtnSpinner" class="loading-spinner" style="display: none;"></span>
-                </button>
-            </div>
-
-            <div class="progress mt-3" style="display: none;">
-                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
-                     role="progressbar" style="width: 0%"></div>
-            </div>
-
-            <div id="results">
-                <h5>Upload Results</h5>
-                <div id="resultsList"></div>
-            </div>
-        </div>
-        <div class="card mt-4">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">Debug Information</h5>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <button id="fetchProjectsBtn" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-arrow-repeat"></i> Fetch All Projects
-                    </button>
-                    <small class="text-muted ms-2">Click to refresh project list from BugHerd</small>
-                </div>
-                <div id="projectsList" class="mt-3">
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> Click "Fetch All Projects" to load project information
+            <div class="app-body">
+                <!-- Operation Type Selection -->
+                <div class="form-group">
+                    <label for="operationType" class="form-label">
+                        <i class="bi bi-gear"></i> Select Operation
+                    </label>
+                    <div class="dropdown-container">
+                        <div class="form-select" id="operationType" required>
+                            <span class="select-display">Choose operation...</span>
+                        </div>
+                        <div class="dropdown-list" id="operationDropdown">
+                            <button class="dropdown-option" data-value="import">
+                                <i class="bi bi-upload option-icon"></i>
+                                Import Bugs to BugHerd
+                            </button>
+                            <button class="dropdown-option" data-value="export">
+                                <i class="bi bi-download option-icon"></i>
+                                Export Bugs from BugHerd
+                            </button>
+                        </div>
                     </div>
+                    <div class="form-text">Choose whether to import or export bugs</div>
+                </div>
+
+                <!-- Project Selection -->
+                <div class="form-group">
+                    <label for="projectSelect" class="form-label">
+                        <i class="bi bi-folder"></i> Select Project
+                    </label>
+                    <div class="dropdown-container">
+                        <div class="form-select" id="projectSelect" required>
+                            <span class="select-display">Loading projects...</span>
+                        </div>
+                        <div class="dropdown-list" id="projectDropdown">
+                            <!-- Project options will be populated dynamically -->
+                        </div>
+                        <button class="btn btn-outline-secondary refresh-btn" type="button" id="refreshProjects">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">Select the project for import/export</div>
+                </div>
+
+                <!-- Import Section -->
+                <div class="section import-section" id="importSection">
+                    <div class="upload-area" id="dropArea">
+                        <input type="file" id="fileInput" accept=".csv, .xlsx">
+                        <div class="upload-icon">
+                            <i class="bi bi-cloud-upload"></i>
+                        </div>
+                        <div class="upload-title">Drag & Drop your file here</div>
+                        <div class="upload-subtitle">or click to browse</div>
+                        <button class="btn btn-primary" id="browseBtn">
+                            <i class="bi bi-folder2-open"></i> Select File
+                        </button>
+                        <div class="file-info" id="fileInfo">No file selected</div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success btn-upload" id="uploadBtn" disabled>
+                            <span id="uploadBtnText">
+                                <i class="bi bi-upload"></i> Upload to BugHerd
+                            </span>
+                            <span id="uploadBtnSpinner" class="loading-spinner" style="display: none;"></span>
+                        </button>
+                    </div>
+
+                    <div class="progress mt-3" style="display: none;">
+                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Export Section -->
+                <div class="section export-section" id="exportSection">
+                    <div class="export-filters">
+                        <h6><i class="bi bi-funnel"></i> Export Filters</h6>
+                        <p class="filter-description">Include bugs from these tabs:</p>
+                        <div class="toggle-group">
+                            <div class="toggle-item">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="feedbackToggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label">
+                                    <i class="bi bi-chat-dots"></i> Feedback
+                                </span>
+                            </div>
+                            <div class="toggle-item">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="taskBoardToggle" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label">
+                                    <i class="bi bi-kanban"></i> Task Board
+                                </span>
+                            </div>
+                            <div class="toggle-item">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="archiveToggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label">
+                                    <i class="bi bi-archive"></i> Archive
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary btn-upload" id="exportBtn">
+                            <span id="exportBtnText">
+                                <i class="bi bi-download"></i> Export Bugs from BugHerd
+                            </span>
+                            <span id="exportBtnSpinner" class="loading-spinner" style="display: none;"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="results" id="results">
+                    <h5><i class="bi bi-info-circle"></i> Results</h5>
+                    <div id="resultsList"></div>
                 </div>
             </div>
         </div>
@@ -168,6 +1045,19 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const operationType = document.getElementById('operationType');
+            const projectSelect = document.getElementById('projectSelect');
+            const refreshProjectsBtn = document.getElementById('refreshProjects');
+            const importSection = document.getElementById('importSection');
+            const exportSection = document.getElementById('exportSection');
+            const exportBtn = document.getElementById('exportBtn');
+            const exportBtnText = document.getElementById('exportBtnText');
+            const exportBtnSpinner = document.getElementById('exportBtnSpinner');
+            const resultsDiv = document.getElementById('results');
+            const resultsList = document.getElementById('resultsList');
+            
+            // Import elements
             const dropArea = document.getElementById('dropArea');
             const fileInput = document.getElementById('fileInput');
             const browseBtn = document.getElementById('browseBtn');
@@ -177,104 +1067,182 @@
             const fileInfo = document.getElementById('fileInfo');
             const progressBar = document.querySelector('.progress');
             const progressBarFill = document.getElementById('progressBar');
-            const resultsDiv = document.getElementById('results');
-            const resultsList = document.getElementById('resultsList');
-            const projectSelect = document.getElementById('projectSelect');
-            const refreshProjectsBtn = document.getElementById('refreshProjects');
+            
+            // Export elements
+            const feedbackToggle = document.getElementById('feedbackToggle');
+            const taskBoardToggle = document.getElementById('taskBoardToggle');
+            const archiveToggle = document.getElementById('archiveToggle');
             
             let selectedFile = null;
             let projects = [];
 
-            // Debug section elements
-            const fetchProjectsBtn = document.getElementById('fetchProjectsBtn');
-            const projectsListDiv = document.getElementById('projectsList');
+            // Custom dropdown functionality
+            const operationDropdown = document.getElementById('operationDropdown');
+            const projectDropdown = document.getElementById('projectDropdown');
+            const dropdownOptions = operationDropdown.querySelectorAll('.dropdown-option');
 
-            // Fetch all projects button click handler
-            fetchProjectsBtn.addEventListener('click', fetchAllProjects);
+            // Create backdrop element
+            const backdrop = document.createElement('div');
+            backdrop.className = 'dropdown-backdrop';
+            document.body.appendChild(backdrop);
 
-            // Function to fetch all projects with details
-            async function fetchAllProjects() {
-                try {
-                    fetchProjectsBtn.disabled = true;
-                    fetchProjectsBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
-                    
-                    const response = await fetch('/api/projects');
-                    const data = await response.json();
-                    
-                    if (data.success && data.projects) {
-                        renderProjectsList(data.projects);
-                    } else {
-                        throw new Error(data.error || 'Failed to fetch projects');
-                    }
-                } catch (error) {
-                    console.error('Error fetching projects:', error);
-                    projectsListDiv.innerHTML = `
-                        <div class="alert alert-danger">
-                            <strong>Error:</strong> ${error.message}
-                            ${error.details ? `<div class="mt-2"><small>${JSON.stringify(error.details)}</small></div>` : ''}
-                        </div>`;
-                } finally {
-                    fetchProjectsBtn.disabled = false;
-                    fetchProjectsBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Fetch All Projects';
+            // Toggle operation dropdown on select click
+            operationType.addEventListener('click', function(e) {
+                e.preventDefault();
+                const isOpen = operationDropdown.classList.contains('show');
+                
+                // Close project dropdown if open
+                projectDropdown.classList.remove('show');
+                
+                if (isOpen) {
+                    operationDropdown.classList.remove('show');
+                    backdrop.classList.remove('show');
+                } else {
+                    operationDropdown.classList.add('show');
+                    backdrop.classList.add('show');
                 }
-            }
+            });
 
-            // Function to render projects list
-            function renderProjectsList(projects) {
-                if (!Array.isArray(projects) || projects.length === 0) {
-                    projectsListDiv.innerHTML = '<div class="alert alert-warning">No projects found in your BugHerd account</div>';
+            // Toggle project dropdown on select click
+            projectSelect.addEventListener('click', function(e) {
+                e.preventDefault();
+                const isOpen = projectDropdown.classList.contains('show');
+                
+                // Close operation dropdown if open
+                operationDropdown.classList.remove('show');
+                
+                if (isOpen) {
+                    projectDropdown.classList.remove('show');
+                    backdrop.classList.remove('show');
+                } else {
+                    projectDropdown.classList.add('show');
+                    backdrop.classList.add('show');
+                }
+            });
+
+            // Handle dropdown option clicks
+            dropdownOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const value = this.getAttribute('data-value');
+                    const text = this.textContent.trim();
+                    
+                    // Update select value
+                    operationType.value = value;
+                    
+                    // Update select display text
+                    operationType.options[0].text = text;
+                    
+                    // Update option styling
+                    dropdownOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    
+                    // Hide dropdown
+                    operationDropdown.classList.remove('show');
+                    backdrop.classList.remove('show');
+                    
+                    // Trigger change event
+                    const event = new Event('change');
+                    operationType.dispatchEvent(event);
+                });
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!operationType.contains(e.target) && !operationDropdown.contains(e.target) &&
+                    !projectSelect.contains(e.target) && !projectDropdown.contains(e.target)) {
+                    operationDropdown.classList.remove('show');
+                    projectDropdown.classList.remove('show');
+                    backdrop.classList.remove('show');
+                }
+            });
+
+            // Close dropdown when clicking backdrop
+            backdrop.addEventListener('click', function() {
+                operationDropdown.classList.remove('show');
+                projectDropdown.classList.remove('show');
+                backdrop.classList.remove('show');
+            });
+
+            // Operation type change handler
+            operationType.addEventListener('change', function() {
+                const selectedOperation = this.value;
+                
+                // Hide all sections
+                importSection.classList.remove('active');
+                exportSection.classList.remove('active');
+                
+                if (selectedOperation === 'import') {
+                    importSection.classList.add('active');
+                } else if (selectedOperation === 'export') {
+                    exportSection.classList.add('active');
+                }
+            });
+
+            // Export button click handler
+            exportBtn.addEventListener('click', exportBugs);
+
+            async function exportBugs() {
+                const selectedProject = projectSelect.querySelector('.dropdown-option.selected');
+                if (!selectedProject) {
+                    showError('Please select a project first');
                     return;
                 }
 
-                let html = `
-                    <div class="table-responsive">
-                        <table class="table table-sm table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Project ID</th>
-                                    <th>Name</th>
-                                    <th>Status</th>
-                                    <th>Dev URL</th>
-                                    <th>Created</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
+                // Get selected filters from toggle switches
+                const filters = {
+                    feedback: feedbackToggle.checked,
+                    taskBoard: taskBoardToggle.checked,
+                    archive: archiveToggle.checked
+                };
 
-                projects.forEach(project => {
-                    html += `
-                        <tr>
-                            <td><code>${project.id}</code></td>
-                            <td>${escapeHtml(project.name || 'N/A')}</td>
-                            <td><span class="badge bg-${project.status === 'active' ? 'success' : 'secondary'}">${project.status || 'unknown'}</span></td>
-                            <td><a href="${project.devurl || '#'}" target="_blank">${project.devurl || 'N/A'}</a></td>
-                            <td>${project.created_at ? new Date(project.created_at).toLocaleString() : 'N/A'}</td>
-                        </tr>
-                    `;
-                });
+                // Check if at least one filter is selected
+                if (!filters.feedback && !filters.taskBoard && !filters.archive) {
+                    showError('Please select at least one filter');
+                    return;
+                }
 
-                html += `
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="mt-2 text-muted">
-                        <small>Found ${projects.length} project(s)</small>
-                    </div>
-                `;
+                // Disable button and show loading
+                exportBtn.disabled = true;
+                exportBtnText.innerHTML = '<i class="bi bi-hourglass-split"></i> Exporting...';
+                exportBtnSpinner.style.display = 'inline-block';
 
-                projectsListDiv.innerHTML = html;
-            }
+                try {
+                    const response = await fetch('/api/export', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            projectId: selectedProject.getAttribute('data-value'),
+                            filters: filters
+                        })
+                    });
 
-            // Helper function to escape HTML
-            function escapeHtml(unsafe) {
-                if (!unsafe) return '';
-                return unsafe
-                    .toString()
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;");
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `bugherd_export_${selectedProject.getAttribute('data-value')}_${new Date().toISOString().split('T')[0]}.csv`;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+
+                        showSuccess('Export completed successfully!');
+                    } else {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Export failed');
+                    }
+                } catch (error) {
+                    console.error('Export error:', error);
+                    showError(`Export failed: ${error.message}`);
+                } finally {
+                    // Re-enable button
+                    exportBtn.disabled = false;
+                    exportBtnText.innerHTML = '<i class="bi bi-download"></i> Export Bugs from BugHerd';
+                    exportBtnSpinner.style.display = 'none';
+                }
             }
 
             // Load projects when page loads
@@ -286,9 +1254,9 @@
             // Function to load projects from BugHerd
             async function loadProjects() {
                 try {
-                    projectSelect.disabled = true;
-                    projectSelect.innerHTML = '<option value="">Loading projects...</option>';
+                    projectSelect.querySelector('.select-display').textContent = 'Loading projects...';
                     refreshProjectsBtn.disabled = true;
+                    refreshProjectsBtn.classList.add('btn-loading');
                     
                     console.log('Fetching projects from server...');
                     const response = await fetch('/api/projects');
@@ -339,34 +1307,77 @@
                     
                     showError(errorMessage);
                 } finally {
-                    projectSelect.disabled = false;
                     refreshProjectsBtn.disabled = false;
+                    refreshProjectsBtn.classList.remove('btn-loading');
                 }
             }
 
             // Function to show error message
             function showError(message) {
                 const errorDiv = document.createElement('div');
-                errorDiv.className = 'alert alert-danger mt-3';
-                errorDiv.textContent = message;
+                errorDiv.className = 'alert alert-danger';
+                errorDiv.innerHTML = `<i class="bi bi-exclamation-triangle"></i> ${message}`;
                 resultsList.appendChild(errorDiv);
+                resultsDiv.style.display = 'block';
+            }
+
+            // Function to show success message
+            function showSuccess(message) {
+                const successDiv = document.createElement('div');
+                successDiv.className = 'alert alert-success';
+                successDiv.innerHTML = `<i class="bi bi-check-circle"></i> ${message}`;
+                resultsList.appendChild(successDiv);
                 resultsDiv.style.display = 'block';
             }
 
             // Function to render projects in the select dropdown
             function renderProjects() {
                 if (!Array.isArray(projects) || projects.length === 0) {
-                    projectSelect.innerHTML = '<option value="">No projects available</option>';
+                    projectSelect.querySelector('.select-display').textContent = 'No projects available';
+                    projectDropdown.innerHTML = '';
                     return;
                 }
 
-                let options = '<option value="" disabled selected>Select a project</option>';
+                // Update display text
+                projectSelect.querySelector('.select-display').textContent = 'Select a project';
+                
+                // Clear existing options
+                projectDropdown.innerHTML = '';
+                
+                // Add project options
                 projects.forEach(project => {
                     const projectName = project.name || `Project ${project.id}`;
-                    options += `<option value="${project.id}">${projectName}</option>`;
+                    const option = document.createElement('button');
+                    option.className = 'dropdown-option';
+                    option.setAttribute('data-value', project.id);
+                    option.innerHTML = `
+                        <i class="bi bi-folder option-icon"></i>
+                        ${projectName}
+                    `;
+                    
+                    // Add click handler
+                    option.addEventListener('click', function() {
+                        const value = this.getAttribute('data-value');
+                        const text = this.textContent.trim();
+                        
+                        // Update display text
+                        projectSelect.querySelector('.select-display').textContent = text;
+                        
+                        // Update option styling
+                        projectDropdown.querySelectorAll('.dropdown-option').forEach(opt => opt.classList.remove('selected'));
+                        this.classList.add('selected');
+                        
+                        // Hide dropdown
+                        projectDropdown.classList.remove('show');
+                        backdrop.classList.remove('show');
+                        
+                        // Trigger change event
+                        const event = new Event('change');
+                        projectSelect.dispatchEvent(event);
+                    });
+                    
+                    projectDropdown.appendChild(option);
                 });
-                
-                projectSelect.innerHTML = options;
             }
 
             // Handle drag and drop
@@ -420,10 +1431,10 @@
                     
                     if (fileExt === 'csv' || fileExt === 'xlsx') {
                         selectedFile = file;
-                        fileInfo.textContent = `Selected: ${file.name} (${formatFileSize(file.size)})`;
+                        fileInfo.innerHTML = `<i class="bi bi-file-earmark-check"></i> Selected: ${file.name} (${formatFileSize(file.size)})`;
                         updateUploadButtonState();
                     } else {
-                        alert('Please select a .csv or .xlsx file');
+                        showError('Please select a .csv or .xlsx file');
                     }
                 }
             }
@@ -433,7 +1444,8 @@
 
             // Update upload button state based on file and project selection
             function updateUploadButtonState() {
-                uploadBtn.disabled = !(selectedFile && projectSelect.value);
+                const selectedProject = projectSelect.querySelector('.dropdown-option.selected');
+                uploadBtn.disabled = !(selectedFile && selectedProject);
             }
 
             // Handle upload button click
@@ -445,11 +1457,12 @@
                     return;
                 }
 
-                const projectId = projectSelect.value;
-                if (!projectId) {
+                const selectedProject = projectSelect.querySelector('.dropdown-option.selected');
+                if (!selectedProject) {
                     showError('Please select a project first');
                     return;
                 }
+                const projectId = selectedProject.getAttribute('data-value');
 
                 // Clear previous results
                 resultsList.innerHTML = '';
@@ -482,7 +1495,7 @@
                         const successItem = document.createElement('div');
                         successItem.className = 'alert alert-success';
                         successItem.innerHTML = `
-                            <strong>Upload Complete!</strong>
+                            <i class="bi bi-check-circle"></i> <strong>Upload Complete!</strong>
                             <div>Successfully processed ${successCount} of ${result.results.length} bugs</div>
                             ${errorCount > 0 ? `<div class="text-danger">${errorCount} bugs failed to upload</div>` : ''}
                         `;
@@ -492,7 +1505,7 @@
                         const resultsTable = document.createElement('div');
                         resultsTable.className = 'mt-3';
                         resultsTable.innerHTML = `
-                            <h6>Upload Results:</h6>
+                            <h6><i class="bi bi-table"></i> Upload Results:</h6>
                             <div class="table-responsive">
                                 <table class="table table-sm table-bordered">
                                     <thead class="table-light">
@@ -528,7 +1541,7 @@
                     const errorItem = document.createElement('div');
                     errorItem.className = 'alert alert-danger';
                     errorItem.innerHTML = `
-                        <strong>Error:</strong> ${error.message}
+                        <i class="bi bi-exclamation-triangle"></i> <strong>Error:</strong> ${error.message}
                         ${error.response ? `<div><small>Status: ${error.response.status} ${error.response.statusText}</small></div>` : ''}
                     `;
                     resultsList.appendChild(errorItem);
@@ -538,12 +1551,12 @@
                     
                     // Reset button state
                     uploadBtn.disabled = false;
-                    uploadBtn.innerHTML = 'Upload to BugHerd';
+                    uploadBtn.innerHTML = '<i class="bi bi-upload"></i> Upload to BugHerd';
                     
                     // Clear file input
                     fileInput.value = '';
                     selectedFile = null;
-                    fileInfo.textContent = '';
+                    fileInfo.innerHTML = 'No file selected';
                     updateUploadButtonState();
                 }
             }
