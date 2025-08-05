@@ -113,18 +113,18 @@ app.get('/api/projects', async (req, res) => {
 });
 
 // Helper function to get priority mapping for BugHerd
-function getBugHerdPriority(priorityId) {
-  // BugHerd's priority mapping
+function getBugHerdPriority(priorityName) {
+  // BugHerd's priority mapping - map priority names to IDs
   const priorityMap = {
-    1: { id: 1, name: 'critical' },    // Critical (highest)
-    2: { id: 2, name: 'important' },   // Important
-    3: { id: 3, name: 'normal' },      // Normal
-    4: { id: 4, name: 'minor' },       // Minor (lowest)
-    0: { id: 0, name: 'not set' }      // Not set
+    'critical': { id: 1, name: 'critical' },    // Critical (highest)
+    'important': { id: 2, name: 'important' },   // Important
+    'normal': { id: 3, name: 'normal' },         // Normal
+    'minor': { id: 4, name: 'minor' },           // Minor (lowest)
+    'not set': { id: 0, name: 'not set' },       // Not set
   };
   
   // Default to normal if priority is not in the map
-  return priorityMap[parseInt(priorityId)] || priorityMap[3];
+  return priorityMap[priorityName?.toLowerCase()] || priorityMap['normal'];
 }
 
 // Function to update task priority
@@ -198,8 +198,8 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
       for (const bug of bugs) {
         try {
           // Map CSV fields to BugHerd API fields
-          const priorityId = bug.priority_id ? parseInt(bug.priority_id) : 3; // Default to normal (3)
-          const priority = getBugHerdPriority(priorityId);
+          const priorityName = bug.priority || 'not set'; // Read priority name from CSV
+          const priority = getBugHerdPriority(priorityName);
           
                           // Format the description with additional details
           let description = bug.description || '';
@@ -223,8 +223,8 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
           
           const bugData = {
             description: description,
-            // Use priority_name instead of priority
             priority: priority.name,
+            priority_id: priority.id, // Add the mapped priority_id
             status: bug.status || 'backlog',
             tag_names: bug.tags ? bug.tags.split(',').map(tag => tag.trim()) : [],
             requester_email: bug.requester_email,
@@ -268,7 +268,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
           console.log('Bug created successfully:', response.data);
           
           // Update priority separately if needed
-          if (priority && priority.id !== 0) { // If not normal priority
+          if (priority && priority.id !== 0) { // If not normal priority (3)
             try {
               await updateTaskPriority(
                 req.body.projectId,
