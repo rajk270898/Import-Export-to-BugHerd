@@ -198,7 +198,7 @@
                     fetchProjectsBtn.disabled = true;
                     fetchProjectsBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
                     
-                    const response = await fetch('/api/projects/list');
+                    const response = await fetch('/api/projects');
                     const data = await response.json();
                     
                     if (data.success && data.projects) {

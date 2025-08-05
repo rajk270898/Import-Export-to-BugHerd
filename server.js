@@ -137,7 +137,7 @@ async function updateTaskPriority(projectId, taskId, priority) {
         task: { 
           priority: priority.name,
           // Include required fields that might be needed
-          status: 'backlog' // This will be updated to the actual status in the main flow
+          status: 'QA Team' // This will be updated to the actual status in the main flow
         } 
       }
     );
@@ -201,7 +201,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
           const priorityId = bug.priority_id ? parseInt(bug.priority_id) : 3; // Default to normal (3)
           const priority = getBugHerdPriority(priorityId);
           
-          // Format the description with additional details
+                          // Format the description with additional details
           let description = bug.description || '';
           const details = [];
           
@@ -227,7 +227,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
             priority: priority.name,
             status: bug.status || 'backlog',
             tag_names: bug.tags ? bug.tags.split(',').map(tag => tag.trim()) : [],
-            requester_email: 'support@example.com',
+            requester_email: 'QaAuditor@whitelableiq.com',
             requester_name: 'CSV Importer',
             browser: bug.browser || '',
             browser_version: '',
@@ -267,24 +267,18 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
           
           console.log('Bug created successfully:', response.data);
           
-          // Extract the task ID from the response
-          // BugHerd API returns the task in response.data.task
-          const taskId = response.data.task?.id;
-          
           // Update priority separately if needed
-          if (priority && priority.id !== 3 && taskId) { // If not normal priority and we have a valid task ID
+          if (priority && priority.id !== 0) { // If not normal priority
             try {
               await updateTaskPriority(
                 req.body.projectId,
-                taskId,
+                response.data.id,
                 priority
               );
             } catch (error) {
               console.error('Error updating priority, but bug was created:', error.message);
               // Continue even if priority update fails
             }
-          } else if (!taskId) {
-            console.warn('No task ID found in response, skipping priority update');
           }
 
           results.push({
