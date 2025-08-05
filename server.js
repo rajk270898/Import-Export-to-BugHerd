@@ -205,10 +205,17 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
           let description = bug.description || '';
           const details = [];
           
+          // Add environment details
           if (bug.os) details.push(`OS: ${bug.os}`);
           if (bug.browser) details.push(`Browser: ${bug.browser} ${bug.browser_version || ''}`.trim());
           if (bug.resolution) details.push(`Resolution: ${bug.resolution}`);
           if (bug.browser_size) details.push(`Browser Window: ${bug.browser_size}`);
+          
+          // Add URL at the bottom if available
+          const siteUrl = bug.site || bug.siteUrl || bug.url || '';
+          if (siteUrl) {
+            details.push(`URL: ${siteUrl}`);
+          }
           
           if (details.length > 0) {
             description += '\n\n' + details.join('\n');
@@ -260,18 +267,24 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
           
           console.log('Bug created successfully:', response.data);
           
+          // Extract the task ID from the response
+          // BugHerd API returns the task in response.data.task
+          const taskId = response.data.task?.id;
+          
           // Update priority separately if needed
-          if (priority && priority.id !== 3) { // If not normal priority
+          if (priority && priority.id !== 3 && taskId) { // If not normal priority and we have a valid task ID
             try {
               await updateTaskPriority(
                 req.body.projectId,
-                response.data.id,
+                taskId,
                 priority
               );
             } catch (error) {
               console.error('Error updating priority, but bug was created:', error.message);
               // Continue even if priority update fails
             }
+          } else if (!taskId) {
+            console.warn('No task ID found in response, skipping priority update');
           }
 
           results.push({
