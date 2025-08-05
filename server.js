@@ -227,7 +227,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
             priority: priority.name,
             status: bug.status || 'backlog',
             tag_names: bug.tags ? bug.tags.split(',').map(tag => tag.trim()) : [],
-            requester_email: 'QaAuditor@whitelableiq.com',
+            requester_email: bug.requester_email,
             requester_name: 'CSV Importer',
             browser: bug.browser || '',
             browser_version: '',
