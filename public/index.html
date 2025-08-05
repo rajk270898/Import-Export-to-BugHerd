@@ -127,11 +127,7 @@
 
         .form-group:hover .form-label {
             color: var(--primary-color);
-        }
-
-        .form-group:hover .form-text {
-            color: var(--primary-color);
-        }
+        }z
 
         .form-select, .form-control {
             border: 2px solid var(--border-color);
@@ -194,37 +190,6 @@
             transform: translateY(-1px);
         }
 
-        /* Custom dropdown styling */
-        .form-select {
-            position: relative;
-        }
-
-        .form-select option {
-            padding: 1rem 1.25rem;
-            font-size: 1rem;
-            background: white;
-            color: var(--text-dark);
-            border: none;
-            transition: all 0.2s ease;
-            border-radius: 8px;
-            margin: 2px 0;
-            position: relative;
-        }
-
-        .form-select option:hover {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
-            color: white;
-            transform: translateX(4px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-        }
-
-        .form-select option:checked {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
-            color: white;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-        }
-
         /* Modern dropdown container */
         .dropdown-container {
             position: relative;
@@ -254,85 +219,54 @@
             border-bottom-right-radius: 0;
         }
 
-        /* Enhanced dropdown arrow */
-        .form-select::after {
-            content: '';
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 0;
-            height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-top: 6px solid var(--text-muted);
-            transition: all 0.3s ease;
-        }
-
-        .form-select:focus::after {
-            border-top-color: var(--primary-color);
-            transform: translateY(-50%) rotate(180deg);
-        }
-
         /* Dropdown list container */
         .dropdown-list {
             position: absolute;
             top: 100%;
             left: 0;
             right: 0;
+            max-height: 300px;
+            overflow-y: auto;
             background: white;
-            /* border: 2px solid var(--primary-color); */
+            border: 1px solid var(--border-color);
             border-top: none;
-            border-radius: 50px;
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin: 0;
+            padding: 0;
+            display: none;
+            z-index: 1050;
         }
-
+        
         .dropdown-list.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
+            display: block;
+            animation: slideDown 0.3s ease-out;
+            transform-origin: top center;
         }
 
         /* Custom option styling */
         .dropdown-option {
-            padding: 1rem 1.25rem;
-            font-size: 1rem;
-            color: var(--text-dark);
-            background: white;
-            border: none;
+            display: flex;
+            align-items: center;
             width: 100%;
+            padding: 10px 15px;
             text-align: left;
+            background: none;
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-dark);
             cursor: pointer;
             transition: all 0.2s ease;
+            margin: 0;
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
             position: relative;
-            overflow: hidden;
-        }
-
-        .dropdown-option::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
-            transition: left 0.3s ease;
-        }
-
-        .dropdown-option:hover::before {
-            left: 100%;
         }
 
         .dropdown-option:hover {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            background: var(--primary-color);
             color: white;
-            transform: translateX(4px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         }
 
         .dropdown-option.selected {
@@ -367,17 +301,12 @@
             }
         }
 
-        .dropdown-list.show {
-            animation: slideDown 0.3s ease-out;
-        }
-
         /* Enhanced select styling */
         .form-select {
             cursor: pointer;
             user-select: none;
-        }
-
-        .form-select:focus {
+            position: relative;
+            z-index: 1;
             outline: none;
         }
 
@@ -921,21 +850,15 @@
                     <label for="operationType" class="form-label">
                         <i class="bi bi-gear"></i> Select Operation
                     </label>
-                    <div class="dropdown-container">
-                        <div class="form-select" id="operationType" required>
-                            <span class="select-display">Choose operation...</span>
-                        </div>
-                        <div class="dropdown-list" id="operationDropdown">
-                            <button class="dropdown-option" data-value="import">
-                                <i class="bi bi-upload option-icon"></i>
-                                Import Bugs to BugHerd
-                            </button>
-                            <button class="dropdown-option" data-value="export">
-                                <i class="bi bi-download option-icon"></i>
-                                Export Bugs from BugHerd
-                            </button>
-                        </div>
-                    </div>
+                    <select class="form-select" id="operationType">
+                        <option value="" disabled selected>Select Operation</option>
+                        <option value="import">
+                            <i class="bi bi-upload"></i> Import from File
+                        </option>
+                        <option value="export">
+                            <i class="bi bi-download"></i> Export to File
+                        </option>
+                    </select>
                     <div class="form-text">Choose whether to import or export bugs</div>
                 </div>
 
@@ -944,14 +867,12 @@
                     <label for="projectSelect" class="form-label">
                         <i class="bi bi-folder"></i> Select Project
                     </label>
-                    <div class="dropdown-container">
-                        <div class="form-select" id="projectSelect" required>
-                            <span class="select-display">Loading projects...</span>
-                        </div>
-                        <div class="dropdown-list" id="projectDropdown">
-                            <!-- Project options will be populated dynamically -->
-                        </div>
-                        <button class="btn btn-outline-secondary refresh-btn" type="button" id="refreshProjects">
+                    <div class="d-flex align-items-center gap-2" style="margin-top: 1rem;">
+                        <select class="form-select" id="projectSelect" style="flex: 1;">
+                            <option value="" disabled selected>Select a project</option>
+                            <!-- Project options will be added here dynamically -->
+                        </select>
+                        <button id="refreshProjects" class="btn btn-outline-secondary" title="Refresh Projects">
                             <i class="bi bi-arrow-clockwise"></i>
                         </button>
                     </div>
@@ -1076,92 +997,27 @@
             let selectedFile = null;
             let projects = [];
 
-            // Custom dropdown functionality
-            const operationDropdown = document.getElementById('operationDropdown');
-            const projectDropdown = document.getElementById('projectDropdown');
-            const dropdownOptions = operationDropdown.querySelectorAll('.dropdown-option');
-
-            // Create backdrop element
-            const backdrop = document.createElement('div');
-            backdrop.className = 'dropdown-backdrop';
-            document.body.appendChild(backdrop);
-
-            // Toggle operation dropdown on select click
-            operationType.addEventListener('click', function(e) {
-                e.preventDefault();
-                const isOpen = operationDropdown.classList.contains('show');
+            // Handle operation type change
+            operationType.addEventListener('change', function() {
+                const value = this.value;
                 
-                // Close project dropdown if open
-                projectDropdown.classList.remove('show');
-                
-                if (isOpen) {
-                    operationDropdown.classList.remove('show');
-                    backdrop.classList.remove('show');
-                } else {
-                    operationDropdown.classList.add('show');
-                    backdrop.classList.add('show');
+                // Toggle sections based on selection
+                if (value === 'import') {
+                    importSection.style.display = 'block';
+                    exportSection.style.display = 'none';
+                } else if (value === 'export') {
+                    importSection.style.display = 'none';
+                    exportSection.style.display = 'block';
                 }
-            });
-
-            // Toggle project dropdown on select click
-            projectSelect.addEventListener('click', function(e) {
-                e.preventDefault();
-                const isOpen = projectDropdown.classList.contains('show');
                 
-                // Close operation dropdown if open
-                operationDropdown.classList.remove('show');
-                
-                if (isOpen) {
-                    projectDropdown.classList.remove('show');
-                    backdrop.classList.remove('show');
-                } else {
-                    projectDropdown.classList.add('show');
-                    backdrop.classList.add('show');
-                }
+                // Update upload button state
+                updateUploadButtonState();
             });
+            
+            // Handle project selection change
+            projectSelect.addEventListener('change', updateUploadButtonState);
 
-            // Handle dropdown option clicks
-            dropdownOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    const value = this.getAttribute('data-value');
-                    const text = this.textContent.trim();
-                    
-                    // Update select value
-                    operationType.value = value;
-                    
-                    // Update select display text
-                    operationType.options[0].text = text;
-                    
-                    // Update option styling
-                    dropdownOptions.forEach(opt => opt.classList.remove('selected'));
-                    this.classList.add('selected');
-                    
-                    // Hide dropdown
-                    operationDropdown.classList.remove('show');
-                    backdrop.classList.remove('show');
-                    
-                    // Trigger change event
-                    const event = new Event('change');
-                    operationType.dispatchEvent(event);
-                });
-            });
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!operationType.contains(e.target) && !operationDropdown.contains(e.target) &&
-                    !projectSelect.contains(e.target) && !projectDropdown.contains(e.target)) {
-                    operationDropdown.classList.remove('show');
-                    projectDropdown.classList.remove('show');
-                    backdrop.classList.remove('show');
-                }
-            });
-
-            // Close dropdown when clicking backdrop
-            backdrop.addEventListener('click', function() {
-                operationDropdown.classList.remove('show');
-                projectDropdown.classList.remove('show');
-                backdrop.classList.remove('show');
-            });
+            // API base URL
 
             // Operation type change handler
             operationType.addEventListener('change', function() {
@@ -1182,7 +1038,7 @@
             exportBtn.addEventListener('click', exportBugs);
 
             async function exportBugs() {
-                const selectedProject = projectSelect.querySelector('.dropdown-option.selected');
+                const selectedProject = projectSelect.value;
                 if (!selectedProject) {
                     showError('Please select a project first');
                     return;
@@ -1213,7 +1069,7 @@
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            projectId: selectedProject.getAttribute('data-value'),
+                            projectId: selectedProject,
                             filters: filters
                         })
                     });
@@ -1223,7 +1079,7 @@
                         const url = window.URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = `bugherd_export_${selectedProject.getAttribute('data-value')}_${new Date().toISOString().split('T')[0]}.csv`;
+                        a.download = `bugherd_export_${selectedProject}_${new Date().toISOString().split('T')[0]}.csv`;
                         document.body.appendChild(a);
                         a.click();
                         window.URL.revokeObjectURL(url);
@@ -1254,7 +1110,6 @@
             // Function to load projects from BugHerd
             async function loadProjects() {
                 try {
-                    projectSelect.querySelector('.select-display').textContent = 'Loading projects...';
                     refreshProjectsBtn.disabled = true;
                     refreshProjectsBtn.classList.add('btn-loading');
                     
@@ -1332,52 +1187,34 @@
 
             // Function to render projects in the select dropdown
             function renderProjects() {
+                const projectSelect = document.getElementById('projectSelect');
+                
+                // Clear existing options except the first one
+                while (projectSelect.options.length > 1) {
+                    projectSelect.remove(1);
+                }
+                
                 if (!Array.isArray(projects) || projects.length === 0) {
-                    projectSelect.querySelector('.select-display').textContent = 'No projects available';
-                    projectDropdown.innerHTML = '';
+                    // Add disabled option when no projects are available
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.disabled = true;
+                    option.selected = true;
+                    option.textContent = 'No projects available';
+                    projectSelect.appendChild(option);
                     return;
                 }
-
-                // Update display text
-                projectSelect.querySelector('.select-display').textContent = 'Select a project';
-                
-                // Clear existing options
-                projectDropdown.innerHTML = '';
                 
                 // Add project options
                 projects.forEach(project => {
-                    const projectName = project.name || `Project ${project.id}`;
-                    const option = document.createElement('button');
-                    option.className = 'dropdown-option';
-                    option.setAttribute('data-value', project.id);
-                    option.innerHTML = `
-                        <i class="bi bi-folder option-icon"></i>
-                        ${projectName}
-                    `;
-                    
-                    // Add click handler
-                    option.addEventListener('click', function() {
-                        const value = this.getAttribute('data-value');
-                        const text = this.textContent.trim();
-                        
-                        // Update display text
-                        projectSelect.querySelector('.select-display').textContent = text;
-                        
-                        // Update option styling
-                        projectDropdown.querySelectorAll('.dropdown-option').forEach(opt => opt.classList.remove('selected'));
-                        this.classList.add('selected');
-                        
-                        // Hide dropdown
-                        projectDropdown.classList.remove('show');
-                        backdrop.classList.remove('show');
-                        
-                        // Trigger change event
-                        const event = new Event('change');
-                        projectSelect.dispatchEvent(event);
-                    });
-                    
-                    projectDropdown.appendChild(option);
+                    const option = document.createElement('option');
+                    option.value = project.id;
+                    option.textContent = project.name || `Project ${project.id}`;
+                    projectSelect.appendChild(option);
                 });
+                
+                // Enable the select if it was disabled
+                projectSelect.disabled = false;
             }
 
             // Handle drag and drop
