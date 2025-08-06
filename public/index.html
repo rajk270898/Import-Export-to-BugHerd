@@ -882,13 +882,13 @@
                 <!-- Import Section -->
                 <div class="section import-section" id="importSection">
                     <div class="upload-area" id="dropArea">
-                        <input type="file" id="fileInput" accept=".csv, .xlsx">
+                        <input type="file" id="fileInput" accept=".csv, .xlsx" style="display: none;">
                         <div class="upload-icon">
                             <i class="bi bi-cloud-upload"></i>
                         </div>
                         <div class="upload-title">Drag & Drop your file here</div>
-                        <div class="upload-subtitle">or click to browse</div>
-                        <button class="btn btn-primary" id="browseBtn">
+                        <div class="upload-subtitle">or</div>
+                        <button type="button" class="btn btn-primary" id="browseBtn">
                             <i class="bi bi-folder2-open"></i> Select File
                         </button>
                         <div class="file-info" id="fileInfo">No file selected</div>
@@ -1074,7 +1074,9 @@
                         })
                     });
 
-                    if (response.ok) {
+                    // First check if the response is a CSV file (success case)
+                    const contentType = response.headers.get('content-type');
+                    if (response.ok && contentType && contentType.includes('text/csv')) {
                         const blob = await response.blob();
                         const url = window.URL.createObjectURL(blob);
                         const a = document.createElement('a');
@@ -1087,8 +1089,17 @@
 
                         showSuccess('Export completed successfully!');
                     } else {
-                        const error = await response.json();
-                        throw new Error(error.error || 'Export failed');
+                        // Try to parse as JSON for error messages
+                        let errorMessage = 'Export failed';
+                        try {
+                            const errorData = await response.json();
+                            errorMessage = errorData.error || errorData.message || JSON.stringify(errorData);
+                        } catch (e) {
+                            // If not JSON, get the text response
+                            const text = await response.text();
+                            errorMessage = text || 'Unknown error occurred';
+                        }
+                        throw new Error(errorMessage);
                     }
                 } catch (error) {
                     console.error('Export error:', error);
@@ -1281,8 +1292,9 @@
 
             // Update upload button state based on file and project selection
             function updateUploadButtonState() {
-                const selectedProject = projectSelect.querySelector('.dropdown-option.selected');
-                uploadBtn.disabled = !(selectedFile && selectedProject);
+                const selectedProjectId = projectSelect.value;
+                const hasValidSelection = selectedFile && selectedProjectId && selectedProjectId !== '';
+                uploadBtn.disabled = !hasValidSelection;
             }
 
             // Handle upload button click
@@ -1294,12 +1306,12 @@
                     return;
                 }
 
-                const selectedProject = projectSelect.querySelector('.dropdown-option.selected');
-                if (!selectedProject) {
+                const selectedProjectId = projectSelect.value;
+                if (!selectedProjectId) {
                     showError('Please select a project first');
                     return;
                 }
-                const projectId = selectedProject.getAttribute('data-value');
+                const projectId = selectedProjectId;
 
                 // Clear previous results
                 resultsList.innerHTML = '';

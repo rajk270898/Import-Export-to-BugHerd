@@ -319,60 +319,207 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 
 // Export bugs from BugHerd
 app.post('/api/export', async (req, res) => {
+  console.log('=== EXPORT REQUEST RECEIVED ===');
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('Body:', JSON.stringify(req.body, null, 2));
+  
+  let response;  // Moved to outer scope for error handling
+  
   try {
+    // Validate request body
+    if (!req.body) {
+      console.error('No request body received');
+      return res.status(400).json({ error: 'Request body is required' });
+    }
+    
     const { projectId, filters } = req.body;
+    
+    console.log('=== VALIDATING REQUEST ===');
+    console.log('Project ID:', projectId);
+    console.log('Filters:', filters ? JSON.stringify(filters, null, 2) : 'No filters provided');
 
+    // Validate projectId
     if (!projectId) {
-      return res.status(400).json({ error: 'Project ID is required' });
+      const error = 'Validation failed: Project ID is required';
+      console.error(error);
+      return res.status(400).json({ 
+        success: false,
+        error: error,
+        receivedData: { projectId, hasFilters: !!filters }
+      });
     }
 
-    if (!filters || (!filters.feedback && !filters.taskBoard && !filters.archive)) {
-      return res.status(400).json({ error: 'At least one filter must be enabled' });
+    // Validate filters
+    if (!filters || (typeof filters !== 'object') || 
+        (!filters.feedback && !filters.taskBoard && !filters.archive)) {
+      const error = 'Validation failed: At least one filter must be enabled';
+      console.error(error);
+      return res.status(400).json({ 
+        success: false,
+        error: error,
+        receivedFilters: filters
+      });
     }
 
     console.log('Exporting bugs from BugHerd...');
     console.log('Project ID:', projectId);
     console.log('Filters:', filters);
 
-    // Get all tasks for the project
-    const response = await bugherdApi.get(`/projects/${projectId}/tasks.json`);
+    // Fetch tasks from BugHerd API
+    console.log(`Fetching tasks for project ${projectId}...`);
+    let apiResponse;
+    let tasks = [];
     
-    if (!response.data || !Array.isArray(response.data)) {
-      return res.status(500).json({ error: 'Failed to fetch tasks from BugHerd' });
+    try {
+      // First, get the list of tasks
+      apiResponse = await bugherdApi.get(`/projects/${projectId}/tasks.json`);
+      console.log(`Received response with status: ${apiResponse.status}`);
+      
+      if (!apiResponse.data) {
+        console.error('No data in response:', apiResponse);
+        return res.status(500).json({ error: 'No data received from BugHerd API' });
+      }
+      
+      // Log the full response data structure for debugging
+      console.log('Full response data structure:', JSON.stringify({
+        isArray: Array.isArray(apiResponse.data),
+        hasTasks: !!(apiResponse.data && apiResponse.data.tasks),
+        tasksIsArray: Array.isArray(apiResponse.data.tasks),
+        keys: Object.keys(apiResponse.data)
+      }, null, 2));
+      
+      // Handle the response structure from BugHerd API
+      if (apiResponse.data && apiResponse.data.tasks && Array.isArray(apiResponse.data.tasks)) {
+        tasks = apiResponse.data.tasks;
+        console.log(`Found ${tasks.length} tasks in response.data.tasks`);
+      } else if (Array.isArray(apiResponse.data)) {
+        tasks = apiResponse.data;
+        console.log(`Found ${tasks.length} tasks in response.data`);
+      } else {
+        console.error('Unexpected response format from BugHerd API:', apiResponse.data);
+        return res.status(500).json({ 
+          error: 'Unexpected response format from BugHerd API',
+          details: 'Could not find tasks array in response',
+          responseData: apiResponse.data
+        });
+      }
+      
+      // Fetch detailed information for each task
+      console.log('Fetching detailed information for each task...');
+      const detailedTasks = [];
+      
+      for (const task of tasks) {
+        try {
+          console.log(`Fetching details for task ${task.id}...`);
+          const taskResponse = await bugherdApi.get(`/projects/${projectId}/tasks/${task.id}.json`);
+          
+          if (taskResponse.data) {
+            // Merge the detailed data with the original task data
+            detailedTasks.push({
+              ...task,
+              ...taskResponse.data
+            });
+          } else {
+            console.warn(`No detailed data for task ${task.id}, using basic data`);
+            detailedTasks.push(task);
+          }
+        } catch (error) {
+          console.error(`Error fetching details for task ${task.id}:`, error.message);
+          // Still include the task even if detailed fetch fails
+          detailedTasks.push(task);
+        }
+      }
+      
+      tasks = detailedTasks;
+      
+      console.log(`Processing ${tasks.length} tasks`);
+    } catch (error) {
+      console.error('Error fetching tasks from BugHerd:', error);
+      const errorDetails = {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      };
+      console.error('Error details:', JSON.stringify(errorDetails, null, 2));
+      return res.status(500).json({ 
+        error: 'Failed to fetch tasks from BugHerd API',
+        details: errorDetails,
+        status: error.response?.status
+      });
     }
 
-    let tasks = response.data;
+    // Use the tasks variable that was already set from the API response
     console.log(`Found ${tasks.length} total tasks`);
 
+    console.log('=== FILTERING TASKS ===');
+    console.log(`Total tasks received: ${tasks.length}`);
+    console.log('First task sample:', JSON.stringify(tasks[0], null, 2));
+    
+    // Ensure tasks is an array before filtering
+    if (!Array.isArray(tasks)) {
+      console.error('Tasks is not an array:', typeof tasks, tasks);
+      return res.status(500).json({ 
+        error: 'Invalid tasks data format',
+        details: 'Expected an array of tasks',
+        receivedType: typeof tasks,
+        sampleTask: tasks
+      });
+    }
+    
     // Filter tasks based on enabled filters
     let filteredTasks = [];
     
     if (filters.feedback) {
-      const feedbackTasks = tasks.filter(task => task.status === 'feedback' || task.status === 'Feedback');
-      filteredTasks = filteredTasks.concat(feedbackTasks);
+      console.log('Filtering feedback tasks...');
+      const feedbackTasks = tasks.filter(task => {
+        const status = String(task.status || '').toLowerCase();
+        return status === 'feedback';
+      });
       console.log(`Found ${feedbackTasks.length} feedback tasks`);
+      filteredTasks = [...filteredTasks, ...feedbackTasks];
     }
     
     if (filters.taskBoard) {
-      const taskBoardTasks = tasks.filter(task => 
-        task.status === 'backlog' || 
-        task.status === 'qa team' || 
-        task.status === 'in progress' ||
-        task.status === 'done' ||
-        task.status === 'Backlog' ||
-        task.status === 'QA Team' ||
-        task.status === 'In Progress' ||
-        task.status === 'Done'
-      );
-      filteredTasks = filteredTasks.concat(taskBoardTasks);
+      console.log('Filtering task board tasks...');
+      const taskBoardStatuses = [
+        'backlog', 'qa team', 'in progress', 'done',
+        'Backlog', 'QA Team', 'In Progress', 'Done'
+      ];
+      
+      const taskBoardTasks = tasks.filter(task => {
+        const status = String(task.status || '').toLowerCase();
+        return taskBoardStatuses.includes(status);
+      });
+      
       console.log(`Found ${taskBoardTasks.length} task board tasks`);
+      filteredTasks = [...filteredTasks, ...taskBoardTasks];
     }
     
     if (filters.archive) {
-      const archiveTasks = tasks.filter(task => task.status === 'archive' || task.status === 'Archive');
-      filteredTasks = filteredTasks.concat(archiveTasks);
+      console.log('Filtering archive tasks...');
+      // Check both status and status_id for archive tasks
+      const archiveTasks = tasks.filter(task => {
+        const status = String(task.status || '').toLowerCase();
+        const statusId = parseInt(task.status_id || '0');
+        
+        // Archive status can be indicated by status text or status_id
+        const isArchived = 
+          status.includes('archive') || 
+          status.includes('closed') ||
+          statusId === 5; // Assuming 5 is the ID for closed/archived status
+          
+        console.log(`Task ${task.id} - status: ${status}, status_id: ${statusId}, isArchived: ${isArchived}`);
+        return isArchived;
+      });
+      
       console.log(`Found ${archiveTasks.length} archive tasks`);
+      console.log('Sample archive tasks:', JSON.stringify(archiveTasks.slice(0, 3), null, 2));
+      filteredTasks = [...filteredTasks, ...archiveTasks];
     }
+    
+    console.log(`Total filtered tasks: ${filteredTasks.length}`);
 
     // Remove duplicates (in case a task matches multiple filters)
     const uniqueTasks = filteredTasks.filter((task, index, self) => 
@@ -380,64 +527,150 @@ app.post('/api/export', async (req, res) => {
     );
 
     console.log(`Exporting ${uniqueTasks.length} unique tasks`);
-
-    // Convert tasks to CSV format with specified columns
-    const csvData = uniqueTasks.map(task => {
-      // Combine site and path for Site URL
-      const siteUrl = task.site_page ? 
-        (task.site_page.startsWith('http') ? task.site_page : `https://${task.site_page}`) : '';
-      
-      return {
-        'BugID': task.id || '',
-        'Bug Status': 'New', // Hardcoded as requested
-        'Bug Type': task.status || '',
-        'Severity': task.priority || '',
-        'Categories': task.tag_names ? task.tag_names.join(', ') : '',
-        'Description': task.description || '',
-        'Site URL': siteUrl,
-        'OS': task.os || '',
-        'Browser': task.browser || '',
-        'Browser Size': task.browser_size || '',
-        'Resolution': task.resolution || '',
-        'Screenshot URL': task.screenshot || ''
-      };
-    });
-
-    // Generate CSV content
-    const csvHeaders = [
-      'BugID',
-      'Bug Status', 
-      'Bug Type',
-      'Severity',
-      'Categories',
-      'Description',
-      'Site URL',
-      'OS',
-      'Browser',
-      'Browser Size',
-      'Resolution',
-      'Screenshot URL'
-    ];
-
-    let csvContent = csvHeaders.join(',') + '\n';
     
-    csvData.forEach(row => {
-      const csvRow = csvHeaders.map(header => {
-        const value = row[header] || '';
-        // Escape commas and quotes in CSV values
-        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-          return `"${value.replace(/"/g, '""')}"`;
+    // Log the first few tasks to verify data
+    console.log('Sample tasks to be exported:', JSON.stringify(uniqueTasks.slice(0, 3), null, 2));
+
+    // Check if we have any tasks to export
+    if (uniqueTasks.length === 0) {
+      console.log('No tasks found matching the selected filters');
+      return res.status(404).json({ 
+        error: 'No tasks found',
+        message: 'No tasks match the selected filters',
+        filters: filters
+      });
+    }
+
+    // Convert tasks to CSV format with all available fields
+    const csvData = uniqueTasks.map(task => {
+      try {
+        // Helper function to safely get and format values
+        const getValue = (value, defaultValue = '') => {
+          if (value === null || value === undefined) return defaultValue;
+          if (Array.isArray(value)) return value.join(', ');
+          if (typeof value === 'object') return JSON.stringify(value);
+          return String(value).trim();
+        };
+
+        // Extract task data with null checks and formatting
+        const taskId = task.id || '';
+        const status = getValue(task.status);
+        const priority = getValue(task.priority);
+        const description = getValue(task.description);
+        const sitePage = getValue(task.site_page || task.site_url);
+        const os = getValue(task.os || task.operating_system);
+        const browser = getValue(task.browser);
+        const browserSize = getValue(task.browser_size || task.viewport);
+        const resolution = getValue(task.resolution);
+        const screenshot = getValue(task.screenshot || task.screenshot_url);
+        const tags = Array.isArray(task.tag_names) ? task.tag_names.join(', ') : getValue(task.tags);
+        const dueAt = task.due_at ? new Date(task.due_at).toISOString() : '';
+        const requesterEmail = getValue(task.requester_email);
+        const taskUrl = task.id ? `https://www.bugherd.com/projects/${projectId}/tasks/${task.id}` : '';
+        
+        // Format site URL
+        let siteUrl = sitePage;
+        if (sitePage && !sitePage.startsWith('http')) {
+          siteUrl = `https://${sitePage}`;
+        }
+        
+        // Log task data for debugging
+        console.log(`Processing task ${taskId}`, {
+          status,
+          priority,
+          description: description.substring(0, 50) + (description.length > 50 ? '...' : ''),
+          siteUrl
+        });
+        
+        // Return all available fields
+        return {
+          'BugID': taskId,
+          'Status': status,
+          'Priority': priority,
+          'Priority ID': task.priority_id || '',
+          'Description': description,
+          'Tags': tags,
+          'Site URL': siteUrl,
+          'OS': os,
+          'Browser': browser,
+          'Browser Size': browserSize,
+          'Resolution': resolution,
+          'Screenshot URL': screenshot,
+          'Due At': dueAt,
+          'Requester Email': requesterEmail,
+        };
+      } catch (error) {
+        console.error('Error formatting task for CSV:', error);
+        console.error('Problematic task data:', JSON.stringify(task, null, 2));
+        return null;
+      }
+    }).filter(task => task !== null); // Remove any null entries from failed mappings
+
+    try {
+      // Get all unique headers from all tasks
+      const allHeaders = new Set();
+      csvData.forEach(row => {
+        if (row && typeof row === 'object') {
+          Object.keys(row).forEach(key => allHeaders.add(key));
+        }
+      });
+      
+      // Convert to array and sort for consistent order
+      const csvHeaders = Array.from(allHeaders).sort();
+      
+      // Create CSV content with headers
+      let csvContent = '';
+      
+      // Helper function to escape CSV values
+      const escapeCsv = (value) => {
+        if (value === null || value === undefined) return '';
+        // Handle non-string values
+        if (typeof value !== 'string') {
+          if (Array.isArray(value)) {
+            value = value.join(', ');
+          } else if (typeof value === 'object') {
+            value = JSON.stringify(value);
+          } else {
+            value = String(value);
+          }
+        }
+        // Escape quotes and wrap in quotes if value contains commas, quotes, or newlines
+        if (/[,\n"]/.test(value)) {
+          return '"' + value.replace(/"/g, '""') + '"';
         }
         return value;
+      };
+      
+      // Add headers
+      csvContent += csvHeaders.map(escapeCsv).join(',') + '\n';
+      
+      // Add data rows with error handling for each row
+      csvData.forEach(row => {
+        try {
+          if (row && typeof row === 'object') {
+            const rowData = csvHeaders.map(header => escapeCsv(row[header]));
+            csvContent += rowData.join(',') + '\n';
+          }
+        } catch (rowError) {
+          console.error('Error processing row for CSV:', rowError);
+          console.error('Problematic row data:', JSON.stringify(row, null, 2));
+        }
       });
-      csvContent += csvRow.join(',') + '\n';
-    });
-
-    // Set response headers for CSV download
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', `attachment; filename="bugherd_export_${projectId}_${new Date().toISOString().split('T')[0]}.csv"`);
-    
-    res.send(csvContent);
+      
+      // Set response headers for CSV download
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=bugherd-tasks-${projectId}-${new Date().toISOString().split('T')[0]}.csv`);
+      res.status(200).send(csvContent);
+      console.log('CSV export completed successfully');
+      
+    } catch (error) {
+      console.error('Error generating CSV:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate CSV',
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+    }
 
   } catch (error) {
     console.error('Export error:', error.message);
