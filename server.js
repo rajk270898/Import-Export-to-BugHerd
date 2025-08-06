@@ -582,12 +582,16 @@ app.post('/api/export', async (req, res) => {
           0: 'not set',
         };
         if (typeof task.priority_id !== 'undefined') {
-          priority = priorityMap[task.priority_id] || String(task.priority_id);
+          priority = priorityMap[task.priority_id] || getValue(task.priority);
         } else {
           priority = getValue(task.priority);
         }
         const description = getValue(task.description);
-        const sitePage = getValue(task.site_page || task.site_url);
+        // Best effort to get the site URL for the Site URL column
+        let siteUrl = getValue(task.site_url || task.site || task.url || task.site_page);
+        if (siteUrl && !siteUrl.startsWith('http')) {
+          siteUrl = `https://${siteUrl}`;
+        }
         const os = getValue(task.os || task.operating_system);
         const browser = getValue(task.browser);
         const browserSize = getValue(task.browser_size || task.viewport);
@@ -613,12 +617,6 @@ app.post('/api/export', async (req, res) => {
         const requesterEmail = getValue(task.requester_email);
         const taskUrl = task.id ? `https://www.bugherd.com/projects/${projectId}/tasks/${task.id}` : '';
         
-        // Format site URL
-        let siteUrl = sitePage;
-        if (sitePage && !sitePage.startsWith('http')) {
-          siteUrl = `https://${sitePage}`;
-        }
-        
         // Log task data for debugging
         if (index < 5) {
           console.log('--- FULL TASK OBJECT FOR DEBUGGING ---');
@@ -635,7 +633,7 @@ app.post('/api/export', async (req, res) => {
         // Return all available fields
         return {
           'BugID': (index + 1),
-          'Status': status,
+          'Bug Status': status,
           'Priority': priority,
           'Priority ID': task.priority_id || '',
           'Description': description,
@@ -647,6 +645,8 @@ app.post('/api/export', async (req, res) => {
           'Resolution': resolution,
           'Screenshot URL': screenshot,
           'Requester Email': requesterEmail,
+          'Severity': priority,
+          'Tags/Categories': tags
         };
       } catch (error) {
         console.error('Error formatting task for CSV:', error);
@@ -656,17 +656,23 @@ app.post('/api/export', async (req, res) => {
     }).filter(task => task !== null); // Remove any null entries from failed mappings
 
     try {
-      // Get all unique headers from all tasks
-      const allHeaders = new Set();
-      csvData.forEach(row => {
-        if (row && typeof row === 'object') {
-          Object.keys(row).forEach(key => allHeaders.add(key));
-        }
-      });
-      
-      // Convert to array and sort for consistent order
-      const csvHeaders = Array.from(allHeaders).sort();
-      
+      // Reorder headers to match the 2nd image
+      const csvHeaders = [
+        'BugID',
+        'Bug Status',
+        'Bug Type',
+        'Severity',
+        'Tags/Categories',
+        'Description',
+        'Site URL',
+        'OS',
+        'Browser',
+        'Browser Size',
+        'Resolution',
+        'Screenshot URL',
+        'Requester Email'
+      ];
+
       // Create CSV content with headers
       let csvContent = '';
       
@@ -697,6 +703,7 @@ app.post('/api/export', async (req, res) => {
       csvData.forEach(row => {
         try {
           if (row && typeof row === 'object') {
+            // Map data to the new header order, filling missing columns with empty strings
             const rowData = csvHeaders.map(header => escapeCsv(row[header]));
             csvContent += rowData.join(',') + '\n';
           }
