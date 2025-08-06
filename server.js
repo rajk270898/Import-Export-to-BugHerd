@@ -47,7 +47,8 @@ const bugherdApi = axios.create({
     password: 'x' // BugHerd API requires a non-empty password
   },
   headers: {
-    'Accept': 'application/json'
+    'Accept': 'application/json',
+    'Authorization': `Bearer ${BUGHERD_API_KEY}`
   }
 });
 
@@ -365,73 +366,34 @@ app.post('/api/export', async (req, res) => {
     console.log('Project ID:', projectId);
     console.log('Filters:', filters);
 
-    // Fetch tasks from BugHerd API
-    console.log(`Fetching tasks for project ${projectId}...`);
-    let apiResponse;
+    // Fetch all tasks from BugHerd API with pagination
     let tasks = [];
-    
+    const perPage = 100; // BugHerd API max per_page is usually 100
+    let page = 1;
+    let hasMore = true;
+
     try {
-      // First, get the list of tasks
-      apiResponse = await bugherdApi.get(`/projects/${projectId}/tasks.json`);
-      console.log(`Received response with status: ${apiResponse.status}`);
-      
-      if (!apiResponse.data) {
-        console.error('No data in response:', apiResponse);
-        return res.status(500).json({ error: 'No data received from BugHerd API' });
-      }
-      
-      // Log the full response data structure for debugging
-      console.log('Full response data structure:', JSON.stringify({
-        isArray: Array.isArray(apiResponse.data),
-        hasTasks: !!(apiResponse.data && apiResponse.data.tasks),
-        tasksIsArray: Array.isArray(apiResponse.data.tasks),
-        keys: Object.keys(apiResponse.data)
-      }, null, 2));
-      
-      // Handle the response structure from BugHerd API
-      if (apiResponse.data && apiResponse.data.tasks && Array.isArray(apiResponse.data.tasks)) {
-        tasks = apiResponse.data.tasks;
-        console.log(`Found ${tasks.length} tasks in response.data.tasks`);
-      } else if (Array.isArray(apiResponse.data)) {
-        tasks = apiResponse.data;
-        console.log(`Found ${tasks.length} tasks in response.data`);
-      } else {
-        console.error('Unexpected response format from BugHerd API:', apiResponse.data);
-        return res.status(500).json({ 
-          error: 'Unexpected response format from BugHerd API',
-          details: 'Could not find tasks array in response',
-          responseData: apiResponse.data
+      while (hasMore) {
+        console.log(`Fetching page ${page} of tasks (with attachments)...`);
+        const response = await bugherdApi.get(`/projects/${projectId}/tasks.json`, {
+          params: { page, per_page: perPage, include: 'attachments' },
+          timeout: 30000
         });
-      }
-      
-      // Fetch detailed information for each task
-      console.log('Fetching detailed information for each task...');
-      const detailedTasks = [];
-      
-      for (const task of tasks) {
-        try {
-          console.log(`Fetching details for task ${task.id}...`);
-          const taskResponse = await bugherdApi.get(`/projects/${projectId}/tasks/${task.id}.json`);
-          
-          if (taskResponse.data) {
-            // Merge the detailed data with the original task data
-            detailedTasks.push({
-              ...task,
-              ...taskResponse.data
-            });
-          } else {
-            console.warn(`No detailed data for task ${task.id}, using basic data`);
-            detailedTasks.push(task);
-          }
-        } catch (error) {
-          console.error(`Error fetching details for task ${task.id}:`, error.message);
-          // Still include the task even if detailed fetch fails
-          detailedTasks.push(task);
+        if (!response.data || !Array.isArray(response.data.tasks)) {
+          break;
+        }
+        const pageTasks = response.data.tasks;
+        console.log(`Fetched ${pageTasks.length} tasks from page ${page}`);
+        tasks = [...tasks, ...pageTasks];
+        if (pageTasks.length < perPage) {
+          hasMore = false;
+        } else {
+          page++;
         }
       }
-      
-      tasks = detailedTasks;
-      
+
+      console.log(`Total tasks fetched: ${tasks.length}`);
+
       console.log(`Processing ${tasks.length} tasks`);
     } catch (error) {
       console.error('Error fetching tasks from BugHerd:', error);
@@ -522,18 +484,59 @@ app.post('/api/export', async (req, res) => {
     console.log(`Total filtered tasks: ${filteredTasks.length}`);
 
     // Remove duplicates (in case a task matches multiple filters)
-    const uniqueTasks = filteredTasks.filter((task, index, self) => 
-      index === self.findIndex(t => t.id === task.id)
-    );
+    const duplicateIds = [];
+    const uniqueTasks = filteredTasks.filter((task, index, self) => {
+      const firstIndex = self.findIndex(t => t.id === task.id);
+      if (index !== firstIndex) {
+        duplicateIds.push(task.id);
+      }
+      return index === firstIndex;
+    });
 
+    console.log(`Filtered tasks (before deduplication): ${filteredTasks.length}`);
+    console.log(`Duplicate task IDs removed:`, duplicateIds);
     console.log(`Exporting ${uniqueTasks.length} unique tasks`);
-    
-    // Log the first few tasks to verify data
-    console.log('Sample tasks to be exported:', JSON.stringify(uniqueTasks.slice(0, 3), null, 2));
 
-    // Check if we have any tasks to export
-    if (uniqueTasks.length === 0) {
+    // Fetch detailed info for each unique task (to get screenshot_url and attachments)
+    console.log('Fetching detailed task info for each task (this may take a while)...');
+    const detailedTasks = await Promise.all(uniqueTasks.map(async (task, idx) => {
+      try {
+        const response = await bugherdApi.get(`/projects/${projectId}/tasks/${task.id}.json`);
+        const detailedTask = response.data.task || response.data;
+        if (idx < 5) {
+          console.log(`Task ${task.id} details:`, JSON.stringify({
+            id: detailedTask.id,
+            screenshot_url: detailedTask.screenshot_url,
+            attachments: detailedTask.attachments
+          }, null, 2));
+        }
+        // Merge with original task data, detailed data takes precedence
+        return { ...task, ...detailedTask };
+      } catch (error) {
+        console.error(`Error fetching details for task ${task.id}:`, error.message);
+        // If details can't be fetched, use the original
+        return task;
+      }
+    }));
+    console.log(`Fetched details for ${detailedTasks.length} tasks`);
+
+    // Use detailedTasks instead of uniqueTasks for CSV export
+    if (detailedTasks.length === 0) {
       console.log('No tasks found matching the selected filters');
+      // If debug param is set, include debug info in the response
+      if (req.query.debug === '1') {
+        return res.status(404).json({
+          error: 'No tasks found',
+          message: 'No tasks match the selected filters',
+          filters: filters,
+          debug: {
+            totalFetched: tasks.length,
+            filteredCount: filteredTasks.length,
+            duplicateIds: duplicateIds,
+            uniqueCount: uniqueTasks.length
+          }
+        });
+      }
       return res.status(404).json({ 
         error: 'No tasks found',
         message: 'No tasks match the selected filters',
@@ -541,8 +544,22 @@ app.post('/api/export', async (req, res) => {
       });
     }
 
-    // Convert tasks to CSV format with all available fields
-    const csvData = uniqueTasks.map(task => {
+    // If debug param is set, return debug info instead of CSV
+    if (req.query.debug === '1') {
+      return res.json({
+        success: true,
+        debug: {
+          totalFetched: tasks.length,
+          filteredCount: filteredTasks.length,
+          duplicateIds: duplicateIds,
+          uniqueCount: uniqueTasks.length,
+          sampleTasks: uniqueTasks.slice(0, 3)
+        }
+      });
+    }
+
+    // Convert detailed tasks to CSV format with all available fields
+    const csvData = detailedTasks.map((task, index) => {
       try {
         // Helper function to safely get and format values
         const getValue = (value, defaultValue = '') => {
@@ -555,14 +572,42 @@ app.post('/api/export', async (req, res) => {
         // Extract task data with null checks and formatting
         const taskId = task.id || '';
         const status = getValue(task.status);
-        const priority = getValue(task.priority);
+        // Map priority_id to readable string
+        let priority = '';
+        const priorityMap = {
+          1: 'critical',
+          2: 'important',
+          3: 'normal',
+          4: 'minor',
+          0: 'not set',
+        };
+        if (typeof task.priority_id !== 'undefined') {
+          priority = priorityMap[task.priority_id] || String(task.priority_id);
+        } else {
+          priority = getValue(task.priority);
+        }
         const description = getValue(task.description);
         const sitePage = getValue(task.site_page || task.site_url);
         const os = getValue(task.os || task.operating_system);
         const browser = getValue(task.browser);
         const browserSize = getValue(task.browser_size || task.viewport);
         const resolution = getValue(task.resolution);
-        const screenshot = getValue(task.screenshot || task.screenshot_url);
+        // Screenshot logic: always use screenshot_url if present, otherwise fall back to first image attachment
+        let screenshot = '';
+        if (task.screenshot_url && typeof task.screenshot_url === 'string' && task.screenshot_url.trim() !== '') {
+          screenshot = task.screenshot_url;
+        } else if (Array.isArray(task.attachments)) {
+          const imgAttachment = task.attachments.find(att => 
+            att.content_type && 
+            att.content_type.startsWith('image/') && 
+            att.url
+          );
+          if (imgAttachment) {
+            screenshot = imgAttachment.url;
+          }
+        } else if (task.screenshot && typeof task.screenshot === 'string') {
+          screenshot = task.screenshot;
+        }
         const tags = Array.isArray(task.tag_names) ? task.tag_names.join(', ') : getValue(task.tags);
         const dueAt = task.due_at ? new Date(task.due_at).toISOString() : '';
         const requesterEmail = getValue(task.requester_email);
@@ -575,16 +620,21 @@ app.post('/api/export', async (req, res) => {
         }
         
         // Log task data for debugging
-        console.log(`Processing task ${taskId}`, {
+        if (index < 5) {
+          console.log('--- FULL TASK OBJECT FOR DEBUGGING ---');
+          console.log(JSON.stringify(task, null, 2));
+        }
+        console.log(`Processing task ${taskId} (CSV BugID: ${index + 1})`, {
           status,
           priority,
           description: description.substring(0, 50) + (description.length > 50 ? '...' : ''),
-          siteUrl
+          siteUrl,
+          screenshot,
         });
         
         // Return all available fields
         return {
-          'BugID': taskId,
+          'BugID': (index + 1),
           'Status': status,
           'Priority': priority,
           'Priority ID': task.priority_id || '',
@@ -596,7 +646,6 @@ app.post('/api/export', async (req, res) => {
           'Browser Size': browserSize,
           'Resolution': resolution,
           'Screenshot URL': screenshot,
-          'Due At': dueAt,
           'Requester Email': requesterEmail,
         };
       } catch (error) {
