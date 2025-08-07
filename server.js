@@ -558,6 +558,20 @@ app.post('/api/export', async (req, res) => {
       });
     }
 
+    // Helper to extract Browser, OS, and Resolution from description text
+function extractEnvFromDescription(description) {
+  const result = { os: '', browser: '', resolution: '' };
+  if (typeof description !== 'string') return result;
+  // Regex patterns (case-insensitive, tolerant to spaces)
+  const osMatch = description.match(/OS\s*:\s*([^\n]+)/i);
+  const browserMatch = description.match(/Browser\s*:\s*([^\n]+)/i);
+  const resMatch = description.match(/Resolution\s*:?\s*([^\n]+)/i);
+  if (osMatch) result.os = osMatch[1].trim();
+  if (browserMatch) result.browser = browserMatch[1].trim();
+  if (resMatch) result.resolution = resMatch[1].trim();
+  return result;
+}
+
     // Convert detailed tasks to CSV format with all available fields
     const csvData = detailedTasks.map((task, index) => {
       try {
@@ -592,10 +606,20 @@ app.post('/api/export', async (req, res) => {
         if (siteUrl && !siteUrl.startsWith('http')) {
           siteUrl = `https://${siteUrl}`;
         }
-        const os = getValue(task.os || task.operating_system);
-        const browser = getValue(task.browser);
-        const browserSize = getValue(task.browser_size || task.viewport);
-        const resolution = getValue(task.resolution);
+        let os = getValue(task.requester_os || task.os || task.operating_system);
+        let browser = getValue(task.requester_browser || task.browser);
+        const browserSize = getValue(task.requester_browser_size || task.browser_size || task.viewport);
+        let resolution = getValue(task.requester_resolution || task.resolution);
+        // If still missing, extract from description with debug logging
+        if (!os || !browser || !resolution) {
+          console.log(`[DEBUG] Before extraction (taskId: ${taskId}): os='${os}', browser='${browser}', resolution='${resolution}'`);
+          const env = extractEnvFromDescription(description);
+          console.log(`[DEBUG] extractEnvFromDescription output:`, env);
+          if (!os) os = env.os;
+          if (!browser) browser = env.browser;
+          if (!resolution) resolution = env.resolution;
+          console.log(`[DEBUG] After extraction (taskId: ${taskId}): os='${os}', browser='${browser}', resolution='${resolution}'`);
+        }
         // Screenshot logic: always use screenshot_url if present, otherwise fall back to first image attachment
         let screenshot = '';
         if (task.screenshot_url && typeof task.screenshot_url === 'string' && task.screenshot_url.trim() !== '') {
