@@ -730,5 +730,5 @@ app.use((err, req, res, next) => {
 
 // Start the server
 app.listen(port, () => {
-  // Server started
+  console.log(`Server running at http://localhost:${port}`);
 });
