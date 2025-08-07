@@ -445,16 +445,15 @@ app.post('/api/export', async (req, res) => {
     
     if (filters.taskBoard) {
       console.log('Filtering task board tasks...');
-      const taskBoardStatuses = [
-        'backlog', 'qa team', 'in progress', 'done',
-        'Backlog', 'QA Team', 'In Progress', 'Done'
-      ];
-      
       const taskBoardTasks = tasks.filter(task => {
-        const status = String(task.status || '').toLowerCase();
-        return taskBoardStatuses.includes(status);
+        if (!task.status) return false;
+        const status = String(task.status).trim().toLowerCase();
+        const taskBoardStatuses = [
+          'backlog', 'qa team', 'in progress', 'done', 'in-progress','suggestion',
+          'Backlog', 'QA Team', 'In Progress', 'Done', 'In-Progress','Suggestion'
+        ];
+        return taskBoardStatuses.some(s => status === s.toLowerCase());
       });
-      
       console.log(`Found ${taskBoardTasks.length} task board tasks`);
       filteredTasks = [...filteredTasks, ...taskBoardTasks];
     }
@@ -658,7 +657,7 @@ function extractEnvFromDescription(description) {
         return {
           'BugID': (index + 1),
           'Bug Status': 'New',
-          'Bug Type': status,
+          'Bug Type': (status && status.toLowerCase() === 'suggestion' ? 'Suggestion' : (status && status.toLowerCase() === 'qa team' ? 'Bug' : status)),
           'Priority': priority,
           'Priority ID': task.priority_id || '',
           'Description': description,
