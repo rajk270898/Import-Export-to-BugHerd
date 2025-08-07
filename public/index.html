@@ -1102,7 +1102,6 @@
                         throw new Error(errorMessage);
                     }
                 } catch (error) {
-                    console.error('Export error:', error);
                     showError(`Export failed: ${error.message}`);
                 } finally {
                     // Re-enable button
@@ -1123,16 +1122,9 @@
                 try {
                     refreshProjectsBtn.disabled = true;
                     refreshProjectsBtn.classList.add('btn-loading');
-                    
-                    console.log('Fetching projects from server...');
+            
                     const response = await fetch('/api/projects');
-                    const data = await response.json();
-                    
-                    console.log('API Response:', {
-                        status: response.status,
-                        statusText: response.statusText,
-                        data: data
-                    });
+                    const data = await response.json();            
                     
                     if (data && data.success !== false && Array.isArray(data.projects)) {
                         projects = data.projects;
@@ -1143,7 +1135,6 @@
                         }
                     } else {
                         const errorMsg = data.error || 'Failed to load projects';
-                        console.error('API Error:', data.details || 'No details');
                         
                         let errorMessage = errorMsg;
                         if (response.status === 401) {
@@ -1153,16 +1144,8 @@
                         }
                         
                         showError(`${errorMessage} (Status: ${response.status})`);
-                        
-                        // Show additional debug info in console
-                        console.debug('API Response:', {
-                            status: response.status,
-                            statusText: response.statusText,
-                            data: data
-                        });
                     }
                 } catch (error) {
-                    console.error('Error loading projects:', error);
                     let errorMessage = 'Failed to connect to the server. ';
                     
                     if (error.message.includes('Failed to fetch')) {
@@ -1386,7 +1369,6 @@
                         throw new Error(result.error || 'Failed to upload file');
                     }
                 } catch (error) {
-                    console.error('Upload error:', error);
                     const errorItem = document.createElement('div');
                     errorItem.className = 'alert alert-danger';
                     errorItem.innerHTML = `
