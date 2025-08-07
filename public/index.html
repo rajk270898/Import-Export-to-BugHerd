@@ -191,28 +191,12 @@
             transition: all 0.3s ease;
         }
 
-        .form-select:hover::after {
-            /* border-top-color: var(--primary-color); */
-        }
-
-        .form-select:focus::after {
-            /* border-top-color: var(--primary-color); */
-            transform: translateY(-50%) rotate(180deg);
-        }
-
         .form-select:hover {
             border-color: var(--primary-color);
             background-color: rgba(99, 102, 241, 0.02);
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
         }
-
-        /* .form-select:focus, .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-            outline: none;
-            transform: translateY(-1px);
-        } */
 
         /* Modern dropdown container */
         .dropdown-container {
@@ -353,7 +337,6 @@
             visibility: visible;
         }
 
-        /* Refresh button styling */
         /* Remove the custom arrow since we're using a background image */
         .select-arrow {
             display: none;
@@ -400,11 +383,6 @@
         .select-wrapper:hover::after {
             border-top-color: var(--primary-color);
         }
-
-        /* .form-select:focus + .select-wrapper::after {
-            border-top-color: var(--primary-color);
-            transform: translateY(-50%) rotate(180deg);
-        } */
 
         .input-group {
             border-radius: 12px;
@@ -773,6 +751,17 @@
             vertical-align: middle;
         }
 
+        .refresh{
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .refresh:hover{
+            background-color: white;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
         @media (max-width: 768px) {
             .main-container {
                 padding: 1rem;
@@ -814,14 +803,6 @@
                 font-size: 0.8rem;
             }
         }
-
-        /* Focus styles for accessibility */
-        /* .form-select:focus-visible,
-        .form-control:focus-visible,
-        .btn:focus-visible {
-            outline: 2px solid var(--primary-color);
-            outline-offset: 2px;
-        } */
 
         /* Smooth transitions for all interactive elements */
         * {
@@ -884,7 +865,7 @@
                             <option value="" disabled selected>Select a project</option>
                             <!-- Project options will be added here dynamically -->
                         </select>
-                        <button id="refreshProjects" class="btn btn-outline-secondary" title="Refresh Projects">
+                        <button id="refreshProjects" class=" refresh btn btn-outline-secondary" title="Refresh Projects">
                             <i class="bi bi-arrow-clockwise"></i>
                         </button>
                     </div>
@@ -1047,9 +1028,10 @@
             });
 
             // Export button click handler
-            exportBtn.addEventListener('click', exportBugs);
+            exportBtn.addEventListener('click', showExportOptions);
 
-            async function exportBugs() {
+            // Function to show export options (CSV/HTML)
+            function showExportOptions() {
                 const selectedProject = projectSelect.value;
                 if (!selectedProject) {
                     showError('Please select a project first');
@@ -1069,10 +1051,82 @@
                     return;
                 }
 
-                // Disable button and show loading
-                exportBtn.disabled = true;
-                exportBtnText.innerHTML = '<i class="bi bi-hourglass-split"></i> Exporting...';
-                exportBtnSpinner.style.display = 'inline-block';
+                // Hide the main export button and show the options
+                exportBtn.style.display = 'none';
+                
+                // Create export options container if it doesn't exist
+                let exportOptions = document.getElementById('exportOptions');
+                if (!exportOptions) {
+                    exportOptions = document.createElement('div');
+                    exportOptions.id = 'exportOptions';
+                    exportOptions.className = 'export-options mt-3';
+                    exportOptions.style.display = 'flex';
+                    exportOptions.style.justifyContent = 'center';
+                    exportOptions.style.gap = '10px';
+                    exportBtn.parentNode.insertBefore(exportOptions, exportBtn.nextSibling);
+
+                    // Create CSV Export Button
+                    const csvBtn = document.createElement('button');
+                    csvBtn.className = 'btn btn-primary';
+                    csvBtn.innerHTML = '<i class="bi bi-file-earmark-spreadsheet"></i> Export as CSV';
+                    csvBtn.onclick = () => exportBugs('csv');
+                    exportOptions.appendChild(csvBtn);
+
+                    // Create HTML Report Button (disabled for now)
+                    const htmlBtn = document.createElement('button');
+                    htmlBtn.className = 'btn btn-outline-secondary';
+                    htmlBtn.disabled = true;
+                    htmlBtn.title = 'Coming soon';
+                    htmlBtn.innerHTML = '<i class="bi bi-file-earmark-text"></i> Generate HTML Report';
+                    exportOptions.appendChild(htmlBtn);
+
+                    // Create Cancel Button
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.className = 'btn btn-outline-secondary';
+                    cancelBtn.innerHTML = 'Cancel';
+                    cancelBtn.onclick = resetExportUI;
+                    exportOptions.appendChild(cancelBtn);
+                }
+                
+                exportOptions.style.display = 'flex';
+            }
+
+            // Function to reset the export UI
+            function resetExportUI() {
+                const exportOptions = document.getElementById('exportOptions');
+                if (exportOptions) {
+                    exportOptions.style.display = 'none';
+                }
+                exportBtn.style.display = 'block';
+            }
+
+            async function exportBugs(format = 'csv') {
+                const selectedProject = projectSelect.value;
+                if (!selectedProject) {
+                    showError('Please select a project first');
+                    return;
+                }
+
+                // Get selected filters from toggle switches
+                const filters = {
+                    feedback: feedbackToggle.checked,
+                    taskBoard: taskBoardToggle.checked,
+                    archive: archiveToggle.checked
+                };
+
+                // Get the CSV button and update its text
+                const csvButton = document.querySelector('#exportOptions button:first-child');
+                const originalButtonText = csvButton.innerHTML;
+                
+                // Update button to show loading state
+                if (csvButton) {
+                    csvButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Exporting...';
+                    csvButton.disabled = true;
+                }
+                
+                // Disable other buttons
+                const otherButtons = document.querySelectorAll('#exportOptions button:not(:first-child)');
+                otherButtons.forEach(btn => { btn.disabled = true; });
 
                 try {
                     const response = await fetch('/api/export', {
@@ -1116,10 +1170,20 @@
                 } catch (error) {
                     showError(`Export failed: ${error.message}`);
                 } finally {
-                    // Re-enable button
+                    // Reset UI
+                    resetExportUI();
+                    
+                    // Re-enable export button and restore original text
                     exportBtn.disabled = false;
                     exportBtnText.innerHTML = '<i class="bi bi-download"></i> Export Bugs from BugHerd';
                     exportBtnSpinner.style.display = 'none';
+                    
+                    // Restore the CSV button text if it exists
+                    const csvButton = document.querySelector('#exportOptions button:first-child');
+                    if (csvButton) {
+                        csvButton.innerHTML = '<i class="bi bi-file-earmark-spreadsheet"></i> Export as CSV';
+                        csvButton.disabled = false;
+                    }
                 }
             }
 
@@ -1189,6 +1253,21 @@
                 successDiv.innerHTML = `<i class="bi bi-check-circle"></i> ${message}`;
                 resultsList.appendChild(successDiv);
                 resultsDiv.style.display = 'block';
+                
+                // Automatically remove the success message after 5 seconds
+                setTimeout(() => {
+                    successDiv.style.opacity = '0';
+                    setTimeout(() => {
+                        if (resultsList.contains(successDiv)) {
+                            resultsList.removeChild(successDiv);
+                            
+                            // Hide results container if no messages left
+                            if (resultsList.children.length === 0) {
+                                resultsDiv.style.display = 'none';
+                            }
+                        }
+                    }, 300); // Fade out duration
+                }, 3000); // Show for 3 seconds before starting fade out
             }
 
             // Function to render projects in the select dropdown
