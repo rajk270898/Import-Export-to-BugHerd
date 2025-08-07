@@ -657,7 +657,8 @@ function extractEnvFromDescription(description) {
         // Return all available fields
         return {
           'BugID': (index + 1),
-          'Bug Status': status,
+          'Bug Status': 'New',
+          'Bug Type': status,
           'Priority': priority,
           'Priority ID': task.priority_id || '',
           'Description': description,
