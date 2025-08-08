@@ -346,6 +346,10 @@ app.post('/api/export', async (req, res) => {
 
     // Starting export process
 
+    // Debug log the project ID and filters
+    console.log('Exporting tasks for project ID:', projectId);
+    console.log('Using filters:', filters);
+
     // Fetch all tasks from BugHerd API with pagination
     let tasks = [];
     const perPage = 100; // BugHerd API max per_page is usually 100
@@ -522,17 +526,19 @@ app.post('/api/export', async (req, res) => {
       });
     }
 
-    // Helper to extract Browser, OS, and Resolution from description text
+    // Helper to extract Browser, OS, Resolution, and Browser Window from description text
 function extractEnvFromDescription(description) {
-  const result = { os: '', browser: '', resolution: '' };
+  const result = { os: '', browser: '', resolution: '', browserWindow: '' };
   if (typeof description !== 'string') return result;
   // Regex patterns (case-insensitive, tolerant to spaces)
   const osMatch = description.match(/OS\s*:\s*([^\n]+)/i);
   const browserMatch = description.match(/Browser\s*:\s*([^\n]+)/i);
   const resMatch = description.match(/Resolution\s*:?\s*([^\n]+)/i);
+  const browserWindowMatch = description.match(/Browser\s*Window\s*:?\s*([^\n]+)/i);
   if (osMatch) result.os = osMatch[1].trim();
   if (browserMatch) result.browser = browserMatch[1].trim();
   if (resMatch) result.resolution = resMatch[1].trim();
+  if (browserWindowMatch) result.browserWindow = browserWindowMatch[1].trim();
   return result;
 }
 
@@ -550,6 +556,7 @@ function extractEnvFromDescription(description) {
         // Extract task data with null checks and formatting
         const taskId = task.id || '';
         const status = getValue(task.status);
+        
         // Map priority_id to readable string
         let priority = '';
         const priorityMap = {
@@ -564,56 +571,110 @@ function extractEnvFromDescription(description) {
         } else {
           priority = getValue(task.priority);
         }
+        
         const description = getValue(task.description);
-        // Best effort to get the site URL for the Site URL column
-        let siteUrl = getValue(task.site_url || task.site || task.url || task.site_page);
-        if (siteUrl && !siteUrl.startsWith('http')) {
-          siteUrl = `https://${siteUrl}`;
+        
+        // Enhanced site URL extraction
+        let siteUrl = '';
+        
+        // First try to extract from description if it contains a URL
+        const urlRegex = /(?:https?:\/\/|www\.)[^\s\n]+/gi;
+        const urlsInDescription = description.match(urlRegex) || [];
+        
+        // Check direct URL fields first
+        const possibleUrlFields = [
+          task.site_url, 
+          task.site, 
+          task.url, 
+          task.URL, 
+          task.site_page,
+          task.page_url,
+          task.page,
+          ...urlsInDescription  // Add any URLs found in description
+        ];
+        
+        // Find the first non-empty URL
+        for (const url of possibleUrlFields) {
+          if (url && typeof url === 'string' && url.trim() !== '') {
+            siteUrl = url.trim();
+            // Ensure URL has protocol
+            if (!siteUrl.startsWith('http')) {
+              siteUrl = `https://${siteUrl.replace(/^\/+/, '')}`; // Remove leading slashes before adding protocol
+            }
+            // Clean up the URL
+            siteUrl = siteUrl.replace(/"/g, '').replace(/\n/g, '').trim();
+            // If we found a URL in the description, take the first one and break
+            if (urlsInDescription.includes(url)) {
+              break;
+            }
+          }
         }
+        
+        // Extract environment information
         let os = getValue(task.requester_os || task.os || task.operating_system);
         let browser = getValue(task.requester_browser || task.browser);
-        const browserSize = getValue(task.requester_browser_size || task.browser_size || task.viewport);
-        let resolution = getValue(task.requester_resolution || task.resolution);
-        // If still missing, extract from description
-        if (!os || !browser || !resolution) {
-          const env = extractEnvFromDescription(description);
-          if (!os) os = env.os;
-          if (!browser) browser = env.browser;
-          if (!resolution) resolution = env.resolution;
+        let browserSize = getValue(task.requester_browser_size || task.browser_size || task.viewport || task.window_size || task.browser_window_size);
+        let resolution = getValue(task.requester_resolution || task.resolution || task.screen_resolution);
+        
+        // Extract environment details from description
+        const env = extractEnvFromDescription(description);
+        
+        // Fill in missing fields from description with better fallbacks
+        if (!os) os = env.os;
+        if (!browser) browser = env.browser;
+        
+        // Handle resolution and browser size with better logic
+        if (env.browserWindow) {
+            // If we have browser window from description, use it for browserSize
+            browserSize = env.browserWindow;
         }
-        // Screenshot logic: always use screenshot_url if present, otherwise fall back to first image attachment
+        
+        if (!resolution) {
+            resolution = env.resolution || browserSize;
+        }
+        
+        // If we still don't have browser size but have resolution, use resolution
+        if (!browserSize && resolution) {
+            browserSize = resolution;
+        }
+        
+        // Enhanced screenshot extraction
         let screenshot = '';
-        if (task.screenshot_url && typeof task.screenshot_url === 'string' && task.screenshot_url.trim() !== '') {
-          screenshot = task.screenshot_url;
-        } else if (Array.isArray(task.attachments)) {
+        const possibleScreenshotFields = [
+          task.screenshot_url,
+          task.screenshot,
+          task.image_url,
+          task.attachment_url
+        ];
+        
+        // Check direct screenshot fields first
+        for (const field of possibleScreenshotFields) {
+          if (field && typeof field === 'string' && field.trim() !== '') {
+            screenshot = field.trim();
+            break;
+          }
+        }
+        
+        // If no direct screenshot URL, check attachments
+        if (!screenshot && Array.isArray(task.attachments)) {
+          // Look for image attachments first
           const imgAttachment = task.attachments.find(att => 
             att.content_type && 
             att.content_type.startsWith('image/') && 
             att.url
           );
+          
           if (imgAttachment) {
             screenshot = imgAttachment.url;
+          } else if (task.attachments.length > 0) {
+            // Fall back to any attachment if no image found
+            screenshot = task.attachments[0].url || '';
           }
-        } else if (task.screenshot && typeof task.screenshot === 'string') {
-          screenshot = task.screenshot;
         }
         const tags = Array.isArray(task.tag_names) ? task.tag_names.join(', ') : getValue(task.tags);
-        const dueAt = task.due_at ? new Date(task.due_at).toISOString() : '';
+        // const dueAt = task.due_at ? new Date(task.due_at).toISOString() : '';
         const requesterEmail = getValue(task.requester_email);
-        const taskUrl = task.id ? `https://www.bugherd.com/projects/${projectId}/tasks/${task.id}` : '';
-        
-        // Log task data for debugging
-        // if (index < 5) {
-        //   console.log('--- FULL TASK OBJECT FOR DEBUGGING ---');
-        //   console.log(JSON.stringify(task, null, 2));
-        // }
-        // console.log(`Processing task ${taskId} (CSV BugID: ${index + 1})`, {
-        //   status,
-        //   priority,
-        //   description: description.substring(0, 50) + (description.length > 50 ? '...' : ''),
-        //   siteUrl,
-        //   screenshot,
-        // });
+        // const taskUrl = task.id ? `https://www.bugherd.com/projects/${projectId}/tasks/${task.id}` : '';
         
         // Return all available fields
         return {

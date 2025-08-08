@@ -1412,50 +1412,29 @@
                     
                     if (response.ok) {
                         // Show success message with results
-                        const successCount = result.results.filter(r => r.status === 'success').length;
-                        const errorCount = result.results.length - successCount;
+                        const successCount = result.results ? result.results.filter(r => r.status === 'success').length : 0;
+                        const totalCount = result.results ? result.results.length : 0;
                         
                         const successItem = document.createElement('div');
                         successItem.className = 'alert alert-success';
                         successItem.innerHTML = `
                             <i class="bi bi-check-circle"></i> <strong>Upload Complete!</strong>
-                            <div>Successfully processed ${successCount} of ${result.results.length} bugs</div>
-                            ${errorCount > 0 ? `<div class="text-danger">${errorCount} bugs failed to upload</div>` : ''}
+                            <div>Successfully Processed ${successCount} of ${totalCount} Bugs</div>
+                            ${(totalCount - successCount) > 0 ? `<div class="text-danger">${totalCount - successCount} bugs failed to upload</div>` : ''}
                         `;
                         resultsList.appendChild(successItem);
                         
-                        // Show detailed results
-                        const resultsTable = document.createElement('div');
-                        resultsTable.className = 'mt-3';
-                        resultsTable.innerHTML = `
-                            <h6><i class="bi bi-table"></i> Upload Results:</h6>
-                            <div class="table-responsive">
-                                <table class="table table-sm table-bordered">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Bug ID</th>
-                                            <th>Status</th>
-                                            <th>Details</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${result.results.map(item => `
-                                            <tr class="${item.status === 'success' ? 'table-success' : 'table-danger'}">
-                                                <td>${item.id || 'N/A'}</td>
-                                                <td>${item.status === 'success' ? '✅ Success' : '❌ Failed'}</td>
-                                                <td>
-                                                    ${item.status === 'success' 
-                                                        ? `<a href="${item.url}" target="_blank">View in BugHerd</a>` 
-                                                        : (item.error || 'Unknown error')}
-                                                </td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        `;
-                        resultsList.appendChild(resultsTable);
-                        
+                        // Automatically hide the results after 10 seconds
+                        setTimeout(() => {
+                            // First fade out the results
+                            resultsDiv.style.opacity = '0';
+                            // Then remove them from the DOM after the fade out completes
+                            setTimeout(() => {
+                                resultsList.innerHTML = '';
+                                resultsDiv.style.display = 'none';
+                                resultsDiv.style.opacity = '1'; // Reset opacity for next time
+                            }, 300); // Match this with the CSS transition duration
+                        }, 10000); // 10 seconds
                     } else {
                         throw new Error(result.error || 'Failed to upload file');
                     }
