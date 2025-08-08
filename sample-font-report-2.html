@@ -69,13 +69,26 @@
         }
 
         .sidebar { 
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: sticky;
+            top: 90px;
+            height: fit-content;
+        }
+
+        .sidebar-section {
             background: var(--bg-primary);
             border-radius: 16px;
             padding: 1.5rem;
-            height: fit-content;
-            position: sticky;
-            top: 90px;
             box-shadow: var(--shadow);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            margin: 0 auto;
+            width: 100%;
         }
 
         .sidebar-title {
@@ -431,14 +444,23 @@
     </div>
     <div class="main-layout">
         <div class="sidebar">
-            <h3 class="sidebar-title">Bugs by Severity</h3>
-            <ul class="property-list">
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Bug Summary</h3>
+                <div class="chart-container">
+                    <canvas id="severityChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Bugs by Severity</h3>
+                <ul class="property-list">
                 <li class="property-item selected" data-severity="critical">Critical</li>
                 <li class="property-item" data-severity="important">Important</li>
                 <li class="property-item" data-severity="normal">Normal</li>
                 <li class="property-item" data-severity="minor">Minor</li>
-                <li class="property-item" data-severity="notset">Not Set</li>
-            </ul>
+                    <li class="property-item" data-severity="notset">Not Set</li>
+                </ul>
+            </div>
         </div>
         <div class="issue-list">
             <h3 class="url-title">Page URLs</h3>
@@ -521,7 +543,7 @@
                     <span class="details-value" id="bug-severity">Critical</span>
                 </div>
                 <div class="details-row">
-                    <span class="details-label">Tags:</span>
+                    <span class="details-label">Categories:</span>
                     <span class="details-value" id="bug-tags">Functional</span>
                 </div>
                 <div class="details-row full-width">
@@ -560,6 +582,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Function to update details panel based on selected issue
         function updateDetailsPanel(issueCard) {
@@ -661,6 +684,62 @@
 
         // Initialize with Critical issues shown by default
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize pie chart
+            const ctx = document.getElementById('severityChart').getContext('2d');
+            const severityChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Critical', 'Important', 'Normal', 'Minor', 'Not Set'],
+                    datasets: [{
+                        data: [12, 19, 3, 5, 2],
+                        backgroundColor: [
+                            '#fee2e2',
+                            '#fef3c7',
+                            '#e0f2fe',
+                            '#e5e7eb',
+                            '#f3f4f6'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Add click handler for chart segments
+            document.getElementById('severityChart').onclick = function(evt) {
+                const activePoints = severityChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+                if (activePoints.length > 0) {
+                    const clickedElement = activePoints[0];
+                    const label = severityChart.data.labels[clickedElement.index];
+                    const severityMap = {
+                        'Critical': 'critical',
+                        'High': 'important',
+                        'Medium': 'normal',
+                        'Low': 'minor',
+                        'Info': 'notset'
+                    };
+                    filterIssues(severityMap[label]);
+                    
+                    // Update UI to show selected filter
+                    const filterItems = document.querySelectorAll('.property-item');
+                    handleFilterSelection(
+                        Array.from(filterItems).find(item => item.dataset.severity === severityMap[label].toLowerCase()),
+                        filterItems
+                    );
+                }
+            };
             // Add click handlers for sidebar filter items
             document.querySelectorAll('.property-item').forEach(item => {
                 item.addEventListener('click', function() {
