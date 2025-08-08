@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sample Font Style Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            transition: all 0.2s ease-in-out;
+        }
+
+        body { 
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .report-header { 
+            background: var(--bg-primary);
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .report-title { 
+            font-size: 1.5rem;
+            font-weight: 700;
+            flex: 1;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .tag-bar { 
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .main-layout { 
+            display: grid;
+            grid-template-columns: 280px 1fr 850px;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            min-height: calc(100vh - 70px);
+        }
+
+        .sidebar { 
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 90px;
+            box-shadow: var(--shadow);
+        }
+
+        .sidebar-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .url-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .property-list { 
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .property-item { 
+            padding: 0.875rem 1.25rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .property-item:hover { 
+            background: var(--primary-light);
+            color: white;
+            border-color: var(--primary-light);
+            transform: translateX(5px);
+        }
+
+        .property-item.selected { 
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .issue-list { 
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            border-radius: 16px;
+            padding: 28px;
+        }
+
+        .issue-card { 
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            transform-origin: center;
+        }
+
+        .issue-card:hover { 
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary-light);
+        }
+
+        .issue-card.selected { 
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+            transform: translateY(-4px);
+        }
+
+        .issue-url {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--primary);
+            word-break: break-all;
+            padding: 0.75rem 1rem;
+        }
+
+        .issue-status { 
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--error);
+            margin-bottom: 0.75rem;
+            display: inline-block;
+            padding: 0.375rem 1rem;
+            background: #fee2e2;
+            border-radius: 8px;
+            border: 1px solid #fecaca;
+        }
+
+        .issue-snippet {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .details-panel { 
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 1.75rem;
+            height: fit-content;
+            position: sticky;
+            top: 90px;
+            box-shadow: var(--shadow);
+        }
+
+        .details-selector { 
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .details-title { 
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 1.75rem;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .details-row {
+            display: flex;
+            flex-direction: column;
+            padding: 0.75rem;
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .details-row:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary-light);
+        }
+
+        .details-row.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .details-label { 
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .details-value {
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .details-value a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .details-value a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* Severity badge */
+        #bug-severity {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #bug-severity[data-severity="critical"] {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        #bug-severity[data-severity="important"] {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        #bug-severity[data-severity="normal"] {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+        }
+
+        #bug-severity[data-severity="minor"] {
+            background-color: #e5e7eb;
+            color: #4b5563;
+        }
+
+        #bug-severity[data-severity="notset"] {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+
+        /* Status badge */
+        #bug-status {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        #bug-status[data-status="new"] {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        #bug-tags {
+            display: inline-flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: #e0f2fe;
+            color: #4b5563;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .details-value { 
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .details-table { 
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 1rem 0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .details-table th, 
+        .details-table td { 
+            padding: 1rem 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .details-table th { 
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .details-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .details-table tr:hover td {
+            background: var(--bg-secondary);
+        }
+
+        .screenshot-preview { 
+            margin-top: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            max-width: 100%;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .screenshot-preview:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow);
+            border-color: var(--primary-light);
+        }
+
+
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+
+        pre {
+            background: var(--bg-tertiary);
+            padding: 1.25rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .issue-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="report-header">
+        <span class="report-title">Bug Report</span>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <h3 class="sidebar-title">Bugs by Severity</h3>
+            <ul class="property-list">
+                <li class="property-item selected" data-severity="critical">Critical</li>
+                <li class="property-item" data-severity="important">Important</li>
+                <li class="property-item" data-severity="normal">Normal</li>
+                <li class="property-item" data-severity="minor">Minor</li>
+                <li class="property-item" data-severity="notset">Not Set</li>
+            </ul>
+        </div>
+        <div class="issue-list">
+            <h3 class="url-title">Page URLs</h3>
+            <!-- Critical Issues -->
+            <div class="issue-card selected" data-severity="critical">
+                <div class="issue-url">https://www.example.com/home</div>
+            </div>
+            <div class="issue-card" data-severity="critical">
+                <div class="issue-url">https://www.example.com/about</div>
+            </div>
+            
+            <!-- Important Issues -->
+            <div class="issue-card" data-severity="important">
+                <div class="issue-url">https://www.example.com/services</div>
+            </div>
+            
+            <!-- Normal Issues -->
+            <div class="issue-card" data-severity="normal">
+                <div class="issue-url">https://www.example.com/contact</div>
+            </div>
+            
+            <!-- Not Set Issues -->
+            <div class="issue-card" data-severity="notset">
+                <div class="issue-url">https://www.example.com/blog</div>
+            </div>
+            <div class="issue-card" data-severity="normal">
+                <div class="issue-url">https://www.example.com/products</div>
+            </div>
+            <div class="issue-card" data-severity="important">
+                <div class="issue-url">https://www.example.com/contact-form</div>
+            </div>
+            <div class="issue-card" data-severity="normal">
+                <div class="issue-url">https://www.example.com/faq</div>
+            </div>
+            <div class="issue-card" data-severity="important">
+                <div class="issue-url">https://www.example.com/login</div>
+            </div>
+            <div class="issue-card" data-severity="critical">
+                <div class="issue-url">https://www.example.com/checkout</div>
+            </div>
+            <div class="issue-card" data-severity="normal">
+                <div class="issue-url">https://www.example.com/cart</div>
+            </div>
+            <div class="issue-card" data-severity="important">
+                <div class="issue-url">https://www.example.com/account</div>
+            </div>
+            <div class="issue-card" data-severity="normal">
+                <div class="issue-url">https://www.example.com/settings</div>
+            </div>
+            <div class="issue-card" data-severity="notset">
+                <div class="issue-url">https://www.example.com/privacy</div>
+            </div>
+            <div class="issue-card" data-severity="minor">
+                <div class="issue-url">https://www.example.com/terms</div>
+            </div>
+            <div class="issue-card" data-severity="minor">
+                <div class="issue-url">https://www.example.com/terms</div>
+            </div>
+            <div class="issue-card" data-severity="minor">
+                <div class="issue-url">https://www.example.com/terms</div>
+            </div>
+        </div>
+        <div class="details-panel">
+            <div class="details-selector">Bug Details</div>
+            <div class="details-grid">
+                <div class="details-row">
+                    <span class="details-label">Bug ID:</span>
+                    <span class="details-value" id="bug-id">1</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Bug Status:</span>
+                    <span class="details-value" id="bug-status">New</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Bug Type:</span>
+                    <span class="details-value" id="bug-type">Bug</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Severity:</span>
+                    <span class="details-value" id="bug-severity">Critical</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Tags:</span>
+                    <span class="details-value" id="bug-tags">Functional</span>
+                </div>
+                <div class="details-row full-width">
+                    <span class="details-label">Description:</span>
+                    <div class="details-value" id="bug-description">Description of the Bug</div>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Site URL:</span>
+                    <a href="#" class="details-value" id="site-url" target="_blank">www.google.com</a>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">OS:</span>
+                    <span class="details-value" id="os">Windows 10</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Browser:</span>
+                    <span class="details-value" id="browser">Firefox 141.0</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Browser Size:</span>
+                    <span class="details-value" id="browser-size">1869 x 947 px</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Resolution:</span>
+                    <span class="details-value" id="resolution">1920 x 1080 px</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Screenshot:</span>
+                    <a href="https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg" class="details-value" id="screenshot-url" target="_blank" rel="noopener noreferrer">View Screenshot</a>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Requester Email:</span>
+                    <a href="mailto:reypatel@yopmail.com" class="details-value" id="requester-email">reypatel@yopmail.com</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to update details panel based on selected issue
+        function updateDetailsPanel(issueCard) {
+            const url = issueCard.querySelector('.issue-url').textContent;
+            const severity = issueCard.getAttribute('data-severity');
+            
+            // Extract domain from URL for generating sample data
+            const domain = new URL(url.startsWith('http') ? url : `https://${url}`).hostname.replace('www.', '');
+            const pageName = url.split('/').pop().split('.')[0] || 'home';
+            
+            // Generate sample bug data based on URL and severity
+            const bugData = {
+                id: Math.floor(1000 + Math.random() * 9000), // Random ID between 1000-9999
+                status: 'New',
+                type: 'Bug',
+                severity: severity.charAt(0).toUpperCase() + severity.slice(1),
+                tags: ['Functional', 'UI'],
+                description: `Issue detected on ${pageName} page. This is a sample description for the reported bug. The issue needs to be investigated and fixed as per the severity level.`,
+                siteUrl: domain,
+                os: 'Windows 10',
+                browser: 'Firefox 141.0',
+                browserSize: '1869 x 947 px',
+                resolution: '1920 x 1080 px',
+                screenshotUrl: 'https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg',
+                email: 'reypatel@yopmail.com'
+            };
+            
+            // Update the UI with bug data
+            document.getElementById('bug-id').textContent = bugData.id;
+            document.getElementById('bug-status').textContent = bugData.status;
+            document.getElementById('bug-status').setAttribute('data-status', bugData.status.toLowerCase());
+            document.getElementById('bug-type').textContent = bugData.type;
+            
+            const severityElement = document.getElementById('bug-severity');
+            severityElement.textContent = bugData.severity;
+            severityElement.setAttribute('data-severity', severity);
+            
+            // Update tags
+            const tagsContainer = document.getElementById('bug-tags');
+            tagsContainer.innerHTML = bugData.tags.map(tag => 
+                `<span class="tag">${tag}</span>`
+            ).join('');
+            
+            // Update other fields
+            document.getElementById('bug-description').textContent = bugData.description;
+            
+            const siteUrlElement = document.getElementById('site-url');
+            siteUrlElement.textContent = bugData.siteUrl;
+            siteUrlElement.href = url.startsWith('http') ? url : `https://${url}`;
+            
+            document.getElementById('os').textContent = bugData.os;
+            document.getElementById('browser').textContent = bugData.browser;
+            document.getElementById('browser-size').textContent = bugData.browserSize;
+            document.getElementById('resolution').textContent = bugData.resolution;
+            
+            const screenshotElement = document.getElementById('screenshot-url');
+            screenshotElement.href = bugData.screenshotUrl;
+            
+            const emailElement = document.getElementById('requester-email');
+            emailElement.textContent = bugData.email;
+            emailElement.href = `mailto:${bugData.email}`;
+        }
+
+        // Function to filter and show issues based on severity
+        function filterIssues(severity) {
+            const allIssues = document.querySelectorAll('.issue-card');
+            let hasVisibleIssues = false;
+            
+            allIssues.forEach(issue => {
+                if (severity === 'all' || issue.getAttribute('data-severity') === severity) {
+                    issue.style.display = '';
+                    hasVisibleIssues = true;
+                } else {
+                    issue.style.display = 'none';
+                }
+            });
+            
+            // If no issues found, show a message
+            const noIssuesMessage = document.querySelector('.no-issues-message');
+            if (!hasVisibleIssues) {
+                if (!noIssuesMessage) {
+                    const message = document.createElement('div');
+                    message.className = 'no-issues-message';
+                    message.textContent = 'No issues found for this filter.';
+                    document.querySelector('.issue-list').appendChild(message);
+                }
+            } else if (noIssuesMessage) {
+                noIssuesMessage.remove();
+            }
+        }
+
+        // Function to handle filter selection
+        function handleFilterSelection(selectedElement, elements) {
+            elements.forEach(el => el.classList.remove('selected'));
+            selectedElement.classList.add('selected');
+            const severity = selectedElement.getAttribute('data-severity');
+            filterIssues(severity);
+        }
+
+        // Initialize with Critical issues shown by default
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers for sidebar filter items
+            document.querySelectorAll('.property-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const elements = document.querySelectorAll('.property-item');
+                    handleFilterSelection(this, elements);
+                });
+            });
+
+            // Add click handlers for issue cards
+            document.querySelectorAll('.issue-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remove selected class from all cards
+                    document.querySelectorAll('.issue-card').forEach(c => {
+                        c.classList.remove('selected');
+                    });
+                    // Add selected class to clicked card
+                    this.classList.add('selected');
+                    updateDetailsPanel(this);
+                });
+            });
+
+            // Filter to show only critical issues on page load
+            const criticalFilter = document.querySelector('.property-item[data-severity="critical"]');
+            if (criticalFilter) {
+                const elements = document.querySelectorAll('.property-item');
+                handleFilterSelection(criticalFilter, elements);
+                
+                // Select the first critical issue if available
+                const firstCriticalCard = document.querySelector('.issue-card[data-severity="critical"]');
+                if (firstCriticalCard) {
+                    firstCriticalCard.classList.add('selected');
+                    updateDetailsPanel(firstCriticalCard);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
