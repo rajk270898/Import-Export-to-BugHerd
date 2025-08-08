@@ -1,0 +1,134 @@
+BugID,Bug Status,Bug Type,Severity,Tags/Categories,Description,Site URL,OS,Browser,Browser Size,Resolution,Screenshot URL,Requester Email
+1,New,Bug,critical,Critical,Critical,https://,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg,reypatel@yopmail.com
+2,New,Bug,important,Important,Important,https://,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/cus6o0jmvdxt2xys4jmzla/screenshot.jpg,reypatel@yopmail.com
+3,New,Suggestion,normal,Normal,Normal,https://,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/6js7sposhtbggkrxpgydpw/screenshot.jpg,reypatel@yopmail.com
+4,New,Suggestion,minor,Minor,Minor,https://,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/vs6cpbtjd8otbmavegxwka/screenshot.jpg,reypatel@yopmail.com
+5,New,Bug,not set,Not Set,Not set,https://,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,reypatel@yopmail.com
+6,New,Bug,not set,Hello,"8
+
+OS: Windows 10
+Browser: Firefox 141.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+7,New,Suggestion,minor,Hello,"7
+
+OS: Windows 10
+Browser: Firefox 141.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+8,New,Bug,normal,Hello,"5
+
+OS: Windows 10
+Browser: Firefox 141.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+9,New,Suggestion,normal,Suggestion,"6
+
+OS: Windows 10
+Browser: Firefox 141.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+10,New,Bug,important,Hello,"3
+
+OS: Windows 11
+Browser: Chrome 138.0.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+11,New,Suggestion,important,Suggestion,"4
+
+OS: Windows 11
+Browser: Chrome 138.0.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+12,New,Bug,critical,Hello,"1
+
+OS: Windows 11
+Browser: Chrome 138.0.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+13,New,Suggestion,critical,Suggestion,"2
+
+OS: Windows 11
+Browser: Chrome 138.0.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+14,New,Bug,not set,Hello,"O
+
+OS: Windows 10
+Browser: Firefox 141.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+15,New,Suggestion,minor,Hello,"G
+
+OS: Windows 10
+Browser: Firefox 141.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+16,New,Bug,normal,Hello,"Red
+
+OS: Windows 10
+Browser: Firefox 141.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+17,New,Bug,important,Hello,"Important
+
+OS: Windows 11
+Browser: Chrome 138.0.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+18,New,Bug,critical,Hello,"Hello
+
+OS: Windows 11
+Browser: Chrome 138.0.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+19,New,Suggestion,critical,Suggestion,"Suggestion
+
+OS: Windows 11
+Browser: Chrome 138.0.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+20,New,Suggestion,important,Suggestion,"S_Important
+
+OS: Windows 11
+Browser: Chrome 138.0.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+21,New,Suggestion,normal,Suggestion,"E
+
+OS: Windows 10
+Browser: Firefox 141.0
+Resolution: 1920 x 1080 px
+Browser Window: 1869 x 947 px
+URL: https://www.google.com
+Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com

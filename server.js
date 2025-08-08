@@ -7,13 +7,18 @@ const axios = require('axios');
 const csv = require('csv-parser');
 const xlsx = require('xlsx');
 const fs = require('fs');
+const HTMLGenerator = require('./HTMLGenerator');
 const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
+app.use(express.json()); // Parse JSON request bodies
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Initialize HTMLGenerator with API key
 
 // Configure multer for file uploads
 const upload = multer({
@@ -51,6 +56,9 @@ const bugherdApi = axios.create({
     'Authorization': `Bearer ${BUGHERD_API_KEY}`
   }
 });
+
+// Initialize HTML Generator
+const htmlGenerator = new HTMLGenerator(process.env.BUGHERD_API_KEY);
 
 // Helper function to handle API errors
 const handleApiError = (error, res) => {
@@ -301,6 +309,35 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
     }
   } catch (error) {
     handleApiError(error, res);
+  }
+});
+
+// Generate HTML Report
+app.post('/api/generate-html-report', async (req, res) => {
+  try {
+    const { projectId, filters = {} } = req.body;
+    
+    if (!projectId) {
+      return res.status(400).json({ error: 'Project ID is required' });
+    }
+
+    try {
+      // Generate the HTML report using the HTMLGenerator class
+      const htmlReport = await htmlGenerator.generateReport(projectId, filters);
+      
+      // Send the HTML response
+      res.setHeader('Content-Type', 'text/html');
+      res.send(htmlReport);
+    } catch (error) {
+      console.error('Error generating HTML report:', error);
+      throw error; // Let the outer catch handle it
+    }
+  } catch (error) {
+    console.error('Error in HTML report generation:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate HTML report', 
+      details: error.message 
+    });
   }
 });
 
@@ -577,36 +614,80 @@ function extractEnvFromDescription(description) {
         // Enhanced site URL extraction
         let siteUrl = '';
         
-        // First try to extract from description if it contains a URL
-        const urlRegex = /(?:https?:\/\/|www\.)[^\s\n]+/gi;
-        const urlsInDescription = description.match(urlRegex) || [];
-        
-        // Check direct URL fields first
+        // Check URL fields in order of preference based on BugHerd API response
         const possibleUrlFields = [
-          task.site_url, 
-          task.site, 
-          task.url, 
-          task.URL, 
-          task.site_page,
-          task.page_url,
-          task.page,
-          ...urlsInDescription  // Add any URLs found in description
+          task.url,                     // Direct URL from BugHerd
+          task.site_url,                // Alternative URL field
+          task.site,                    // Site field (might contain domain)
+          task.page_url,                // Page URL field
+          task.page,                    // Page field
+          task.site_page,               // Site page field
+          task.URL,                     // Uppercase URL field (just in case)
+          task['page_url'],             // Alternative syntax
+          task['page-url'],             // Kebab case
+          task['site-page'],            // Kebab case
+          task['site_page']             // Snake case
         ];
         
-        // Find the first non-empty URL
-        for (const url of possibleUrlFields) {
-          if (url && typeof url === 'string' && url.trim() !== '') {
-            siteUrl = url.trim();
-            // Ensure URL has protocol
-            if (!siteUrl.startsWith('http')) {
-              siteUrl = `https://${siteUrl.replace(/^\/+/, '')}`; // Remove leading slashes before adding protocol
+        // Also check in the task's attributes if they exist
+        if (task.attributes && typeof task.attributes === 'object') {
+          possibleUrlFields.push(
+            task.attributes.url,
+            task.attributes.page_url,
+            task.attributes.site_url
+          );
+        }
+        
+        // Try to extract from description as last resort
+        const urlRegex = /(?:https?:\/\/|www\.)[^\s\n\)\]\}'">]+/gi;
+        const urlsInDescription = (description || '').match(urlRegex) || [];
+        
+        // Combine all possible URL sources
+        const allUrlSources = [...possibleUrlFields, ...urlsInDescription];
+        
+        // Find the first valid URL
+        for (const url of allUrlSources) {
+          if (!url) continue;
+          
+          let cleanUrl = String(url).trim();
+          if (!cleanUrl || cleanUrl === 'null' || cleanUrl === 'undefined') continue;
+          
+          // Clean up the URL
+          cleanUrl = cleanUrl
+            .replace(/^['"]+|['"]+$/g, '') // Remove surrounding quotes
+            .replace(/\s+/g, '')            // Remove any whitespace
+            .replace(/\n/g, '')             // Remove newlines
+            .replace(/\.\.\.$/, '')        // Remove trailing ellipsis
+            .replace(/,$/, '');              // Remove trailing comma if present
+            
+          // Skip if URL is too short to be valid
+          if (cleanUrl.length < 5) continue;
+          
+          // Ensure URL has protocol
+          if (!cleanUrl.match(/^https?:\/\//)) {
+            // If it starts with //, add https:
+            if (cleanUrl.startsWith('//')) {
+              cleanUrl = 'https:' + cleanUrl;
+            } 
+            // If it starts with www., add https://
+            else if (cleanUrl.startsWith('www.')) {
+              cleanUrl = 'https://' + cleanUrl;
             }
-            // Clean up the URL
-            siteUrl = siteUrl.replace(/"/g, '').replace(/\n/g, '').trim();
-            // If we found a URL in the description, take the first one and break
-            if (urlsInDescription.includes(url)) {
-              break;
+            // Otherwise, it's likely a path, prepend https://
+            else {
+              cleanUrl = 'https://' + cleanUrl.replace(/^\/+/g, '');
             }
+          }
+          
+          // Basic URL validation
+          try {
+            const urlObj = new URL(cleanUrl);
+            // If we get here, it's a valid URL
+            siteUrl = cleanUrl;
+            break; // Use the first valid URL we find
+          } catch (e) {
+            // Not a valid URL, continue to next candidate
+            continue;
           }
         }
 
@@ -709,7 +790,7 @@ function extractEnvFromDescription(description) {
           'Browser Size': browserSize,
           'Resolution': resolution,
           'Screenshot URL': screenshot,
-          'Requester Email': requesterEmail,
+          'Reporter': requesterEmail,
           'Severity': priority,
           'Tags/Categories': tags
         };
@@ -733,7 +814,7 @@ function extractEnvFromDescription(description) {
         'Browser Size',
         'Resolution',
         'Screenshot URL',
-        'Requester Email'
+        'Reporter'
       ];
 
       // Create CSV content with headers
