@@ -7,7 +7,7 @@ const axios = require('axios');
 const csv = require('csv-parser');
 const xlsx = require('xlsx');
 const fs = require('fs');
-const HTMLGenerator = require('./HTMLGenerator');
+const ReportGenerator = require('./generator');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -57,8 +57,8 @@ const bugherdApi = axios.create({
   }
 });
 
-// Initialize HTML Generator
-const htmlGenerator = new HTMLGenerator(process.env.BUGHERD_API_KEY);
+// Initialize Report Generator
+const reportGenerator = new ReportGenerator();
 
 // Helper function to handle API errors
 const handleApiError = (error, res) => {
@@ -322,8 +322,12 @@ app.post('/api/generate-html-report', async (req, res) => {
     }
 
     try {
-      // Generate the HTML report using the HTMLGenerator class
-      const htmlReport = await htmlGenerator.generateReport(projectId, filters);
+      // Generate the HTML report using the ReportGenerator class
+      await reportGenerator.generateReport(projectId);
+      
+      // Read the generated report file
+      const reportPath = path.join(__dirname, 'generated-report.html');
+      const htmlReport = fs.readFileSync(reportPath, 'utf8');
       
       // Send the HTML response
       res.setHeader('Content-Type', 'text/html');
