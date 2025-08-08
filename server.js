@@ -609,6 +609,7 @@ function extractEnvFromDescription(description) {
             }
           }
         }
+
         
         // Extract environment information
         let os = getValue(task.requester_os || task.os || task.operating_system);
@@ -640,6 +641,8 @@ function extractEnvFromDescription(description) {
         
         // Enhanced screenshot extraction
         let screenshot = '';
+        
+        // 1. Check direct screenshot fields first
         const possibleScreenshotFields = [
           task.screenshot_url,
           task.screenshot,
@@ -647,7 +650,6 @@ function extractEnvFromDescription(description) {
           task.attachment_url
         ];
         
-        // Check direct screenshot fields first
         for (const field of possibleScreenshotFields) {
           if (field && typeof field === 'string' && field.trim() !== '') {
             screenshot = field.trim();
@@ -655,7 +657,7 @@ function extractEnvFromDescription(description) {
           }
         }
         
-        // If no direct screenshot URL, check attachments
+        // 2. If no direct screenshot URL, check attachments
         if (!screenshot && Array.isArray(task.attachments)) {
           // Look for image attachments first
           const imgAttachment = task.attachments.find(att => 
@@ -671,6 +673,22 @@ function extractEnvFromDescription(description) {
             screenshot = task.attachments[0].url || '';
           }
         }
+        
+        // 3. If still no screenshot, try to extract from description
+        if (!screenshot && description) {
+          // Look for screenshot URL in the format: "Screenshot: <URL>"
+          const screenshotMatch = description.match(/Screenshot:\s*(https?:\/\/[^\s\n]+)/i);
+          if (screenshotMatch && screenshotMatch[1]) {
+            screenshot = screenshotMatch[1].trim();
+          } else {
+            // Fallback: Look for any image URL in the description
+            const imgUrlMatch = description.match(/(https?:\/\/[^\s\n]+\.(?:jpg|jpeg|png|gif|webp|bmp)(?:\?[^\s\n]*)?)/i);
+            if (imgUrlMatch && imgUrlMatch[0]) {
+              screenshot = imgUrlMatch[0].trim();
+            }
+          }
+        }
+        
         const tags = Array.isArray(task.tag_names) ? task.tag_names.join(', ') : getValue(task.tags);
         // const dueAt = task.due_at ? new Date(task.due_at).toISOString() : '';
         const requesterEmail = getValue(task.requester_email);
