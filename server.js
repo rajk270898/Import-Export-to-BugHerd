@@ -318,30 +318,64 @@ app.post('/api/generate-html-report', async (req, res) => {
     const { projectId, filters = {} } = req.body;
     
     if (!projectId) {
-      return res.status(400).json({ error: 'Project ID is required' });
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Project ID is required' 
+      });
     }
 
+    console.log(`Generating HTML report for project ${projectId} with filters:`, filters);
+    
     try {
-      // Generate the HTML report using the ReportGenerator class
-      await reportGenerator.generateReport(projectId);
+      // Generate the report with filters
+      const reportPath = await reportGenerator.generateReport(projectId, filters);
       
-      // Read the generated report file
-      const reportPath = path.join(__dirname, 'generated-report.html');
-      const htmlReport = fs.readFileSync(reportPath, 'utf8');
+      // Read the generated report
+      const reportHtml = fs.readFileSync(reportPath, 'utf8');
       
-      // Send the HTML response
+      // Send the HTML content
       res.setHeader('Content-Type', 'text/html');
-      res.send(htmlReport);
-    } catch (error) {
-      console.error('Error generating HTML report:', error);
-      throw error; // Let the outer catch handle it
+      return res.send(reportHtml);
+    } catch (genError) {
+      console.error('Error in report generation:', genError);
+      throw new Error(`Failed to generate report: ${genError.message}`);
     }
+    
   } catch (error) {
-    console.error('Error in HTML report generation:', error);
-    res.status(500).json({ 
-      error: 'Failed to generate HTML report', 
-      details: error.message 
-    });
+    console.error('Error in HTML report endpoint:', error);
+    
+    // Send error response as HTML
+    const errorHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <title>Error Generating Report</title>
+          <style>
+              body { font-family: Arial, sans-serif; padding: 40px; text-align: center; }
+              .error-container { max-width: 600px; margin: 0 auto; }
+              h1 { color: #dc3545; }
+              pre { 
+                  background: #f8f9fa; 
+                  padding: 20px; 
+                  border-radius: 5px; 
+                  text-align: left;
+                  white-space: pre-wrap;
+                  word-wrap: break-word;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="error-container">
+              <h1>Error Generating Report</h1>
+              <p>An error occurred while generating the HTML report:</p>
+              <pre>${error.message || 'Unknown error'}</pre>
+              <p>Please try again or contact support if the issue persists.</p>
+          </div>
+      </body>
+      </html>
+    `;
+    
+    res.status(500).send(errorHtml);
   }
 });
 
@@ -887,7 +921,9 @@ function extractEnvFromDescription(description) {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
+  console.error('Error:', err);
   res.status(500).json({ 
+    success: false, 
     error: err.message || 'Internal server error' 
   });
 });

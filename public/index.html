@@ -486,14 +486,15 @@
         }
 
         .btn {
-            border-radius: 12px;
-            padding: 0.875rem 2rem;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .btn::before {
@@ -514,23 +515,53 @@
         .btn-primary {
             background: var(--primary-color);
             color: white;
+            border: 1px solid var(--primary-hover);
         }
 
         .btn-primary:hover {
             background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-outline-primary {
+            background: white;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-hover);
+            border-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn-outline-secondary {
+            background: white;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-outline-secondary:hover {
+            background: #f8fafc;
+            color: #475569;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
         .btn-success {
             background: var(--accent-color);
             color: white;
+            border: 1px solid #059669;
         }
 
         .btn-success:hover {
             background: #059669;
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
         }
 
         .btn:disabled {
@@ -827,6 +858,43 @@
         .form-select::-webkit-scrollbar-thumb:hover {
             background: var(--primary-hover);
         }
+        
+        /* Export options container */
+        .export-options-container {
+            width: 100%;
+            margin: 1.5rem 0;
+            padding: 0.5rem;
+        }
+        
+        .export-options-container .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
+        }
+        
+        .export-options-container .btn {
+            flex: 1 1 auto;
+            min-width: 180px;
+            max-width: 250px;
+            margin: 0.25rem;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+        
+        /* Center export options */
+        .export-options {
+            display: flex !important;
+            justify-content: center !important;
+            gap: 10px;
+            width: 100%;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
     </style>
 </head>
 <body>
@@ -938,13 +1006,15 @@
                         </div>
                     </div>
 
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-primary btn-upload" id="exportBtn">
-                            <span id="exportBtnText">
-                                <i class="bi bi-download"></i> Export Bugs from BugHerd
-                            </span>
-                            <span id="exportBtnSpinner" class="loading-spinner" style="display: none;"></span>
-                        </button>
+                    <div class="d-grid gap-3">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary btn-upload flex-grow-1" id="exportBtn">
+                                <span id="exportBtnText">
+                                    Export from BugHerd
+                                </span>
+                                <span id="exportBtnSpinner" class="loading-spinner" style="display: none;"></span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -986,6 +1056,9 @@
             const feedbackToggle = document.getElementById('feedbackToggle');
             const taskBoardToggle = document.getElementById('taskBoardToggle');
             const archiveToggle = document.getElementById('archiveToggle');
+            const exportHtmlBtn = document.getElementById('exportHtmlBtn');
+            const exportHtmlBtnText = document.getElementById('exportHtmlBtnText');
+            const exportHtmlBtnSpinner = document.getElementById('exportHtmlBtnSpinner');
             
             let selectedFile = null;
             let projects = [];
@@ -1059,35 +1132,40 @@
                 if (!exportOptions) {
                     exportOptions = document.createElement('div');
                     exportOptions.id = 'exportOptions';
-                    exportOptions.className = 'export-options mt-3';
-                    exportOptions.style.display = 'flex';
-                    exportOptions.style.justifyContent = 'center';
-                    exportOptions.style.gap = '10px';
-                    exportBtn.parentNode.insertBefore(exportOptions, exportBtn.nextSibling);
-
+                    exportOptions.className = 'export-options-container';
+                    
+                    // Create button group container
+                    const buttonGroup = document.createElement('div');
+                    buttonGroup.className = 'btn-group';
+                    
                     // Create CSV Export Button
                     const csvBtn = document.createElement('button');
                     csvBtn.className = 'btn btn-primary';
                     csvBtn.innerHTML = '<i class="bi bi-file-earmark-spreadsheet"></i> Export as CSV';
                     csvBtn.onclick = () => exportBugs('csv');
-                    exportOptions.appendChild(csvBtn);
+                    buttonGroup.appendChild(csvBtn);
 
-                    // Create HTML Report Button (disabled for now)
+                    // Create HTML Report Button
                     const htmlBtn = document.createElement('button');
-                    htmlBtn.className = 'btn btn-outline-secondary';
-                    htmlBtn.disabled = true;
-                    htmlBtn.title = 'Coming soon';
-                    htmlBtn.innerHTML = '<i class="bi bi-file-earmark-text"></i> Generate HTML Report';
-                    exportOptions.appendChild(htmlBtn);
+                    htmlBtn.id = 'exportHtmlBtn';
+                    htmlBtn.className = 'btn btn-outline-primary';
+                    htmlBtn.innerHTML = '<span id="exportHtmlBtnText"><i class="bi bi-file-earmark-richtext"></i> Generate HTML Report</span><span id="exportHtmlBtnSpinner" class="loading-spinner" style="display: none;"></span>';
+                    htmlBtn.disabled = false;
+                    buttonGroup.appendChild(htmlBtn);
 
                     // Create Cancel Button
                     const cancelBtn = document.createElement('button');
                     cancelBtn.className = 'btn btn-outline-secondary';
                     cancelBtn.innerHTML = 'Cancel';
                     cancelBtn.onclick = resetExportUI;
-                    exportOptions.appendChild(cancelBtn);
-                }
-                
+                    buttonGroup.appendChild(cancelBtn);
+                    
+                    // Add button group to container
+                    exportOptions.appendChild(buttonGroup);
+                    
+                    // Insert the container after the export button
+                    exportBtn.parentNode.insertBefore(exportOptions, exportBtn.nextSibling);
+                }              
                 exportOptions.style.display = 'flex';
             }
 
@@ -1186,6 +1264,74 @@
                     }
                 }
             }
+
+            // Handle HTML report button click using event delegation
+            document.addEventListener('click', async (e) => {
+                // Check if the clicked element is the export HTML button or a child of it
+                const exportHtmlBtn = e.target.closest('#exportHtmlBtn');
+                if (!exportHtmlBtn) return;
+                
+                const selectedProject = projectSelect.value;
+                if (!selectedProject) {
+                    showError('Please select a project first');
+                    return;
+                }
+
+                // Get selected filters from toggle switches
+                const filters = {
+                    feedback: feedbackToggle.checked,
+                    taskBoard: taskBoardToggle.checked,
+                    archive: archiveToggle.checked
+                };
+
+                // Get the button elements
+                const exportHtmlBtnText = document.getElementById('exportHtmlBtnText');
+                const exportHtmlBtnSpinner = document.getElementById('exportHtmlBtnSpinner');
+                
+                // Update button to show loading state
+                exportHtmlBtn.disabled = true;
+                if (exportHtmlBtnText) {
+                    exportHtmlBtnText.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating...';
+                }
+                if (exportHtmlBtnSpinner) {
+                    exportHtmlBtnSpinner.style.display = 'inline-block';
+                }
+
+                try {
+                    const response = await fetch('/api/generate-html-report', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            projectId: selectedProject,
+                            filters: filters
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error || 'Failed to generate HTML report');
+                    }
+
+                    // Get the HTML content
+                    const html = await response.text();
+                    
+                    // Open the HTML in a new tab
+                    const newWindow = window.open('', '_blank');
+                    newWindow.document.write(html);
+                    newWindow.document.close();
+                    
+                    showSuccess('HTML report generated successfully!');
+                } catch (error) {
+                    showError(`Failed to generate HTML report: ${error.message}`);
+                } finally {
+                    // Reset button state
+                    exportHtmlBtn.disabled = false;
+                    exportHtmlBtnText.innerHTML = '<i class="bi bi-file-earmark-richtext"></i> Generate HTML Report';
+                    exportHtmlBtnSpinner.style.display = 'none';
+                }
+            });
 
             // Load projects when page loads
             loadProjects();

@@ -8,37 +8,60 @@ class ReportGenerator {
     constructor() {
         this.templatePath = path.join(__dirname, 'sample-font-report-2.html');
         this.outputPath = path.join(__dirname, 'generated-report.html');
-        this.apiBaseUrl = 'https://api.bugherd.com/api_v2';
+        this.apiBaseUrl = 'https://www.bugherd.com/api_v2';
         this.apiKey = process.env.BUGHERD_API_KEY;
         
         if (!this.apiKey) {
             console.error('Error: BUGHERD_API_KEY environment variable is not set');
             process.exit(1);
         }
+        
+        console.log('ReportGenerator initialized with API URL:', this.apiBaseUrl);
     }
 
-    async generateReport(projectId) {
+    async generateReport(projectId, filters = {}) {
         try {
+            console.log('Starting report generation...');
+            console.log('Project ID:', projectId);
+            console.log('Filters:', JSON.stringify(filters, null, 2));
+            
+            // Step 1: Fetch project data
             console.log('Fetching project data...');
             const project = await this.fetchProject(projectId);
-            
-            console.log('Fetching tasks...');
-            const tasks = await this.fetchTasks(projectId);
-            
-            if (tasks.length === 0) {
-                console.warn('Warning: No tasks found for this project. The report will be empty.');
+            if (!project) {
+                throw new Error('Failed to fetch project data');
             }
             
+            // Step 2: Fetch tasks with filters
+            console.log('Fetching tasks with filters...');
+            let tasks = await this.fetchTasks(projectId);
+            
+            // Apply filters if any
+            if (Object.keys(filters).length > 0) {
+                console.log('Applying filters to tasks...');
+                tasks = this.filterTasks(tasks, filters);
+            }
+            
+            if (tasks.length === 0) {
+                console.warn('Warning: No tasks found matching the specified filters.');
+            } else {
+                console.log(`Found ${tasks.length} tasks after applying filters`);
+            }
+            
+            // Step 3: Generate charts
             console.log('Generating charts...');
             const charts = await this.generateCharts(tasks);
             
+            // Step 4: Render HTML
             console.log('Rendering HTML...');
             const html = await this.renderHtml(project, tasks, charts);
             
+            // Step 5: Save the report
             console.log('Saving report...');
             await this.saveReport(html);
             
             console.log(`Report generated successfully: ${this.outputPath}`);
+            return this.outputPath;
         } catch (error) {
             console.error('Error generating report:');
             
@@ -73,33 +96,136 @@ class ReportGenerator {
     }
 
     async fetchProject(projectId) {
-        const response = await axios.get(`${this.apiBaseUrl}/projects/${projectId}.json`, {
-            params: { api_key: this.apiKey }
-        });
-        return response.data.project;
+        console.log(`Fetching project ${projectId} from ${this.apiBaseUrl}`);
+        try {
+            const response = await axios.get(`${this.apiBaseUrl}/projects/${projectId}.json`, {
+                auth: {
+                    username: this.apiKey,
+                    password: 'x' // BugHerd requires a non-empty password
+                },
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${this.apiKey}`
+                },
+                timeout: 10000 // 10 seconds timeout
+            });
+            console.log('Project data received');
+            return response.data.project;
+        } catch (error) {
+            console.error('Error fetching project:', error.message);
+            if (error.response) {
+                console.error('Response status:', error.response.status);
+                console.error('Response data:', error.response.data);
+            }
+            throw error;
+        }
     }
 
     async fetchTasks(projectId) {
-        let allTasks = [];
-        let page = 1;
-        let hasMore = true;
-
-        while (hasMore) {
-            const response = await axios.get(`${this.apiBaseUrl}/projects/${projectId}/tasks.json`, {
-                params: {
-                    api_key: this.apiKey,
-                    page: page,
-                    status: 'all',
-                    limit: 100 // Max allowed by API
+        console.log(`Fetching tasks for project ${projectId}`);
+        try {
+            let allTasks = [];
+            let page = 1;
+            let hasMore = true;
+            
+            while (hasMore) {
+                console.log(`Fetching page ${page} of tasks...`);
+                const response = await axios.get(`${this.apiBaseUrl}/projects/${projectId}/tasks.json`, {
+                    params: {
+                        page: page,
+                        per_page: 100, // Maximum allowed by BugHerd API
+                        status: 'all'  // Get all statuses
+                    },
+                    auth: {
+                        username: this.apiKey,
+                        password: 'x' // BugHerd requires a non-empty password
+                    },
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${this.apiKey}`
+                    },
+                    timeout: 30000 // 30 seconds timeout
+                });
+                
+                const tasks = response.data.tasks || [];
+                console.log(`Fetched ${tasks.length} tasks from page ${page}`);
+                allTasks = [...allTasks, ...tasks];
+                
+                // Check if we've reached the end of the list
+                hasMore = tasks.length === 100; // If we got a full page, there might be more
+                page++;
+                
+                // Small delay to avoid hitting rate limits
+                if (hasMore) {
+                    await new Promise(resolve => setTimeout(resolve, 300));
                 }
-            });
-
-            allTasks = [...allTasks, ...response.data.tasks];
-            hasMore = response.data.tasks.length === 100;
-            page++;
+            }
+            
+            console.log(`Total tasks fetched: ${allTasks.length}`);
+            return allTasks;
+            
+        } catch (error) {
+            console.error('Error in fetchTasks:', error.message);
+            if (error.response) {
+                console.error('Response status:', error.response.status);
+                if (error.response.data) {
+                    console.error('Response data:', JSON.stringify(error.response.data, null, 2));
+                }
+            } else if (error.request) {
+                console.error('No response received:', error.request);
+            } else {
+                console.error('Request setup error:', error.message);
+            }
+            throw error;
         }
-
-        return allTasks;
+    }
+    
+    /**
+     * Filter tasks based on the provided filters
+     * @param {Array} tasks - Array of tasks to filter
+     * @param {Object} filters - Filters to apply
+     * @returns {Array} Filtered array of tasks
+     */
+    filterTasks(tasks, filters) {
+        if (!tasks || !Array.isArray(tasks)) {
+            console.warn('No tasks provided for filtering');
+            return [];
+        }
+        
+        return tasks.filter(task => {
+            // Apply feedback filter
+            if (filters.feedback !== undefined) {
+                if (filters.feedback && !task.feedback) {
+                    return false;
+                }
+                if (!filters.feedback && task.feedback) {
+                    return false;
+                }
+            }
+            
+            // Apply task board filter
+            if (filters.taskBoard !== undefined) {
+                if (filters.taskBoard && !task.task_type) {
+                    return false;
+                }
+                if (!filters.taskBoard && task.task_type) {
+                    return false;
+                }
+            }
+            
+            // Apply archive filter
+            if (filters.archive !== undefined) {
+                const isArchived = task.status === 'closed' || task.status === 'resolved';
+                if (filters.archive && !isArchived) {
+                    return false;
+                }
+                if (!filters.archive && isArchived) {
+                    return false;
+                }
+            }
+            
+            return true;
+        });
     }
 
     async generateCharts(tasks) {
