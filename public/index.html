@@ -1133,14 +1133,23 @@
                     exportOptions = document.createElement('div');
                     exportOptions.id = 'exportOptions';
                     exportOptions.className = 'export-options-container';
+                    exportOptions.style.display = 'flex';
+                    exportOptions.style.gap = '0.75rem';
+                    exportOptions.style.borderRadius = '8px';
                     
                     // Create button group container
                     const buttonGroup = document.createElement('div');
                     buttonGroup.className = 'btn-group';
+                    buttonGroup.style.display = 'flex';
+                    buttonGroup.style.flexWrap = 'wrap';
+                    buttonGroup.style.justifyContent = 'center';
+                    buttonGroup.style.gap = '0.75rem';
+                    buttonGroup.style.borderRadius = '8px';
                     
                     // Create CSV Export Button
                     const csvBtn = document.createElement('button');
                     csvBtn.className = 'btn btn-primary';
+                    csvBtn.style.borderRadius = '8px';
                     csvBtn.innerHTML = '<i class="bi bi-file-earmark-spreadsheet"></i> Export as CSV';
                     csvBtn.onclick = () => exportBugs('csv');
                     buttonGroup.appendChild(csvBtn);
@@ -1149,6 +1158,7 @@
                     const htmlBtn = document.createElement('button');
                     htmlBtn.id = 'exportHtmlBtn';
                     htmlBtn.className = 'btn btn-outline-primary';
+                    htmlBtn.style.borderRadius = '8px';
                     htmlBtn.innerHTML = '<span id="exportHtmlBtnText"><i class="bi bi-file-earmark-richtext"></i> Generate HTML Report</span><span id="exportHtmlBtnSpinner" class="loading-spinner" style="display: none;"></span>';
                     htmlBtn.disabled = false;
                     buttonGroup.appendChild(htmlBtn);
@@ -1156,6 +1166,7 @@
                     // Create Cancel Button
                     const cancelBtn = document.createElement('button');
                     cancelBtn.className = 'btn btn-outline-secondary';
+                    cancelBtn.style.borderRadius = '8px';
                     cancelBtn.innerHTML = 'Cancel';
                     cancelBtn.onclick = resetExportUI;
                     buttonGroup.appendChild(cancelBtn);
