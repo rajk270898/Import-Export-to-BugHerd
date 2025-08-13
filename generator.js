@@ -6,7 +6,7 @@ require('dotenv').config();
 
 class ReportGenerator {
     constructor() {
-        this.templatePath = path.join(__dirname, 'sample-font-report-2.html');
+        this.templatePath = path.join(__dirname, 'New template.html');
         this.outputPath = path.join(__dirname, 'generated-report.html');
         this.apiBaseUrl = 'https://www.bugherd.com/api_v2';
         this.apiKey = process.env.BUGHERD_API_KEY;
@@ -47,6 +47,42 @@ class ReportGenerator {
             } else {
                 console.log(`Found ${tasks.length} tasks after applying filters`);
             }
+            
+            // Format tasks for the template
+            const formattedTasks = tasks.map((task, index) => ({
+                id: task.id || `task-${index}`,
+                status: task.status || 'New',
+                type: task['Bug Type'] || 'Bug',
+                severity: this.mapPriorityToSeverity(task.Priority || 'normal'),
+                title: task.Description ? task.Description.substring(0, 100) + (task.Description.length > 100 ? '...' : '') : 'No description',
+                description: task.Description || '',
+                url: task['Site URL'] || '',
+                screenshot: task['Screenshot URL'] || '',
+                browser: task.Browser || 'Unknown',
+                os: task.OS || 'Unknown',
+                resolution: task.Resolution || 'Not specified',
+                browserSize: task['Browser Size'] || 'Not specified',
+                tags: task.Tags ? task.Tags.split(',').map(tag => tag.trim()) : [],
+                reporter: task.Reporter || 'Unknown',
+                priority: task.Priority || 'normal',
+                createdAt: task['created_at'] ? new Date(task['created_at']).toLocaleDateString() : new Date().toLocaleDateString()
+            }));
+            
+            // Group tasks by URL and severity for the accordion
+            const tasksByUrlAndSeverity = this.groupTasksByUrlAndSeverity(formattedTasks);
+            
+            // Generate report data
+            const reportData = {
+                projectName: project.name || 'BugHerd Report',
+                generatedDate: new Date().toLocaleDateString(),
+                totalIssues: formattedTasks.length,
+                tasks: formattedTasks,
+                tasksByUrlAndSeverity: tasksByUrlAndSeverity,
+                severityCounts: this.countIssuesBySeverity(formattedTasks)
+            };
+            
+            // Generate the HTML report
+            return await this.generateHtmlReport(reportData);
             
             // Step 3: Generate charts
             console.log('Generating charts...');
