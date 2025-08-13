@@ -6,7 +6,7 @@ require('dotenv').config();
 
 class ReportGenerator {
     constructor() {
-        this.templatePath = path.join(__dirname, 'sample-font-report-2.html');
+        this.templatePath = path.join(__dirname, 'New template.html');
         this.outputPath = path.join(__dirname, 'generated-report.html');
         this.apiBaseUrl = 'https://www.bugherd.com/api_v2';
         this.apiKey = process.env.BUGHERD_API_KEY;
@@ -97,20 +97,46 @@ class ReportGenerator {
 
     async fetchProject(projectId) {
         console.log(`Fetching project ${projectId} from ${this.apiBaseUrl}`);
+        console.log('Using API Key:', this.apiKey ? '***' + this.apiKey.slice(-4) : 'Not set');
         try {
-            const response = await axios.get(`${this.apiBaseUrl}/projects/${projectId}.json`, {
+            const url = `${this.apiBaseUrl}/projects/${projectId}.json`;
+            console.log('Making request to:', url);
+            
+            const response = await axios.get(url, {
                 auth: {
                     username: this.apiKey,
-                    password: 'x' // BugHerd requires a non-empty password
+                    password: 'x' // BugHerd requires any non-empty password
                 },
                 headers: {
                     'Accept': 'application/json',
-                    'Authorization': `Bearer ${this.apiKey}`
+                    'Content-Type': 'application/json'
                 },
-                timeout: 10000 // 10 seconds timeout
+                // Add timeout and better error handling
+                timeout: 10000,
+                validateStatus: function (status) {
+                    return status >= 200 && status < 500; // Resolve only if the status code is less than 500
+                }
             });
-            console.log('Project data received');
-            return response.data.project;
+            
+            console.log('Project response status:', response.status);
+            console.log('Project response headers:', JSON.stringify(response.headers, null, 2));
+            
+            if (response.status === 200) {
+                console.log('Project data received:', JSON.stringify(response.data, null, 2));
+                return response.data;
+            } else if (response.status === 401) {
+                console.error('Authentication failed. Please check your API key.');
+                console.error('Response data:', response.data);
+                throw new Error('Authentication failed. Please check your API key.');
+            } else if (response.status === 404) {
+                console.error(`Project ${projectId} not found. Please check the project ID.`);
+                console.error('Response data:', response.data);
+                throw new Error(`Project ${projectId} not found. Please check the project ID.`);
+            } else {
+                console.error('Unexpected response:', response.status, response.statusText);
+                console.error('Response data:', response.data);
+                throw new Error(`Unexpected response: ${response.status} ${response.statusText}`);
+            }
         } catch (error) {
             console.error('Error fetching project:', error.message);
             if (error.response) {
@@ -123,41 +149,194 @@ class ReportGenerator {
 
     async fetchTasks(projectId) {
         console.log(`Fetching tasks for project ${projectId}`);
+        console.log(`Using API Key: ${this.apiKey ? '***' + this.apiKey.slice(-4) : 'Not set'}`);
+        
+        // First, let's verify the project exists and we have access
         try {
-            let allTasks = [];
+            // Test the projects endpoint to verify access
+            const projectsUrl = `${this.apiBaseUrl}/projects.json`;
+            console.log(`Verifying API access by fetching projects list from: ${projectsUrl}`);
+            
+            const projectsResponse = await axios.get(projectsUrl, {
+                auth: {
+                    username: this.apiKey,
+                    password: 'x'
+                },
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                timeout: 10000,
+                validateStatus: null // Don't throw on HTTP error status codes
+            });
+            
+            console.log('Projects API response status:', projectsResponse.status);
+            console.log('Projects API response headers:', JSON.stringify(projectsResponse.headers, null, 2));
+            
+            if (projectsResponse.status === 200) {
+                console.log(`Successfully accessed projects API. Found ${projectsResponse.data.projects?.length || 0} projects.`);
+                if (projectsResponse.data.projects?.length > 0) {
+                    const projectExists = projectsResponse.data.projects.some(p => p.id == projectId);
+                    console.log(`Project ${projectId} ${projectExists ? 'exists' : 'does not exist'} in the projects list.`);
+                    if (!projectExists) {
+                        console.log('Available project IDs:', projectsResponse.data.projects.map(p => p.id).join(', '));
+                    }
+                }
+            } else {
+                console.error('Failed to access projects API. Status:', projectsResponse.status);
+                console.error('Response data:', projectsResponse.data);
+                throw new Error(`Failed to verify project access. Status: ${projectsResponse.status}`);
+            }
+            
+            // Now fetch all tasks with pagination
+            console.log('Fetching all tasks with pagination...');
+            const allTasks = [];
             let page = 1;
+            const perPage = 100; // Maximum allowed by BugHerd API
             let hasMore = true;
             
             while (hasMore) {
                 console.log(`Fetching page ${page} of tasks...`);
-                const response = await axios.get(`${this.apiBaseUrl}/projects/${projectId}/tasks.json`, {
-                    params: {
-                        page: page,
-                        per_page: 100, // Maximum allowed by BugHerd API
-                        status: 'all'  // Get all statuses
-                    },
-                    auth: {
-                        username: this.apiKey,
-                        password: 'x' // BugHerd requires a non-empty password
-                    },
-                    headers: {
-                        'Accept': 'application/json',
-                        'Authorization': `Bearer ${this.apiKey}`
-                    },
-                    timeout: 30000 // 30 seconds timeout
-                });
+                try {
+                    const response = await axios.get(`${this.apiBaseUrl}/projects/${projectId}/tasks.json`, {
+                        params: {
+                            page: page,
+                            per_page: perPage,
+                            include_archived: true,
+                            include: 'attachments'
+                        },
+                        auth: {
+                            username: this.apiKey,
+                            password: 'x'
+                        },
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        timeout: 15000,
+                        validateStatus: null // Don't throw on HTTP error status codes
+                    });
+                    
+                    console.log(`API Response Status: ${response.status}`);
+                    
+                    if (response.status === 200) {
+                        const tasks = response.data.tasks || [];
+                        console.log(`Found ${tasks.length} tasks in page ${page}`);
+                        
+                        if (tasks.length > 0) {
+                            allTasks.push(...tasks);
+                            console.log(`Total tasks collected so far: ${allTasks.length}`);
+                            
+                            // Check if we've reached the end of the results
+                            const totalTasks = response.data.meta?.count || 0;
+                            if (allTasks.length >= totalTasks) {
+                                console.log(`Reached end of results (${allTasks.length}/${totalTasks} tasks)`);
+                                hasMore = false;
+                            } else {
+                                page++;
+                            }
+                        } else {
+                            console.log('No more tasks found');
+                            hasMore = false;
+                        }
+                    } else {
+                        console.error(`Error fetching tasks (Status: ${response.status}):`, response.data);
+                        hasMore = false;
+                    }
+                } catch (error) {
+                    console.error(`Error fetching page ${page}:`, error.message);
+                    if (error.response) {
+                        console.error('Response status:', error.response.status);
+                        console.error('Response data:', error.response.data);
+                    }
+                    hasMore = false;
+                }
                 
-                const tasks = response.data.tasks || [];
-                console.log(`Fetched ${tasks.length} tasks from page ${page}`);
-                allTasks = [...allTasks, ...tasks];
+                // Add a small delay between requests to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            console.log(`Total tasks fetched: ${allTasks.length}`);
+            if (allTasks.length > 0) {
+                console.log('Sample task:', JSON.stringify({
+                    id: allTasks[0].id,
+                    status: allTasks[0].status,
+                    description: allTasks[0].description,
+                    priority: allTasks[0].priority,
+                    tags: allTasks[0].tags
+                }, null, 2));
                 
-                // Check if we've reached the end of the list
-                hasMore = tasks.length === 100; // If we got a full page, there might be more
-                page++;
-                
-                // Small delay to avoid hitting rate limits
-                if (hasMore) {
-                    await new Promise(resolve => setTimeout(resolve, 300));
+                // Return the fetched tasks
+                return allTasks;
+            } else {
+                console.warn('No tasks found in the project.');
+                return [];
+            }
+            
+            while (hasMore) {
+                console.log(`Fetching page ${page} of tasks...`);
+                try {
+                    const response = await axios.get(`${this.apiBaseUrl}/projects/${projectId}/tasks.json`, {
+                        params: {
+                            page: page,
+                            per_page: perPage,
+                            status: 'all',  // Include all statuses
+                            include: 'attachments'  // Include attachments for screenshots
+                        },
+                        auth: {
+                            username: this.apiKey,
+                            password: 'x'
+                        },
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        timeout: 15000
+                    });
+                    
+                    console.log(`API Response Status: ${response.status}`);
+                    
+                    // Handle different response formats
+                    let tasks = [];
+                    if (Array.isArray(response.data)) {
+                        tasks = response.data;
+                    } else if (response.data && response.data.tasks) {
+                        tasks = Array.isArray(response.data.tasks) ? response.data.tasks : [response.data.tasks];
+                    } else if (response.data) {
+                        tasks = [response.data];
+                    }
+                    
+                    console.log(`Found ${tasks.length} tasks in page ${page}`);
+                    
+                    if (tasks.length > 0) {
+                        allTasks = allTasks.concat(tasks);
+                        console.log(`Total tasks collected so far: ${allTasks.length}`);
+                        
+                        // Log first task details for debugging
+                        if (page === 1 && tasks.length > 0) {
+                            console.log('Sample task data:', JSON.stringify(tasks[0], null, 2));
+                        }
+                        
+                        // Check if we should continue pagination
+                        if (tasks.length < perPage) {
+                            hasMore = false;
+                        } else {
+                            page++;
+                            // Small delay to avoid hitting rate limits
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                        }
+                    } else {
+                        // No more tasks
+                        hasMore = false;
+                    }
+                } catch (error) {
+                    console.error(`Error fetching page ${page}:`, error.message);
+                    if (error.response) {
+                        console.error('Response status:', error.response.status);
+                        console.error('Response data:', error.response.data);
+                    }
+                    // Continue to next page even if one page fails
+                    page++;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                 }
             }
             
@@ -186,46 +365,83 @@ class ReportGenerator {
      * @param {Object} filters - Filters to apply
      * @returns {Array} Filtered array of tasks
      */
-    filterTasks(tasks, filters) {
+    filterTasks(tasks, filters = {}) {
         if (!tasks || !Array.isArray(tasks)) {
             console.warn('No tasks provided for filtering');
             return [];
         }
+
+        console.log(`Filtering ${tasks.length} tasks with filters:`, JSON.stringify(filters, null, 2));
         
-        return tasks.filter(task => {
+        const filteredTasks = tasks.filter(task => {
+            if (!task) return false;
+            
+            // Debug: Log the first task to see its structure
+            if (tasks.indexOf(task) === 0) {
+                console.log('Sample task structure:', JSON.stringify(task, null, 2));
+            }
+            
             // Apply feedback filter
             if (filters.feedback !== undefined) {
-                if (filters.feedback && !task.feedback) {
-                    return false;
-                }
-                if (!filters.feedback && task.feedback) {
+                const isFeedback = task.task_type && 
+                                 (task.task_type.name || '').toLowerCase().includes('feedback');
+                
+                if (filters.feedback !== isFeedback) {
                     return false;
                 }
             }
             
             // Apply task board filter
             if (filters.taskBoard !== undefined) {
-                if (filters.taskBoard && !task.task_type) {
-                    return false;
-                }
-                if (!filters.taskBoard && task.task_type) {
+                const status = (task.status || task.status_name || '').toLowerCase();
+                const isTaskBoard = [
+                    'backlog', 'in progress', 'in-progress', 'in review', 'qa', 'testing',
+                    'open', 'reopened', 'todo', 'to do', 'in development', 'dev', 'code review',
+                    'qa team'  // Explicitly include QA Team status
+                ].some(s => status.includes(s.toLowerCase()));
+                
+                // If taskBoard filter is true, include tasks that are not archived
+                if (filters.taskBoard) {
+                    const isArchived = [
+                        'closed', 'resolved', 'completed', 'done', 'fixed', 'verified',
+                        'wontfix', 'duplicate', 'invalid', 'rejected'
+                    ].some(s => status.includes(s.toLowerCase()));
+                    
+                    if (isArchived) {
+                        return false;
+                    }
+                    
+                    // Include tasks that are either in task board statuses or have a column_id (indicating they're on the board)
+                    if (!isTaskBoard && !task.column_id) {
+                        return false;
+                    }
+                } else if (filters.taskBoard !== isTaskBoard) {
                     return false;
                 }
             }
             
             // Apply archive filter
             if (filters.archive !== undefined) {
-                const isArchived = task.status === 'closed' || task.status === 'resolved';
-                if (filters.archive && !isArchived) {
-                    return false;
-                }
-                if (!filters.archive && isArchived) {
+                const status = (task.status || task.status_name || '').toLowerCase();
+                const isArchived = [
+                    'closed', 'resolved', 'completed', 'done', 'fixed', 'verified',
+                    'wontfix', 'duplicate', 'invalid', 'rejected'
+                ].some(s => status.includes(s.toLowerCase()));
+                
+                if (filters.archive !== isArchived) {
                     return false;
                 }
             }
             
             return true;
         });
+        
+        console.log(`Filtered tasks: ${filteredTasks.length} of ${tasks.length} tasks match the filters`);
+        if (filteredTasks.length > 0) {
+            console.log('First filtered task:', JSON.stringify(filteredTasks[0], null, 2));
+        }
+        
+        return filteredTasks;
     }
 
     async generateCharts(tasks) {
@@ -352,27 +568,102 @@ class ReportGenerator {
     }
 
     async renderHtml(project, tasks, charts) {
+        console.log('Rendering HTML with project:', project.name);
+        console.log('Number of tasks to render:', tasks.length);
+        
         // Read the template file
         let html = fs.readFileSync(this.templatePath, 'utf8');
         
-        // Replace placeholders with actual data
-        html = html.replace('<!-- TITLE_PLACEHOLDER -->', `Bug Report - ${project.name}`);
+        // Update the title with project name
+        html = html.replace('Bug Report', `Bug Report - ${project.name}`);
         
-        // Add charts data URLs
-        html = html.replace('<!-- SEVERITY_CHART_PLACEHOLDER -->', 
-            `data:image/png;base64,${charts.severity}`);
-        html = html.replace('<!-- STATUS_CHART_PLACEHOLDER -->', 
-            `data:image/png;base64,${charts.status}`);
+        // Convert tasks to the format expected by the template
+        const bugData = tasks.map((task, index) => {
+            const severity = this.mapPriorityToSeverity(task.priority);
+            console.log(`Task ${index + 1}:`, {
+                id: task.id || index + 1,
+                status: task.status?.name || 'New',
+                type: task.task_type || 'Bug',
+                severity: severity,
+                siteUrl: task.site_url || 'No URL provided',
+                description: task.description || 'No description provided'
+            });
+            
+            return {
+                id: task.id || index + 1,
+                status: task.status?.name || 'New',
+                type: task.task_type || 'Bug',
+                severity: severity,
+                tags: Array.isArray(task.tags) ? task.tags : [],
+                description: task.description || 'No description provided',
+                siteUrl: task.site_url || 'No URL provided',
+                os: task.os || 'Unknown',
+                browser: task.browser || 'Unknown',
+                browserSize: task.browser_size || 'Unknown',
+                resolution: task.resolution || 'Unknown',
+                screenshotUrl: task.screenshot_url || '',
+                email: task.requester_email || 'No email provided',
+                // Add any additional fields that might be needed
+                // createdAt: task.created_at || new Date().toISOString(),
+                // updatedAt: task.updated_at || new Date().toISOString()
+            };
+        });
         
-        // Generate tasks HTML
-        const tasksHtml = this.generateTasksHtml(tasks);
-        html = html.replace('<!-- TASKS_PLACEHOLDER -->', tasksHtml);
+        console.log('Converted bug data sample:', JSON.stringify(bugData[0], null, 2));
         
-        // Generate summary stats
-        const summary = this.generateSummary(tasks);
-        html = this.injectSummary(html, summary);
+        // Create a script tag with the bug data
+        const bugDataScript = `
+        <script>
+            // Initialize bug data - Injected by ReportGenerator
+            (function() {
+                console.log('Injecting bug data...');
+                window.bugData = ${JSON.stringify(bugData, null, 4)};
+                console.log('Bug data injected. Total bugs:', window.bugData ? window.bugData.length : 0);
+                if (window.bugData && window.bugData.length > 0) {
+                    console.log('Sample bug:', JSON.stringify(window.bugData[0]));
+                }
+                
+                // Dispatch an event when data is loaded
+                const event = new CustomEvent('bugDataLoaded', {
+                    detail: { count: window.bugData ? window.bugData.length : 0 }
+                });
+                document.dispatchEvent(event);
+                
+                // Also set a flag on the document
+                document.documentElement.setAttribute('data-bugdata-loaded', 'true');
+                
+                // Initialize the app if it exists
+                if (typeof initializeApp === 'function') {
+                    console.log('Initializing app from data injection...');
+                    initializeApp();
+                }
+            })();
+        </script>`;
+        
+        // Make sure we're replacing the right part of the template
+        html = html.replace(/\/\/ Initialize bug data[\s\S]*?window\.bugData = \[[\s\S]*?\];/, bugDataScript);
+        
+        // Add debug script to log when the page loads
+        const debugScript = `
+            <script>
+                console.log('Template loaded with', window.bugData ? window.bugData.length : 0, 'bugs');
+                console.log('Sample bug:', window.bugData ? window.bugData[0] : 'No data');
+            </script>
+        `;
+        html = html.replace('</body>', `${debugScript}\n    </body>`);
         
         return html;
+    }
+    
+    mapPriorityToSeverity(priority) {
+        if (!priority) return 'Not Set';
+        const priorityMap = {
+            'critical': 'Critical',
+            'high': 'Important',
+            'medium': 'Normal',
+            'low': 'Minor'
+        };
+        return priorityMap[priority.toLowerCase()] || 'Not Set';
     }
 
     generateTasksHtml(tasks) {

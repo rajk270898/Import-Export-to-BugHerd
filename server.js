@@ -433,15 +433,37 @@ app.post('/api/export', async (req, res) => {
 
     try {
       while (hasMore) {
-        // Fetching page of tasks
+        console.log(`Fetching page ${page} of tasks...`);
         const response = await bugherdApi.get(`/projects/${projectId}/tasks.json`, {
-          params: { page, per_page: perPage, include: 'attachments' },
+          params: { 
+            page, 
+            per_page: perPage, 
+            include: 'attachments',
+            status: 'all' // Include all statuses
+          },
           timeout: 30000
         });
-        if (!response.data || !Array.isArray(response.data.tasks)) {
+        
+        console.log(`API Response for page ${page}:`, JSON.stringify(response.data, null, 2));
+        
+        if (!response.data) {
+          console.error('No data in API response');
           break;
         }
-        const pageTasks = response.data.tasks;
+        
+        // Handle both array and object response formats
+        let pageTasks = [];
+        if (Array.isArray(response.data)) {
+          pageTasks = response.data;
+        } else if (response.data && response.data.tasks) {
+          pageTasks = response.data.tasks;
+          if (!Array.isArray(pageTasks)) {
+            pageTasks = [pageTasks]; // Convert single task to array
+          }
+        } else if (response.data.task) {
+          // Handle single task response
+          pageTasks = [response.data.task];
+        }
         // Page of tasks fetched
         tasks = [...tasks, ...pageTasks];
         if (pageTasks.length < perPage) {
@@ -467,66 +489,66 @@ app.post('/api/export', async (req, res) => {
       });
     }
 
-    // Use the tasks variable that was already set from the API response
-    // Processing and filtering tasks
-    
-    // Ensure tasks is an array before filtering
-    if (!Array.isArray(tasks)) {
-      // Invalid tasks format
-      return res.status(500).json({ 
-        error: 'Invalid tasks data format',
-        details: 'Expected an array of tasks',
-        receivedType: typeof tasks,
-        sampleTask: tasks
-      });
+    // Log raw tasks for debugging
+    console.log(`Fetched ${tasks.length} total tasks`);
+    if (tasks.length > 0) {
+      console.log('Sample task:', JSON.stringify(tasks[0], null, 2));
     }
-    
+
     // Filter tasks based on enabled filters
     let filteredTasks = [];
     
     if (filters.feedback) {
       // Filtering feedback tasks
       const feedbackTasks = tasks.filter(task => {
-        const status = String(task.status || '').toLowerCase();
+        if (!task) return false;
+        const status = String(task.status || task.status_name || '').toLowerCase();
         return status === 'feedback';
       });
-      // Feedback tasks filtered
+      console.log(`Found ${feedbackTasks.length} feedback tasks`);
       filteredTasks = [...filteredTasks, ...feedbackTasks];
     }
     
     if (filters.taskBoard) {
       // Filtering task board tasks
       const taskBoardTasks = tasks.filter(task => {
-        if (!task.status) return false;
-        const status = String(task.status).trim().toLowerCase();
+        if (!task || (!task.status && !task.status_name)) return false;
+        
+        // Try both status and status_name fields
+        const status = String(task.status || task.status_name || '').trim().toLowerCase();
         const taskBoardStatuses = [
-          'backlog', 'qa team', 'in progress', 'done', 'in-progress','suggestion',
-          'Backlog', 'QA Team', 'In Progress', 'Done', 'In-Progress','Suggestion'
+          'backlog', 'qa team', 'in progress', 'done', 'in-progress', 'suggestion',
+          'open', 'resolved', 'closed', 'reopened', 'in review', 'qa', 'testing'
         ];
-        return taskBoardStatuses.some(s => status === s.toLowerCase());
+        
+        return taskBoardStatuses.some(s => status.includes(s.toLowerCase()));
       });
-      // Task board tasks filtered
+      
+      console.log(`Found ${taskBoardTasks.length} task board tasks`);
       filteredTasks = [...filteredTasks, ...taskBoardTasks];
     }
     
     if (filters.archive) {
       // Filtering archive tasks
-      // Check both status and status_id for archive tasks
       const archiveTasks = tasks.filter(task => {
-        const status = String(task.status || '').toLowerCase();
+        if (!task) return false;
+        
+        // Try both status and status_name fields
+        const status = String(task.status || task.status_name || '').toLowerCase();
         const statusId = parseInt(task.status_id || '0');
         
         // Archive status can be indicated by status text or status_id
         const isArchived = 
           status.includes('archive') || 
           status.includes('closed') ||
-          statusId === 5; // Assuming 5 is the ID for closed/archived status
+          status.includes('resolved') ||
+          statusId === 5 || // Common ID for closed/archived
+          statusId === 4;   // Common ID for resolved
           
-        // Checking task archive status
         return isArchived;
       });
       
-      // Archive tasks filtered
+      console.log(`Found ${archiveTasks.length} archived tasks`);
       filteredTasks = [...filteredTasks, ...archiveTasks];
     }
     

@@ -159,16 +159,18 @@
 
         .issue-card { 
             background: var(--bg-primary);
-            border-radius: 16px;
-            padding: 1.5rem;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 0.75rem;
             cursor: pointer;
             border: 1px solid var(--border);
             box-shadow: var(--shadow-sm);
-            transform-origin: center;
+            transition: all 0.2s ease;
+            position: relative;
         }
 
         .issue-card:hover { 
-            transform: translateY(-4px);
+            transform: translateY(-2px);
             box-shadow: var(--shadow);
             border-color: var(--primary-light);
         }
@@ -176,15 +178,77 @@
         .issue-card.selected { 
             border-color: var(--primary);
             box-shadow: 0 0 0 2px var(--primary-light);
-            transform: translateY(-4px);
+            transform: translateY(-2px);
+        }
+        
+        .issue-severity,
+        .issue-type,
+        .issue-status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        
+        .issue-severity[data-severity="critical"] {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .issue-severity[data-severity="important"] {
+            background-color: #ffedd5;
+            color: #c2410c;
+        }
+        
+        .issue-severity[data-severity="normal"] {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .issue-severity[data-severity="minor"],
+        .issue-severity[data-severity="Not set"] {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        .issue-status[data-status="new"] {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+        
+        .issue-status[data-status="in progress"] {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .issue-status[data-status="resolved"] {
+            background-color: #dcfce7;
+            color: #166534;
         }
 
         .issue-url {
-            font-size: 16px;
             font-weight: 500;
-            color: var(--primary);
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            padding-right: 2rem;
             word-break: break-all;
-            padding: 0.75rem 1rem;
+        }
+        
+        .issue-count-badge {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            width: 1.5rem;
+            height: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
         }
 
         .issue-status { 
@@ -211,20 +275,106 @@
         .details-panel { 
             background: var(--bg-primary);
             border-radius: 16px;
-            padding: 1.75rem;
+            padding: 1.5rem;
             height: fit-content;
             position: sticky;
             top: 90px;
             box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .accordion {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            margin-top: 1rem;
+        }
+
+        .accordion-item {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        
+        .accordion-item:hover {
+            border-color: var(--primary-light);
+        }
+        
+        .accordion-item.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 1px var(--primary);
+        }
+
+        .accordion-item.active {
+            border-color: var(--primary);
+        }
+
+        .accordion-header {
+            width: 100%;
+            padding: 1.25rem 1.5rem;
+            background: var(--bg-primary);
+            border: none;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .accordion-header:hover {
+            background-color: var(--bg-tertiary);
+        }
+
+        .accordion-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-item.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: var(--bg-primary);
+            padding: 0 1.5rem;
+        }
+
+        .accordion-item.active .accordion-content {
+            max-height: 2000px;
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            display: block;
+        }
+
+        .accordion-item.active .accordion-content {
+            opacity: 1;
+            transition: max-height 0.5s ease-in, opacity 0.3s ease-out;
         }
 
         .details-selector { 
-            font-size: 1.5rem;
-            font-weight: 700;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: 1.25rem;
-            padding-bottom: 1.25rem;
-            border-bottom: 2px solid var(--border);
+            background: var(--bg-primary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1rem 0;
         }
 
         .details-title { 
@@ -238,7 +388,8 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1rem;
-            margin-top: 1rem;
+            margin: 0;
+            padding: 0.5rem 0;
         }
 
         .details-row {
@@ -249,16 +400,11 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border);
             transition: all 0.2s ease;
+            margin: 0;
         }
-
-        .details-row:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
-            border-color: var(--primary-light);
-        }
-
         .details-row.full-width {
             grid-column: 1 / -1;
+            background: var(--bg-tertiary);
         }
 
         .details-label { 
@@ -271,9 +417,202 @@
         }
 
         .details-value {
-            font-size: 0.9375rem;
+            font-weight: 500;
             color: var(--text-primary);
             word-break: break-word;
+        }
+
+        a.details-value {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        a.details-value:hover {
+            text-decoration: underline;
+        }
+
+        /* Tags styling */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-layout {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .sidebar {
+                position: static;
+            }
+            
+            .details-panel {
+                position: static;
+            }
+        }
+
+.details-selector { 
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1rem 0;
+}
+
+.details-title { 
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 1.75rem;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 0;
+    padding: 0.5rem 0;
+}
+
+.details-row {
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    transition: all 0.2s ease;
+    margin: 0;
+}
+.details-row.full-width {
+    grid-column: 1 / -1;
+    background: var(--bg-tertiary);
+}
+
+.details-label { 
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.details-value {
+    font-weight: 500;
+    color: var(--text-primary);
+    word-break: break-word;
+}
+
+a.details-value {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+a.details-value:hover {
+    text-decoration: underline;
+}
+
+/* Tags styling */
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.tag {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background-color: #e0f2fe;
+    color: #0369a1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .main-layout {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .sidebar {
+        position: static;
+    }
+    
+    .details-panel {
+        position: static;
+    }
+}
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        .tag[data-tag="ui/ux"] {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+        
+        .tag[data-tag="frontend"] {
+            background-color: #f0fdf4;
+            color: #166534;
+        }
+        
+        .tag[data-tag="functional"],
+        .tag[data-tag*="backend"] {
+            background-color: #fef2f2;
+            color: #991b1b;
+        }
+        
+        .tag[data-tag*="checkout"] {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .tag[data-tag*="performance"] {
+            background-color: #f3e8ff;
+            color: #6b21a8;
         }
 
         .details-value a {
@@ -407,8 +746,6 @@
             border-color: var(--primary-light);
         }
 
-
-
         .close-modal:hover {
             background: rgba(255, 255, 255, 0.2);
             transform: rotate(90deg);
@@ -440,7 +777,7 @@
 </head>
 <body>
     <div class="report-header">
-        <span class="report-title">Bug Report</span>
+        <span class="report-title">Bug Report - undefined</span>
     </div>
     <div class="main-layout">
         <div class="sidebar">
@@ -458,299 +795,533 @@
                 <li class="property-item" data-severity="important">Important</li>
                 <li class="property-item" data-severity="normal">Normal</li>
                 <li class="property-item" data-severity="minor">Minor</li>
-                    <li class="property-item" data-severity="notset">Not Set</li>
+                    <li class="property-item" data-severity="not set">Not Set</li>
                 </ul>
             </div>
         </div>
         <div class="issue-list">
             <h3 class="url-title">Page URLs</h3>
-            <!-- Critical Issues -->
-            <div class="issue-card selected" data-severity="critical">
-                <div class="issue-url">https://www.example.com/home</div>
-            </div>
-            <div class="issue-card" data-severity="critical">
-                <div class="issue-url">https://www.example.com/about</div>
-            </div>
-            
-            <!-- Important Issues -->
-            <div class="issue-card" data-severity="important">
-                <div class="issue-url">https://www.example.com/services</div>
-            </div>
-            
-            <!-- Normal Issues -->
-            <div class="issue-card" data-severity="normal">
-                <div class="issue-url">https://www.example.com/contact</div>
-            </div>
-            
-            <!-- Not Set Issues -->
-            <div class="issue-card" data-severity="notset">
-                <div class="issue-url">https://www.example.com/blog</div>
-            </div>
-            <div class="issue-card" data-severity="normal">
-                <div class="issue-url">https://www.example.com/products</div>
-            </div>
-            <div class="issue-card" data-severity="important">
-                <div class="issue-url">https://www.example.com/contact-form</div>
-            </div>
-            <div class="issue-card" data-severity="normal">
-                <div class="issue-url">https://www.example.com/faq</div>
-            </div>
-            <div class="issue-card" data-severity="important">
-                <div class="issue-url">https://www.example.com/login</div>
-            </div>
-            <div class="issue-card" data-severity="critical">
-                <div class="issue-url">https://www.example.com/checkout</div>
-            </div>
-            <div class="issue-card" data-severity="normal">
-                <div class="issue-url">https://www.example.com/cart</div>
-            </div>
-            <div class="issue-card" data-severity="important">
-                <div class="issue-url">https://www.example.com/account</div>
-            </div>
-            <div class="issue-card" data-severity="normal">
-                <div class="issue-url">https://www.example.com/settings</div>
-            </div>
-            <div class="issue-card" data-severity="notset">
-                <div class="issue-url">https://www.example.com/privacy</div>
-            </div>
-            <div class="issue-card" data-severity="minor">
-                <div class="issue-url">https://www.example.com/terms</div>
-            </div>
-            <div class="issue-card" data-severity="minor">
-                <div class="issue-url">https://www.example.com/terms</div>
-            </div>
-            <div class="issue-card" data-severity="minor">
-                <div class="issue-url">https://www.example.com/terms</div>
-            </div>
         </div>
         <div class="details-panel">
-            <div class="details-selector">Bug Details</div>
-            <div class="details-grid">
-                <div class="details-row">
-                    <span class="details-label">Bug ID:</span>
-                    <span class="details-value" id="bug-id">1</span>
-                </div>
-                <div class="details-row">
-                    <span class="details-label">Bug Status:</span>
-                    <span class="details-value" id="bug-status">New</span>
-                </div>
-                <div class="details-row">
-                    <span class="details-label">Bug Type:</span>
-                    <span class="details-value" id="bug-type">Bug</span>
-                </div>
-                <div class="details-row">
-                    <span class="details-label">Severity:</span>
-                    <span class="details-value" id="bug-severity">Critical</span>
-                </div>
-                <div class="details-row">
-                    <span class="details-label">Categories:</span>
-                    <span class="details-value" id="bug-tags">Functional</span>
-                </div>
-                <div class="details-row full-width">
-                    <span class="details-label">Description:</span>
-                    <div class="details-value" id="bug-description">Description of the Bug</div>
-                </div>
-                <div class="details-row">
-                    <span class="details-label">Site URL:</span>
-                    <a href="#" class="details-value" id="site-url" target="_blank">www.google.com</a>
-                </div>
-                <div class="details-row">
-                    <span class="details-label">OS:</span>
-                    <span class="details-value" id="os">Windows 10</span>
-                </div>
-                <div class="details-row">
-                    <span class="details-label">Browser:</span>
-                    <span class="details-value" id="browser">Firefox 141.0</span>
-                </div>
-                <div class="details-row">
-                    <span class="details-label">Browser Size:</span>
-                    <span class="details-value" id="browser-size">1869 x 947 px</span>
-                </div>
-                <div class="details-row">
-                    <span class="details-label">Resolution:</span>
-                    <span class="details-value" id="resolution">1920 x 1080 px</span>
-                </div>
-                <div class="details-row">
-                    <span class="details-label">Screenshot:</span>
-                    <a href="https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg" class="details-value" id="screenshot-url" target="_blank" rel="noopener noreferrer">View Screenshot</a>
-                </div>
-                <div class="details-row">
-                    <span class="details-label">Requester Email:</span>
-                    <a href="mailto:reypatel@yopmail.com" class="details-value" id="requester-email">reypatel@yopmail.com</a>
-                </div>
-            </div>
+                <h3 class="url-title">Bug Details</h3>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Function to update details panel based on selected issue
-        function updateDetailsPanel(issueCard) {
-            const url = issueCard.querySelector('.issue-url').textContent;
-            const severity = issueCard.getAttribute('data-severity');
-            
-            // Extract domain from URL for generating sample data
-            const domain = new URL(url.startsWith('http') ? url : `https://${url}`).hostname.replace('www.', '');
-            const pageName = url.split('/').pop().split('.')[0] || 'home';
-            
-            // Generate sample bug data based on URL and severity
-            const bugData = {
-                id: Math.floor(1000 + Math.random() * 9000), // Random ID between 1000-9999
-                status: 'New',
-                type: 'Bug',
-                severity: severity.charAt(0).toUpperCase() + severity.slice(1),
-                tags: ['Functional', 'UI'],
-                description: `Issue detected on ${pageName} page. This is a sample description for the reported bug. The issue needs to be investigated and fixed as per the severity level.`,
-                siteUrl: domain,
-                os: 'Windows 10',
-                browser: 'Firefox 141.0',
-                browserSize: '1869 x 947 px',
-                resolution: '1920 x 1080 px',
-                screenshotUrl: 'https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg',
-                email: 'reypatel@yopmail.com'
-            };
-            
-            // Update the UI with bug data
-            document.getElementById('bug-id').textContent = bugData.id;
-            document.getElementById('bug-status').textContent = bugData.status;
-            document.getElementById('bug-status').setAttribute('data-status', bugData.status.toLowerCase());
-            document.getElementById('bug-type').textContent = bugData.type;
-            
-            const severityElement = document.getElementById('bug-severity');
-            severityElement.textContent = bugData.severity;
-            severityElement.setAttribute('data-severity', severity);
-            
-            // Update tags
-            const tagsContainer = document.getElementById('bug-tags');
-            tagsContainer.innerHTML = bugData.tags.map(tag => 
-                `<span class="tag">${tag}</span>`
-            ).join('');
-            
-            // Update other fields
-            document.getElementById('bug-description').textContent = bugData.description;
-            
-            const siteUrlElement = document.getElementById('site-url');
-            siteUrlElement.textContent = bugData.siteUrl;
-            siteUrlElement.href = url.startsWith('http') ? url : `https://${url}`;
-            
-            document.getElementById('os').textContent = bugData.os;
-            document.getElementById('browser').textContent = bugData.browser;
-            document.getElementById('browser-size').textContent = bugData.browserSize;
-            document.getElementById('resolution').textContent = bugData.resolution;
-            
-            const screenshotElement = document.getElementById('screenshot-url');
-            screenshotElement.href = bugData.screenshotUrl;
-            
-            const emailElement = document.getElementById('requester-email');
-            emailElement.textContent = bugData.email;
-            emailElement.href = `mailto:${bugData.email}`;
+<script>
+    
+    // Function to map BugHerd API data to a consistent format
+    function mapBugData(issue) {
+        // Helper function to safely get nested properties
+        const getNested = (obj, path, defaultValue = '') => {
+            try {
+                return path.split('.').reduce((o, p) => (o && o[p] !== undefined ? o[p] : defaultValue), obj);
+            } catch (e) {
+                return defaultValue;
+            }
+        };
+
+        // Map the data to match the CSV export structure
+        const status = getNested(issue, 'status.name', 'Open');
+        const priority = getNested(issue, 'priority', 'normal');
+        const screenshot = getNested(issue, 'screenshot.thumb_url', '') || 
+                         getNested(issue, 'screenshot_url', '') ||
+                         getNested(issue, 'attachments.0.thumb_url', '');
+        
+        // Format tags if they exist
+        let tags = [];
+        if (Array.isArray(issue.tags)) {
+            tags = issue.tags.map(tag => tag.name || tag);
+        } else if (issue.tags) {
+            tags = [issue.tags];
         }
 
-        // Function to filter and show issues based on severity
-        function filterIssues(severity) {
-            const allIssues = document.querySelectorAll('.issue-card');
-            let hasVisibleIssues = false;
+        return {
+            id: issue.id || 'N/A',
+            status: status,
+            type: getNested(issue, 'task_type.name', 'Bug'),
+            priority: priority,
+            priority_id: issue.priority_id || '',
+            description: issue.description || 'No description provided',
+            tags: tags,
+            siteUrl: getNested(issue, 'site_page.url', ''),
+            os: getNested(issue, 'requester_os', 'Unknown'),
+            browser: getNested(issue, 'requester_browser', 'Unknown'),
+            browserSize: getNested(issue, 'browser_size', 'N/A'),
+            resolution: getNested(issue, 'screen_resolution', 'N/A'),
+            screenshotUrl: screenshot,
+            email: getNested(issue, 'requester_email', 'N/A'),
+            // Additional fields for consistency with CSV export
+            severity: priority,
+            'Bug Status': 'New',
+            'Bug Type': status && status.toLowerCase() === 'suggestion' ? 'Suggestion' : 
+                      (status && status.toLowerCase() === 'qa team' ? 'Bug' : status)
+        };
+    }
+
+    // Function to create a single issue panel HTML using consistent data structure
+    function createIssuePanel(issue, index = 0, isAccordion = false) {
+        // Map the issue data to our consistent format
+        const issueData = mapBugData(issue);
+        // Helper function to safely get nested properties
+        const getNested = (obj, path, defaultValue = '') => {
+            try {
+                return path.split('.').reduce((o, p) => (o && o[p] !== undefined ? o[p] : defaultValue), obj);
+            } catch (e) {
+                return defaultValue;
+            }
+        };
+
+        // Format tags for display
+        const formatTags = (tags) => {
+            if (Array.isArray(tags)) {
+                return tags.map(tag => 
+                    `<span class="tag" data-tag="${(tag.name || tag).toLowerCase()}">${tag.name || tag}</span>`
+                ).join('');
+            }
+            return `<span class="tag">${tags || 'No tags'}</span>`;
+        };
+
+        // Format screenshot URL
+        const screenshotHtml = issueData.screenshotUrl ? 
+            `<a href="${issueData.screenshotUrl}" class="details-value" target="_blank" rel="noopener noreferrer">View Screenshot</a>` : 
+            '<span class="details-value">No screenshot available</span>';
+
+        // Format site URL
+        const siteUrl = issueData.siteUrl ? 
+            `<a href="${issueData.siteUrl.startsWith('http') ? '' : 'https://'}${issueData.siteUrl}" class="details-value" target="_blank">${issueData.siteUrl}</a>` :
+            '<span class="details-value">N/A</span>';
+
+        return `
+            <div class="details-grid">
+                <div class="details-row">
+                    <span class="details-label">Bug ID:</span>
+                    <span class="details-value">${issueData.id}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Bug Status:</span>
+                    <span class="details-value">${issueData.status}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Bug Type:</span>
+                    <span class="details-value">${issueData.type}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Severity:</span>
+                    <span class="details-value">${issueData.severity}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Tags/Categories:</span>
+                    <div class="tags-container">
+                        ${formatTags(issueData.tags)}
+                    </div>
+                </div>
+                <div class="details-row full-width">
+                    <span class="details-label">Description:</span>
+                    <div class="details-value">${issueData.description}</div>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Site URL:</span>
+                    ${siteUrl}
+                </div>
+                <div class="details-row">
+                    <span class="details-label">OS:</span>
+                    <span class="details-value">${issueData.os}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Browser:</span>
+                    <span class="details-value">${issueData.browser}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Browser Size:</span>
+                    <span class="details-value">${issueData.browserSize}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Resolution:</span>
+                    <span class="details-value">${issueData.resolution}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Screenshot:</span>
+                    ${screenshotHtml}
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Reporter:</span>
+                    <span class="details-value">${issueData.email}</span>
+                </div>
+            </div>
+            ${isAccordion ? `</div></div>` : ''}
+        `;
+    }
+
+    // Function to update details panel based on selected issue
+    function updateDetailsPanel(issueCard) {
+        const url = issueCard.getAttribute('data-url');
+        const severity = issueCard.getAttribute('data-severity');
+        const issueIds = issueCard.getAttribute('data-issue-ids').split(',');
+        
+        // Get the bug data for these issues
+        const bugDataList = [];
+        
+        // Get the bug data from the stored IDs
+        issueIds.forEach(id => {
+            const issueData = window.bugData.find(issue => issue.id.toString() === id);
+            if (issueData) {
+                bugDataList.push(issueData);
+            }
+        });
+        
+        // Update the UI
+        const detailsPanel = document.querySelector('.details-panel');
+        
+        // Check if we should show accordion (for multiple critical or not set issues for this URL)
+        const currentSeverity = severity.toLowerCase();
+        const showAccordion = (currentSeverity === 'critical' || currentSeverity === 'important' || currentSeverity === 'normal' || currentSeverity === 'minor' || currentSeverity === 'not set') && 
+                            bugDataList.filter(issue => 
+                                issue.severity.toLowerCase() === currentSeverity
+                            ).length > 1;
+        
+        if (showAccordion) {
+            // Create accordion structure
+            detailsPanel.innerHTML = `
+                <h3 class="url-title">Bug Details</h3>
+                <div class="accordion"></div>
+            `;
             
-            allIssues.forEach(issue => {
-                if (severity === 'all' || issue.getAttribute('data-severity') === severity) {
-                    issue.style.display = '';
-                    hasVisibleIssues = true;
-                } else {
-                    issue.style.display = 'none';
-                }
+            const accordion = detailsPanel.querySelector('.accordion');
+            
+            // Add each issue as an accordion item
+            bugDataList.forEach((issue, index) => {
+                const accordionItem = document.createElement('div');
+                accordionItem.className = 'accordion-item';
+                accordionItem.innerHTML = `
+                    <button class="accordion-header" aria-expanded="${index === 0 ? 'true' : 'false'}" 
+                            aria-controls="bug-details-${index}">
+                        <span>Issue #${index + 1}</span>
+                        <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div id="bug-details-${index}" class="accordion-content">
+                        ${createIssuePanel(issue, index, false)}
+                    </div>
+                `;
+                accordion.appendChild(accordionItem);
             });
             
-            // If no issues found, show a message
-            const noIssuesMessage = document.querySelector('.no-issues-message');
-            if (!hasVisibleIssues) {
-                if (!noIssuesMessage) {
-                    const message = document.createElement('div');
-                    message.className = 'no-issues-message';
-                    message.textContent = 'No issues found for this filter.';
-                    document.querySelector('.issue-list').appendChild(message);
+            // Initialize accordion functionality
+            initializeAccordion();
+        } else {
+            // Single issue or non-critical - render normally
+            const issuePanel = bugDataList.length > 0 ? createIssuePanel(bugDataList[0]) : '';
+            detailsPanel.innerHTML = `
+                <h3 class="url-title">Bug Details</h3>
+                <div class="details-content">
+                    ${issuePanel}
+                </div>
+            `;
+        }
+    }
+    
+    // Initialize accordion functionality
+    function initializeAccordion() {
+        const accordion = document.querySelector('.accordion');
+        if (!accordion) return;
+
+        // Use event delegation on the parent container
+        accordion.addEventListener('click', (e) => {
+            // Find the closest accordion-header that was clicked
+            const header = e.target.closest('.accordion-header');
+            if (header) {
+                e.preventDefault();
+                
+                const item = header.closest('.accordion-item');
+                const content = item.querySelector('.accordion-content');
+                if (!content) return;
+                
+                const isExpanded = header.getAttribute('aria-expanded') === 'true';
+
+                // Close all other accordion items
+                const allItems = accordion.querySelectorAll('.accordion-item');
+                allItems.forEach(otherItem => {
+                    if (otherItem !== item) {
+                        otherItem.querySelector('.accordion-header')?.setAttribute('aria-expanded', 'false');
+                        otherItem.querySelector('.accordion-content').style.maxHeight = '0';
+                        otherItem.classList.remove('active');
+                    }
+                });
+
+                // Toggle the clicked item
+                const newExpandedState = !isExpanded;
+                header.setAttribute('aria-expanded', newExpandedState);
+                
+                if (newExpandedState) {
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    item.classList.add('active');
+                } else {
+                    content.style.maxHeight = '0';
+                    item.classList.remove('active');
                 }
-            } else if (noIssuesMessage) {
-                noIssuesMessage.remove();
+            }
+        });
+
+        // Add keyboard navigation
+        accordion.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                const header = e.target.closest('.accordion-header');
+                if (header) {
+                    e.preventDefault();
+                    header.click();
+                }
+            }
+        });
+
+        // Open first accordion by default
+        const accordionItems = accordion.querySelectorAll('.accordion-item');
+        if (accordionItems.length > 0) {
+            const firstItem = accordionItems[0];
+            const firstHeader = firstItem.querySelector('.accordion-header');
+            const firstContent = firstItem.querySelector('.accordion-content');
+            if (firstHeader && firstContent) {
+                firstHeader.setAttribute('aria-expanded', 'true');
+                firstContent.style.maxHeight = firstContent.scrollHeight + 'px';
+                firstItem.classList.add('active');
             }
         }
+    }
 
-        // Function to handle filter selection
-        function handleFilterSelection(selectedElement, elements) {
-            elements.forEach(el => el.classList.remove('selected'));
-            selectedElement.classList.add('selected');
-            const severity = selectedElement.getAttribute('data-severity');
-            filterIssues(severity);
+    // Function to filter and show issues based on severity
+    function filterIssues(severity) {
+        const allIssues = document.querySelectorAll('.issue-card');
+        let hasVisibleIssues = false;
+        
+        allIssues.forEach(issue => {
+            const issueSeverity = issue.getAttribute('data-severity');
+            // Handle 'Not Set' case by checking for empty or undefined severity
+            const shouldShow = severity === 'all' || 
+                             (severity === 'notset' ? 
+                                 (issueSeverity === 'notset' || issueSeverity === '') : 
+                                 (issueSeverity === severity)
+                             );
+            
+            if (shouldShow) {
+                issue.style.display = '';
+                hasVisibleIssues = true;
+            } else {
+                issue.style.display = 'none';
+            }
+        });
+        
+        // If no issues found, show a message
+        const noIssuesMessage = document.querySelector('.no-issues-message');
+        if (!hasVisibleIssues) {
+            if (!noIssuesMessage) {
+                const message = document.createElement('div');
+                message.className = 'no-issues-message';
+                message.textContent = 'No issues found for this filter.';
+                document.querySelector('.issue-list').appendChild(message);
+            }
+        } else if (noIssuesMessage) {
+            noIssuesMessage.remove();
         }
+    }
 
-        // Initialize with Critical issues shown by default
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize pie chart
-            const ctx = document.getElementById('severityChart').getContext('2d');
-            const severityChart = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: ['Critical', 'Important', 'Normal', 'Minor', 'Not Set'],
-                    datasets: [{
-                        data: [12, 19, 3, 5, 2],
-                        backgroundColor: [
-                            '#fee2e2',
-                            '#fef3c7',
-                            '#e0f2fe',
-                            '#e5e7eb',
-                            '#f3f4f6'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20
-                            }
+    // Function to handle filter selection
+    function handleFilterSelection(selectedElement, elements) {
+        elements.forEach(el => el.classList.remove('selected'));
+        selectedElement.classList.add('selected');
+        const severity = selectedElement.getAttribute('data-severity');
+        filterIssues(severity);
+    }
+
+    // Initialize empty bug data - Will be populated by ReportGenerator with data from BugHerd API
+    window.bugData = window.bugData || [];
+    
+    // Debug: Log when the script loads
+    console.log('Template script loaded. Initial bugData:', window.bugData);
+
+    // Initialize the application
+    function initializeApp() {
+        console.log('Initializing app with bug data:', window.bugData);
+        
+        // Get the issue list element once at the beginning
+        const issueList = document.querySelector('.issue-list');
+        
+        // Show loading state
+        if (issueList) {
+            issueList.innerHTML = '<div class="loading-message">Loading bug data...</div>';
+        }
+        
+        // Function to check for bug data and initialize the app
+        function checkForData() {
+            // Check if bugData is available and not empty
+            if (window.bugData && window.bugData.length > 0) {
+                console.log('Bug data found, initializing app...');
+                initAppWithData();
+                return true;
+            } else if (window.bugData) {  // Check if bugData exists but is empty
+                console.log('No bug data found in the project');
+                if (issueList) {
+                    issueList.innerHTML = `
+                        <div class="no-issues-message">
+                            No issues found in the project.
+                            <p>If you expected to see data, please ensure:</p>
+                            <ul>
+                                <li>The project contains issues/tasks in BugHerd</li>
+                                <li>Your filters (if any) are not too restrictive</li>
+                            </ul>
+                        </div>`;
+                }
+                return false;
+            }
+            // If bugData is not defined yet, return false to keep checking
+            return false;
+        }
+        
+        // Function to initialize the app with the loaded data
+        function initAppWithData() {
+            console.log('Initializing app with', window.bugData.length, 'bugs');
+            
+            // Clear any existing content except the title
+            if (issueList) {
+                const title = issueList.querySelector('h3');
+                issueList.innerHTML = '';
+                if (title) issueList.appendChild(title);
+            }
+            
+            // Check if we have data to display
+            if (window.bugData.length === 0) {
+                if (issueList) {
+                    issueList.innerHTML = `
+                        <div class="no-issues-message">
+                            No issues found matching the current filters.
+                        </div>`;
+                }
+                return;
+            }
+            
+            // Continue with the rest of the initialization
+            const severityCounts = {
+            'Critical': 0,
+            'Important': 0,
+            'Normal': 0,
+            'Minor': 0,
+            'Not Set': 0
+        };
+        
+        window.bugData.forEach(issue => {
+            const severity = issue.severity || 'Not Set';
+            severityCounts[severity] = (severityCounts[severity] || 0) + 1;
+        });
+
+        // Initialize pie chart with dynamic data
+        const ctx = document.getElementById('severityChart').getContext('2d');
+        const severityChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(severityCounts),
+                datasets: [{
+                    data: Object.values(severityCounts),
+                    backgroundColor: [
+                        '#fee2e2', // Critical
+                        '#fef3c7', // Important
+                        '#e0f2fe', // Normal
+                        '#e5e7eb', // Minor
+                        '#f3f4f6'  // Not Set
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
                         }
                     }
                 }
-            });
+            }
+        });
 
-            // Add click handler for chart segments
-            document.getElementById('severityChart').onclick = function(evt) {
-                const activePoints = severityChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
-                if (activePoints.length > 0) {
-                    const clickedElement = activePoints[0];
-                    const label = severityChart.data.labels[clickedElement.index];
-                    const severityMap = {
-                        'Critical': 'critical',
-                        'High': 'important',
-                        'Medium': 'normal',
-                        'Low': 'minor',
-                        'Info': 'notset'
-                    };
-                    filterIssues(severityMap[label]);
-                    
-                    // Update UI to show selected filter
-                    const filterItems = document.querySelectorAll('.property-item');
-                    handleFilterSelection(
-                        Array.from(filterItems).find(item => item.dataset.severity === severityMap[label].toLowerCase()),
-                        filterItems
-                    );
+        // Add click handler for chart segments
+        document.getElementById('severityChart').onclick = function(evt) {
+            const activePoints = severityChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+            if (activePoints.length > 0) {
+                const clickedElement = activePoints[0];
+                const label = severityChart.data.labels[clickedElement.index];
+                const severityMap = {
+                    'Critical': 'critical',
+                    'High': 'important',
+                    'Medium': 'normal',
+                    'Low': 'minor',
+                    'Info': 'notset'
+                };
+                filterIssues(severityMap[label]);
+                
+                // Update UI to show selected filter
+                const filterItems = document.querySelectorAll('.property-item');
+                handleFilterSelection(
+                    Array.from(filterItems).find(item => item.dataset.severity === severityMap[label].toLowerCase()),
+                    filterItems
+                );
+            }
+        };
+        // Add click handlers for sidebar filter items
+        document.querySelectorAll('.property-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const elements = document.querySelectorAll('.property-item');
+                handleFilterSelection(this, elements);
+            });
+        });
+
+        // Function to create issue cards from bugData
+        function createIssueCards() {
+            const issueList = document.querySelector('.issue-list');
+            if (!issueList) return;
+
+            // Clear existing cards
+            issueList.innerHTML = '';
+
+            // Group issues by URL and severity
+            const groupedIssues = {};
+            window.bugData.forEach(issue => {
+                const key = `${issue.siteUrl}-${issue.severity}`;
+                if (!groupedIssues[key]) {
+                    groupedIssues[key] = [];
                 }
-            };
-            // Add click handlers for sidebar filter items
-            document.querySelectorAll('.property-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const elements = document.querySelectorAll('.property-item');
-                    handleFilterSelection(this, elements);
-                });
+                groupedIssues[key].push(issue);
             });
 
-            // Add click handlers for issue cards
-            document.querySelectorAll('.issue-card').forEach(card => {
-                card.addEventListener('click', function() {
+            // Create cards for each group
+            Object.entries(groupedIssues).forEach(([key, issues]) => {
+                const firstIssue = issues[0];
+                const issueCard = document.createElement('div');
+                issueCard.className = 'issue-card';
+                issueCard.setAttribute('data-severity', firstIssue.severity.toLowerCase());
+                issueCard.setAttribute('data-url', firstIssue.siteUrl);
+                issueCard.setAttribute('data-issue-ids', issues.map(i => i.id).join(','));
+
+                const issueUrl = document.createElement('div');
+                issueUrl.className = 'issue-url';
+                issueUrl.textContent = firstIssue.siteUrl;
+
+                // Add issue count badge if multiple issues
+                if (issues.length > 1) {
+                    const badge = document.createElement('span');
+                    badge.className = 'issue-count-badge';
+                    badge.textContent = issues.length;
+                    issueUrl.appendChild(badge);
+                }
+
+                issueCard.appendChild(issueUrl);
+                issueList.appendChild(issueCard);
+
+                // Add click handler
+                issueCard.addEventListener('click', function() {
                     // Remove selected class from all cards
                     document.querySelectorAll('.issue-card').forEach(c => {
                         c.classList.remove('selected');
@@ -758,23 +1329,94 @@
                     // Add selected class to clicked card
                     this.classList.add('selected');
                     updateDetailsPanel(this);
+                    
+                    // Scroll to details panel on mobile
+                    if (window.innerWidth < 992) {
+                        document.querySelector('.details-panel').scrollIntoView({ behavior: 'smooth' });
+                    }
                 });
             });
 
-            // Filter to show only critical issues on page load
-            const criticalFilter = document.querySelector('.property-item[data-severity="critical"]');
-            if (criticalFilter) {
-                const elements = document.querySelectorAll('.property-item');
-                handleFilterSelection(criticalFilter, elements);
-                
-                // Select the first critical issue if available
-                const firstCriticalCard = document.querySelector('.issue-card[data-severity="critical"]');
-                if (firstCriticalCard) {
-                    firstCriticalCard.classList.add('selected');
-                    updateDetailsPanel(firstCriticalCard);
+            // Select first card by default
+            const firstCard = document.querySelector('.issue-card');
+            if (firstCard) {
+                firstCard.classList.add('selected');
+                updateDetailsPanel(firstCard);
+            }
+        }
+        
+        // Initialize the page
+        createIssueCards();
+        
+        // Initialize with Critical filter selected
+        filterIssues('critical');
+        document.querySelector('[data-severity="critical"]').classList.add('selected');
+    } // End of initAppWithData function
+    
+    // Call checkForData to start the initialization process
+    checkForData();
+} // End of initializeApp function
+    
+    // Initialize when DOM is loaded and data is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOMContentLoaded event fired. Checking for bugData...');
+        
+        // Debug: Log the current state of bugData
+        console.log('Current bugData:', window.bugData);
+        console.log('bugData length:', window.bugData ? window.bugData.length : 0);
+        
+        // Initialize the app immediately
+        initializeApp();
+        
+        // Set up a mutation observer to detect when bugData changes
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'data-bugdata-loaded') {
+                    console.log('bugData attribute changed, reinitializing app');
+                    initializeApp();
+                }
+            });
+        });
+        
+        // Start observing the document with the configured parameters
+        observer.observe(document.documentElement, { attributes: true });
+        
+        // Also set a timeout to check for data after a short delay
+        const checkData = setInterval(() => {
+            if (window.bugData && window.bugData.length > 0) {
+                console.log('Data loaded via interval check, initializing app');
+                clearInterval(checkData);
+                initializeApp();
+            }
+        }, 100);
+        
+        // Timeout after 10 seconds if data isn't loaded
+        setTimeout(() => {
+            clearInterval(checkData);
+            if (!window.bugData || window.bugData.length === 0) {
+                console.error('Timed out waiting for bug data');
+                const issueList = document.querySelector('.issue-list');
+                if (issueList) {
+                    issueList.innerHTML = `
+                        <div class="error-message">
+                            Error: Failed to load bug data. Please try again.
+                            <p>Debug info:</p>
+                            <pre>${JSON.stringify({
+                                bugDataExists: !!window.bugData,
+                                bugDataLength: window.bugData ? window.bugData.length : 0,
+                                sampleData: window.bugData ? window.bugData[0] : 'No data'
+                            }, null, 2)}</pre>
+                        </div>`;
                 }
             }
-        });
-    </script>
-</body>
+        }, 3000);
+    });
+</script>
+
+            <script>
+                console.log('Template loaded with', window.bugData ? window.bugData.length : 0, 'bugs');
+                console.log('Sample bug:', window.bugData ? window.bugData[0] : 'No data');
+            </script>
+        
+    </body>
 </html>
