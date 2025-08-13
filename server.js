@@ -71,30 +71,71 @@ const handleApiError = (error, res) => {
 // Get all projects
 app.get('/api/projects', async (req, res) => {
   try {
-    // Fetching projects from BugHerd API
+    console.log('Fetching projects from BugHerd API...');
+    // Fetching projects from BugHerd API with debug logging
     const response = await bugherdApi.get('/projects.json');
+    console.log('BugHerd API response received, status:', response.status);
     
     // Processing API response
-    
-    // Check if the response has the expected format
     let projects = [];
+    
+    // Check different possible response formats
     if (Array.isArray(response.data)) {
+      console.log('Response is an array, using directly as projects');
       projects = response.data;
     } else if (response.data && Array.isArray(response.data.projects)) {
+      console.log('Found projects array in response.data.projects');
       projects = response.data.projects;
-    } else {
-      // Unexpected API response format
+    } else if (response.data && response.data.project) {
+      // Handle case where a single project is returned
+      console.log('Found single project in response.data.project');
+      projects = [response.data.project];
+    } else if (response.data) {
+      // Try to extract projects from the response object
+      console.log('Looking for projects array in response data keys');
+      const possibleProjectKeys = Object.keys(response.data).filter(key => 
+        Array.isArray(response.data[key])
+      );
+      
+      if (possibleProjectKeys.length > 0) {
+        console.log(`Found possible projects in key: ${possibleProjectKeys[0]}`);
+        projects = response.data[possibleProjectKeys[0]];
+      } else {
+        console.log('No array found in response data, checking for projects in root');
+        // If we have a projects object but not an array, try to convert it
+        if (response.data.projects && typeof response.data.projects === 'object') {
+          projects = Object.values(response.data.projects);
+        }
+      }
+    }
+    
+    // Ensure we have an array of projects
+    if (!Array.isArray(projects)) {
+      console.error('Unexpected API response format:', response.data);
       return res.status(500).json({
         success: false,
         error: 'Unexpected API response format',
-        details: response.data
+        details: 'Expected an array of projects but received a different format',
+        response: response.data
       });
     }
     
-    // Projects fetched successfully
+    // Transform projects to a consistent format
+    const formattedProjects = projects.map(project => ({
+      id: project.id,
+      name: project.name || `Project ${project.id}`,
+      created_at: project.created_at,
+      updated_at: project.updated_at || project.updated_at,
+      status: project.status || 'active',
+      // Include any additional fields that might be needed
+      ...(project.description && { description: project.description }),
+      ...(project.devurl && { url: project.devurl })
+    }));
+    
+    console.log(`Returning ${formattedProjects.length} projects`);
     res.json({
       success: true,
-      projects: projects
+      projects: formattedProjects
     });
   } catch (error) {
     // Error fetching projects

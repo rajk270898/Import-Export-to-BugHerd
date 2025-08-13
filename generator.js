@@ -16,29 +16,22 @@ class ReportGenerator {
             process.exit(1);
         }
         
-        console.log('ReportGenerator initialized with API URL:', this.apiBaseUrl);
     }
 
     async generateReport(projectId, filters = {}) {
         try {
-            console.log('Starting report generation...');
-            console.log('Project ID:', projectId);
-            console.log('Filters:', JSON.stringify(filters, null, 2));
             
             // Step 1: Fetch project data
-            console.log('Fetching project data...');
             const project = await this.fetchProject(projectId);
             if (!project) {
                 throw new Error('Failed to fetch project data');
             }
             
             // Step 2: Fetch tasks with filters
-            console.log('Fetching tasks with filters...');
             let tasks = await this.fetchTasks(projectId);
             
             // Apply filters if any
             if (Object.keys(filters).length > 0) {
-                console.log('Applying filters to tasks...');
                 tasks = this.filterTasks(tasks, filters);
             }
             
@@ -455,34 +448,107 @@ class ReportGenerator {
             day: 'numeric'
         });
 
-        // Prepare bug data with all required fields for the new template
-        const bugData = tasks.map(task => ({
-            id: task.id,
-            status: (task.status?.name || 'new').toLowerCase(),
-            priority: (task.priority || 'Not set').toLowerCase(),
-            description: task.description || 'No description available',
-            siteUrl: task.site || 'No URL',
-            os: task.os || 'Not specified',
-            browser: task.browser || 'Not specified',
-            resolution: task.resolution || 'Not specified',
-            screenshotUrl: task.screenshot_url || '',
-            email: task.requester_email || 'No email',
-            created_at: task.created_at ? new Date(task.created_at).toLocaleDateString() : 'Unknown',
-            updated_at: task.updated_at ? new Date(task.updated_at).toLocaleDateString() : 'Unknown',
-            tags: task.tag_names ? task.tag_names.join(', ') : 'No tags',
-            url: task.site || 'No URL',
-            element: task.element || 'Not specified',
-            reporter: task.requester_email || 'Anonymous',
-            dateReported: task.created_at ? new Date(task.created_at).toLocaleDateString() : 'Unknown',
-            lastUpdated: task.updated_at ? new Date(task.updated_at).toLocaleDateString() : 'Unknown',
-            assignee: task.assignee_email || 'Unassigned',
-            comments: task.comments_count || 0
-        }));
+        // Prepare bug data with all required fields matching the CSV export format
+        const bugData = tasks.map((task, index) => {
+            // Helper function to safely get values
+            const getValue = (value, defaultValue = '') => {
+                if (value === null || value === undefined) return defaultValue;
+                if (Array.isArray(value)) return value.join(', ');
+                return String(value).trim() || defaultValue;
+            };
+
+            // Extract status and type
+            const status = getValue(task.status?.name || task.status);
+            const bugType = status && status.toLowerCase() === 'suggestion' ? 'Suggestion' : 
+                          (status && status.toLowerCase() === 'qa team' ? 'Bug' : status);
+            
+            // Extract priority
+            const priorityMap = {
+                1: 'Critical',
+                2: 'Important',
+                3: 'Normal',
+                4: 'Minor',
+                0: 'Not Set'
+            };
+            const priority = task.priority_id !== undefined ? 
+                priorityMap[task.priority_id] || 'Normal' : 'Normal';
+            
+            // Extract description and environment info
+            const description = getValue(task.description);
+            const env = this.extractEnvFromDescription(description);
+            
+            // Extract tags
+            const tags = task.tag_names ? 
+                (Array.isArray(task.tag_names) ? task.tag_names.join(', ') : task.tag_names) : 
+                (task.tags ? (Array.isArray(task.tags) ? task.tags.join(', ') : task.tags) : '');
+            
+            // Extract URL - check multiple possible fields
+            let siteUrl = '';
+            if (task.site) siteUrl = task.site;
+            else if (task.url) siteUrl = task.url;
+            else if (task.site_page) siteUrl = task.site_page;
+            else if (task.site_url) siteUrl = task.site_url;
+            
+            // Extract screenshot URL
+            let screenshot = '';
+            if (task.screenshot_url) screenshot = task.screenshot_url;
+            else if (task.screenshot) screenshot = task.screenshot;
+            else if (task.attachments && task.attachments.length > 0) {
+                // Try to get the first image attachment
+                const imageAttachment = task.attachments.find(att => 
+                    att.content_type && att.content_type.startsWith('image/')
+                );
+                if (imageAttachment) {
+                    screenshot = imageAttachment.url || '';
+                }
+            }
+            
+            // Extract reporter/requester
+            const reporter = getValue(task.requester_email || task.reporter);
+            
+            // Return data in the same format as CSV export
+            return {
+                id: index + 1, // BugID is 1-based index
+                bugStatus: 'New',
+                bugType: bugType,
+                priority: priority,
+                priorityId: task.priority_id || '',
+                description: description,
+                tags: tags,
+                siteUrl: siteUrl,
+                os: env.os,
+                browser: env.browser,
+                browserSize: env.browserWindow,
+                resolution: env.resolution,
+                screenshot: screenshot,
+                reporter: reporter,
+                severity: priority, // Using same as priority for now
+                tagsCategories: tags, // Same as tags for now
+                element: 'Not specified',
+                assignee: task.assignee_email || 'Unassigned',
+                comments: task.comments_count || 0,
+                
+                // Keep original fields for backward compatibility
+                title: `Task ${index + 1}`,
+                status: status,
+                created_at: task.created_at || new Date().toISOString(),
+                updated_at: task.updated_at || new Date().toISOString()
+            };
+        });
+
+        // Debug: Log the first task to verify the structure
+        if (bugData.length > 0) {
+            console.log('First task data:', JSON.stringify(bugData[0], null, 2));
+        }
 
         // Inject the bug data as a JavaScript variable
         const bugDataScript = `
             <script>
+                // Store the tasks data in a global variable
                 window.bugData = ${JSON.stringify(bugData, null, 2)};
+                
+                // Debug: Log the data to console
+                console.log('Bug data loaded:', window.bugData);
             </script>
         `;
         
@@ -635,22 +701,7 @@ class ReportGenerator {
             const description = getValue(task.description).replace(/\n/g, '<br>');
             
             // Extract environment information
-            const extractEnvFromDescription = (desc) => {
-                if (typeof desc !== 'string') return {};
-                const osMatch = desc.match(/OS\s*:\s*([^\n]+)/i);
-                const browserMatch = desc.match(/Browser\s*:\s*([^\n]+)/i);
-                const resMatch = desc.match(/Resolution\s*:?\s*([^\n]+)/i);
-                const browserWindowMatch = desc.match(/Browser\s*Window\s*:?\s*([^\n]+)/i);
-                
-                return {
-                    os: osMatch ? osMatch[1].trim() : '',
-                    browser: browserMatch ? browserMatch[1].trim() : '',
-                    resolution: resMatch ? resMatch[1].trim() : '',
-                    browserWindow: browserWindowMatch ? browserWindowMatch[1].trim() : ''
-                };
-            };
-            
-            const env = extractEnvFromDescription(description);
+            const env = this.extractEnvFromDescription(description);
             
             // Get site URL with fallbacks
             const siteUrl = getValue(
@@ -689,9 +740,9 @@ class ReportGenerator {
 
             // Create data object with only the required fields
             const taskData = {
-                'BugID': index + 1,
+                'BugID': (index + 1),
                 'Bug Status': 'New',
-                'Bug Type': bugType,
+                'Bug Type': (status && status.toLowerCase() === 'suggestion' ? 'Suggestion' : (status && status.toLowerCase() === 'qa team' ? 'Bug' : status)),
                 'Priority': priority,
                 'Priority ID': task.priority_id || '',
                 'Description': description.replace(/<br\s*\/?>/g, '\n'), // Convert <br> back to newlines for display
@@ -744,6 +795,22 @@ class ReportGenerator {
                 </div>
             `;
         }).join('\n');
+    }
+
+    extractEnvFromDescription(desc) {
+        if (typeof desc !== 'string') return { os: '', browser: '', resolution: '', browserWindow: '' };
+        
+        const osMatch = desc.match(/OS\s*:\s*([^\n]+)/i);
+        const browserMatch = desc.match(/Browser\s*:\s*([^\n]+)/i);
+        const resMatch = desc.match(/Resolution\s*:?\s*([^\n]+)/i);
+        const browserWindowMatch = desc.match(/Browser\s*Window\s*:?\s*([^\n]+)/i);
+        
+        return {
+            os: osMatch ? osMatch[1].trim() : '',
+            browser: browserMatch ? browserMatch[1].trim() : '',
+            resolution: resMatch ? resMatch[1].trim() : '',
+            browserWindow: browserWindowMatch ? browserWindowMatch[1].trim() : ''
+        };
     }
 
     generateSummary(tasks) {

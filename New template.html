@@ -816,65 +816,94 @@ a.details-value:hover {
 <script>
     // Function to create a single issue panel HTML
     function createIssuePanel(issue, index = 0, isAccordion = false) {
-        const issueNumber = index + 1;
+        // Map our data fields to the expected field names
+        const issueData = {
+            id: issue.id,
+            status: issue.bugStatus || 'New',
+            type: issue.bugType || 'Bug',
+            severity: issue.severity || 'Normal',
+            tags: issue.tags ? (Array.isArray(issue.tags) ? issue.tags : issue.tags.split(',').map(t => t.trim())) : [],
+            description: issue.description || 'No description available',
+            siteUrl: issue.siteUrl || '',
+            os: issue.os || 'Not specified',
+            browser: issue.browser || 'Not specified',
+            browserSize: issue.browserSize || 'Not specified',
+            resolution: issue.resolution || 'Not specified',
+            screenshot: issue.screenshot || '',
+            email: issue.reporter || 'No email provided'
+        };
         
         return `
             <div class="details-grid">
                 <div class="details-row">
                     <span class="details-label">Bug ID:</span>
-                    <span class="details-value">${issue.id}</span>
+                    <span class="details-value">${issueData.id}</span>
                 </div>
                 <div class="details-row">
                     <span class="details-label">Bug Status:</span>
-                    <span class="details-value" data-status="${issue.status.toLowerCase()}">${issue.status}</span>
+                    <span class="details-value" data-status="${issueData.status.toLowerCase()}">${issueData.status}</span>
                 </div>
                 <div class="details-row">
                     <span class="details-label">Bug Type:</span>
-                    <span class="details-value">${issue.type}</span>
+                    <span class="details-value">${issueData.type}</span>
                 </div>
                 <div class="details-row">
                     <span class="details-label">Severity:</span>
-                    <span class="details-value" data-severity="${issue.severity.toLowerCase()}">${issue.severity}</span>
+                    <span class="details-value" data-severity="${issueData.severity.toLowerCase()}">${issueData.severity}</span>
                 </div>
                 <div class="details-row">
-                    <span class="details-label">Categories:</span>
+                    <span class="details-label">Tags/Categories:</span>
                     <div class="tags-container">
-                        ${Array.isArray(issue.tags) ? issue.tags.map(tag => 
-                            `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}</span>`
-                        ).join('') : `<span class="tag">${issue.tags}</span>`}
+                        ${issueData.tags && issueData.tags.length > 0 ? 
+                            issueData.tags.map(tag => 
+                                `<span class="tag" data-tag="${tag.toLowerCase().trim()}">${tag.trim()}</span>`
+                            ).join('') : 
+                            '<span class="tag">No tags</span>'
+                        }
                     </div>
                 </div>
                 <div class="details-row full-width">
                     <span class="details-label">Description:</span>
-                    <div class="details-value">${issue.description}</div>
+                    <div class="details-value">${issueData.description.replace(/\n/g, '<br>')}</div>
                 </div>
                 <div class="details-row">
                     <span class="details-label">Site URL:</span>
-                    <a href="${issue.siteUrl.startsWith('http') ? '' : 'https://'}${issue.siteUrl}" class="details-value" target="_blank">${issue.siteUrl}</a>
+                    <a href="${issueData.siteUrl.startsWith('http') ? '' : 'https://'}${issueData.siteUrl}" 
+                       class="details-value" 
+                       target="_blank" 
+                       rel="noopener noreferrer">
+                        ${issueData.siteUrl || 'No URL provided'}
+                    </a>
                 </div>
                 <div class="details-row">
                     <span class="details-label">OS:</span>
-                    <span class="details-value">${issue.os}</span>
+                    <span class="details-value">${issueData.os}</span>
                 </div>
                 <div class="details-row">
                     <span class="details-label">Browser:</span>
-                    <span class="details-value">${issue.browser}</span>
+                    <span class="details-value">${issueData.browser}</span>
                 </div>
                 <div class="details-row">
                     <span class="details-label">Browser Size:</span>
-                    <span class="details-value">${issue.browserSize}</span>
+                    <span class="details-value">${issueData.browserSize}</span>
                 </div>
                 <div class="details-row">
                     <span class="details-label">Resolution:</span>
-                    <span class="details-value">${issue.resolution}</span>
+                    <span class="details-value">${issueData.resolution}</span>
                 </div>
+                ${issueData.screenshot ? `
                 <div class="details-row">
                     <span class="details-label">Screenshot:</span>
-                    <a href="${issue.screenshotUrl}" class="details-value" target="_blank" rel="noopener noreferrer">View Screenshot</a>
-                </div>
+                    <a href="${issueData.screenshot}" 
+                       class="details-value" 
+                       target="_blank" 
+                       rel="noopener noreferrer">
+                        View Screenshot
+                    </a>
+                </div>` : ''}
                 <div class="details-row">
-                    <span class="details-label">Requester Email:</span>
-                    <a href="mailto:${issue.email}" class="details-value">${issue.email}</a>
+                    <span class="details-label">Reporter:</span>
+                    <a href="mailto:${issueData.email}" class="details-value">${issueData.email}</a>
                 </div>
             </div>
             ${isAccordion ? `</div></div>` : ''}
