@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sample Font Style Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            transition: all 0.2s ease-in-out;
+        }
+
+        body { 
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .report-header { 
+            background: var(--bg-primary);
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .report-title { 
+            font-size: 1.5rem;
+            font-weight: 700;
+            flex: 1;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .tag-bar { 
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .main-layout { 
+            display: grid;
+            grid-template-columns: 280px 1fr 850px;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            min-height: calc(100vh - 70px);
+        }
+
+        .sidebar { 
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: sticky;
+            top: 90px;
+            height: fit-content;
+        }
+
+        .sidebar-section {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .sidebar-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .url-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .property-list { 
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .property-item { 
+            padding: 0.875rem 1.25rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .property-item:hover { 
+            background: var(--primary-light);
+            color: white;
+            border-color: var(--primary-light);
+            transform: translateX(5px);
+        }
+
+        .property-item.selected { 
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .issue-list { 
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            border-radius: 16px;
+            padding: 28px;
+        }
+
+        .issue-card { 
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .issue-card:hover { 
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary-light);
+        }
+
+        .issue-card.selected { 
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+            transform: translateY(-2px);
+        }
+        
+        
+        .issue-severity,
+        .issue-type,
+        .issue-status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        
+        .issue-severity[data-severity="critical"] {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .issue-severity[data-severity="important"] {
+            background-color: #ffedd5;
+            color: #c2410c;
+        }
+        
+        .issue-severity[data-severity="normal"] {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .issue-severity[data-severity="minor"],
+        .issue-severity[data-severity="Not set"] {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        .issue-status[data-status="new"] {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+        
+        .issue-status[data-status="in progress"] {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .issue-status[data-status="resolved"] {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .issue-url {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            padding-right: 2rem;
+            word-break: break-all;
+        }
+        
+        .issue-count-badge {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            width: 1.5rem;
+            height: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .issue-status { 
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--error);
+            margin-bottom: 0.75rem;
+            display: inline-block;
+            padding: 0.375rem 1rem;
+            background: #fee2e2;
+            border-radius: 8px;
+            border: 1px solid #fecaca;
+        }
+
+        .issue-snippet {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .details-panel { 
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 90px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .accordion {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            margin-top: 1rem;
+        }
+
+        .accordion-item {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        
+        .accordion-item:hover {
+            border-color: var(--primary-light);
+        }
+        
+        .accordion-item.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 1px var(--primary);
+        }
+
+        .accordion-item.active {
+            border-color: var(--primary);
+        }
+
+        .accordion-header {
+            width: 100%;
+            padding: 1.25rem 1.5rem;
+            background: var(--bg-primary);
+            border: none;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .accordion-header:hover {
+            background-color: var(--bg-tertiary);
+        }
+
+        .accordion-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-item.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: var(--bg-primary);
+            padding: 0 1.5rem;
+        }
+
+        .accordion-item.active .accordion-content {
+            max-height: 2000px;
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            display: block;
+        }
+
+        .accordion-item.active .accordion-content {
+            opacity: 1;
+            transition: max-height 0.5s ease-in, opacity 0.3s ease-out;
+        }
+
+        .details-selector { 
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1rem 0;
+        }
+
+        .details-title { 
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 1.75rem;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 0;
+            padding: 0.5rem 0;
+        }
+
+        .details-row {
+            display: flex;
+            flex-direction: column;
+            padding: 0.75rem;
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+            margin: 0;
+        }
+        .details-row.full-width {
+            grid-column: 1 / -1;
+            background: var(--bg-tertiary);
+        }
+
+        .details-label { 
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .details-value {
+            font-weight: 500;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        a.details-value {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        a.details-value:hover {
+            text-decoration: underline;
+        }
+
+        /* Tags styling */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-layout {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .sidebar {
+                position: static;
+            }
+            
+            .details-panel {
+                position: static;
+            }
+        }
+
+.details-selector { 
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1rem 0;
+}
+
+.details-title { 
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 1.75rem;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 0;
+    padding: 0.5rem 0;
+}
+
+.details-row {
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    transition: all 0.2s ease;
+    margin: 0;
+}
+.details-row.full-width {
+    grid-column: 1 / -1;
+    background: var(--bg-tertiary);
+}
+
+.details-label { 
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.details-value {
+    font-weight: 500;
+    color: var(--text-primary);
+    word-break: break-word;
+}
+
+a.details-value {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+a.details-value:hover {
+    text-decoration: underline;
+}
+
+/* Tags styling */
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.tag {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background-color: #e0f2fe;
+    color: #0369a1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .main-layout {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .sidebar {
+        position: static;
+    }
+    
+    .details-panel {
+        position: static;
+    }
+}
+        
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        .tag[data-tag="ui/ux"] {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+        
+        .tag[data-tag="frontend"] {
+            background-color: #f0fdf4;
+            color: #166534;
+        }
+        
+        .tag[data-tag="functional"],
+        .tag[data-tag*="backend"] {
+            background-color: #fef2f2;
+            color: #991b1b;
+        }
+        
+        .tag[data-tag*="checkout"] {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .tag[data-tag*="performance"] {
+            background-color: #f3e8ff;
+            color: #6b21a8;
+        }
+
+        .details-value a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .details-value a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* Severity badge */
+        #bug-severity {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #bug-severity[data-severity="critical"] {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        #bug-severity[data-severity="important"] {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        #bug-severity[data-severity="normal"] {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+        }
+
+        #bug-severity[data-severity="minor"] {
+            background-color: #e5e7eb;
+            color: #4b5563;
+        }
+
+        #bug-severity[data-severity="notset"] {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+
+        /* Status badge */
+        #bug-status {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        #bug-status[data-status="new"] {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        #bug-tags {
+            display: inline-flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: #e0f2fe;
+            color: #4b5563;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .details-value { 
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .details-table { 
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 1rem 0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .details-table th, 
+        .details-table td { 
+            padding: 1rem 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .details-table th { 
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .details-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .details-table tr:hover td {
+            background: var(--bg-secondary);
+        }
+
+        .screenshot-preview { 
+            margin-top: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            max-width: 100%;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .screenshot-preview:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow);
+            border-color: var(--primary-light);
+        }
+
+
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+
+        pre {
+            background: var(--bg-tertiary);
+            padding: 1.25rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .issue-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="report-header">
+        <span class="report-title">Bug Report</span>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Bug Summary</h3>
+                <div class="chart-container">
+                    <canvas id="severityChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Bugs by Severity</h3>
+                <ul class="property-list">
+                <li class="property-item selected" data-severity="critical">Critical</li>
+                <li class="property-item" data-severity="important">Important</li>
+                <li class="property-item" data-severity="normal">Normal</li>
+                <li class="property-item" data-severity="minor">Minor</li>
+                    <li class="property-item" data-severity="not set">Not Set</li>
+                </ul>
+            </div>
+        </div>
+        <div class="issue-list">
+            <h3 class="url-title">Page URLs</h3>
+        </div>
+        <div class="details-panel">
+                <h3 class="url-title">Bug Details</h3>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Function to create a single issue panel HTML
+    function createIssuePanel(issue, index = 0, isAccordion = false) {
+        const issueNumber = index + 1;
+        
+        return `
+            <div class="details-grid">
+                <div class="details-row">
+                    <span class="details-label">Bug ID:</span>
+                    <span class="details-value">${issue.id}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Bug Status:</span>
+                    <span class="details-value" data-status="${issue.status.toLowerCase()}">${issue.status}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Bug Type:</span>
+                    <span class="details-value">${issue.type}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Severity:</span>
+                    <span class="details-value" data-severity="${issue.severity.toLowerCase()}">${issue.severity}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Categories:</span>
+                    <div class="tags-container">
+                        ${Array.isArray(issue.tags) ? issue.tags.map(tag => 
+                            `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}</span>`
+                        ).join('') : `<span class="tag">${issue.tags}</span>`}
+                    </div>
+                </div>
+                <div class="details-row full-width">
+                    <span class="details-label">Description:</span>
+                    <div class="details-value">${issue.description}</div>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Site URL:</span>
+                    <a href="${issue.siteUrl.startsWith('http') ? '' : 'https://'}${issue.siteUrl}" class="details-value" target="_blank">${issue.siteUrl}</a>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">OS:</span>
+                    <span class="details-value">${issue.os}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Browser:</span>
+                    <span class="details-value">${issue.browser}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Browser Size:</span>
+                    <span class="details-value">${issue.browserSize}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Resolution:</span>
+                    <span class="details-value">${issue.resolution}</span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Screenshot:</span>
+                    <a href="${issue.screenshotUrl}" class="details-value" target="_blank" rel="noopener noreferrer">View Screenshot</a>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">Requester Email:</span>
+                    <a href="mailto:${issue.email}" class="details-value">${issue.email}</a>
+                </div>
+            </div>
+            ${isAccordion ? `</div></div>` : ''}
+        `;
+    }
+
+    // Function to update details panel based on selected issue
+    function updateDetailsPanel(issueCard) {
+        const url = issueCard.getAttribute('data-url');
+        const severity = issueCard.getAttribute('data-severity');
+        const issueIds = issueCard.getAttribute('data-issue-ids').split(',');
+        
+        // Get the bug data for these issues
+        const bugDataList = [];
+        
+        // Get the bug data from the stored IDs
+        issueIds.forEach(id => {
+            const issueData = window.bugData.find(issue => issue.id.toString() === id);
+            if (issueData) {
+                bugDataList.push(issueData);
+            }
+        });
+        
+        // Update the UI
+        const detailsPanel = document.querySelector('.details-panel');
+        
+        // Check if we should show accordion (for multiple critical or not set issues for this URL)
+        const currentSeverity = severity.toLowerCase();
+        const showAccordion = (currentSeverity === 'critical' || currentSeverity === 'important' || currentSeverity === 'normal' || currentSeverity === 'minor' || currentSeverity === 'not set') && 
+                            bugDataList.filter(issue => 
+                                issue.severity.toLowerCase() === currentSeverity
+                            ).length > 1;
+        
+        if (showAccordion) {
+            // Create accordion structure
+            detailsPanel.innerHTML = `
+                <h3 class="url-title">Bug Details</h3>
+                <div class="accordion"></div>
+            `;
+            
+            const accordion = detailsPanel.querySelector('.accordion');
+            
+            // Add each issue as an accordion item
+            bugDataList.forEach((issue, index) => {
+                const accordionItem = document.createElement('div');
+                accordionItem.className = 'accordion-item';
+                accordionItem.innerHTML = `
+                    <button class="accordion-header" aria-expanded="${index === 0 ? 'true' : 'false'}" 
+                            aria-controls="bug-details-${index}">
+                        <span>Issue #${index + 1}</span>
+                        <svg class="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div id="bug-details-${index}" class="accordion-content">
+                        ${createIssuePanel(issue, index, false)}
+                    </div>
+                `;
+                accordion.appendChild(accordionItem);
+            });
+            
+            // Initialize accordion functionality
+            initializeAccordion();
+        } else {
+            // Single issue or non-critical - render normally
+            const issuePanel = bugDataList.length > 0 ? createIssuePanel(bugDataList[0]) : '';
+            detailsPanel.innerHTML = `
+                <h3 class="url-title">Bug Details</h3>
+                <div class="details-content">
+                    ${issuePanel}
+                </div>
+            `;
+        }
+    }
+    
+    // Initialize accordion functionality
+    function initializeAccordion() {
+        const accordion = document.querySelector('.accordion');
+        if (!accordion) return;
+
+        // Use event delegation on the parent container
+        accordion.addEventListener('click', (e) => {
+            // Find the closest accordion-header that was clicked
+            const header = e.target.closest('.accordion-header');
+            if (header) {
+                e.preventDefault();
+                
+                const item = header.closest('.accordion-item');
+                const content = item.querySelector('.accordion-content');
+                if (!content) return;
+                
+                const isExpanded = header.getAttribute('aria-expanded') === 'true';
+
+                // Close all other accordion items
+                const allItems = accordion.querySelectorAll('.accordion-item');
+                allItems.forEach(otherItem => {
+                    if (otherItem !== item) {
+                        otherItem.querySelector('.accordion-header')?.setAttribute('aria-expanded', 'false');
+                        otherItem.querySelector('.accordion-content').style.maxHeight = '0';
+                        otherItem.classList.remove('active');
+                    }
+                });
+
+                // Toggle the clicked item
+                const newExpandedState = !isExpanded;
+                header.setAttribute('aria-expanded', newExpandedState);
+                
+                if (newExpandedState) {
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    item.classList.add('active');
+                } else {
+                    content.style.maxHeight = '0';
+                    item.classList.remove('active');
+                }
+            }
+        });
+
+        // Add keyboard navigation
+        accordion.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                const header = e.target.closest('.accordion-header');
+                if (header) {
+                    e.preventDefault();
+                    header.click();
+                }
+            }
+        });
+
+        // Open first accordion by default
+        const accordionItems = accordion.querySelectorAll('.accordion-item');
+        if (accordionItems.length > 0) {
+            const firstItem = accordionItems[0];
+            const firstHeader = firstItem.querySelector('.accordion-header');
+            const firstContent = firstItem.querySelector('.accordion-content');
+            if (firstHeader && firstContent) {
+                firstHeader.setAttribute('aria-expanded', 'true');
+                firstContent.style.maxHeight = firstContent.scrollHeight + 'px';
+                firstItem.classList.add('active');
+            }
+        }
+    }
+
+    // Function to filter and show issues based on severity
+    function filterIssues(severity) {
+        const allIssues = document.querySelectorAll('.issue-card');
+        let hasVisibleIssues = false;
+        
+        allIssues.forEach(issue => {
+            const issueSeverity = issue.getAttribute('data-severity');
+            // Handle 'Not Set' case by checking for empty or undefined severity
+            const shouldShow = severity === 'all' || 
+                             (severity === 'notset' ? 
+                                 (issueSeverity === 'notset' || issueSeverity === '') : 
+                                 (issueSeverity === severity)
+                             );
+            
+            if (shouldShow) {
+                issue.style.display = '';
+                hasVisibleIssues = true;
+            } else {
+                issue.style.display = 'none';
+            }
+        });
+        
+        // If no issues found, show a message
+        const noIssuesMessage = document.querySelector('.no-issues-message');
+        if (!hasVisibleIssues) {
+            if (!noIssuesMessage) {
+                const message = document.createElement('div');
+                message.className = 'no-issues-message';
+                message.textContent = 'No issues found for this filter.';
+                document.querySelector('.issue-list').appendChild(message);
+            }
+        } else if (noIssuesMessage) {
+            noIssuesMessage.remove();
+        }
+    }
+
+    // Function to handle filter selection
+    function handleFilterSelection(selectedElement, elements) {
+        elements.forEach(el => el.classList.remove('selected'));
+        selectedElement.classList.add('selected');
+        const severity = selectedElement.getAttribute('data-severity');
+        filterIssues(severity);
+    }
+
+    // Initialize bug data
+    window.bugData = [
+        // Critical Issues
+        {
+            id: 1001,
+            status: 'New',
+            type: 'Bug',
+            severity: 'Critical',
+            tags: ['UI/UX', 'Frontend'],
+            description: 'Button alignment issue on checkout page. The submit button is not properly aligned with the form fields.',
+            siteUrl: 'example.com/checkout',
+            os: 'Windows 10',
+            browser: 'Chrome 115.0',
+            browserSize: '1920 x 1080 px',
+            resolution: '1920 x 1080 px',
+            screenshotUrl: 'https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg',
+            email: 'user1@example.com'
+        },
+        {
+            id: 1002,
+            status: 'In Progress',
+            type: 'Bug',
+            severity: 'Critical',
+            tags: ['Functional', 'Checkout'],
+            description: 'Checkout form validation failing. Users cannot proceed with payment.',
+            siteUrl: 'example.com/checkout',
+            os: 'macOS',
+            browser: 'Safari 16.0',
+            browserSize: '1440 x 900 px',
+            resolution: '1920 x 1080 px',
+            screenshotUrl: 'https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg',
+            email: 'user2@example.com'
+        },
+        // Important Issues
+        {
+            id: 2001,
+            status: 'In Progress',
+            type: 'Bug',
+            severity: 'Important',
+            tags: ['UI/UX', 'Responsive'],
+            description: 'Layout breaks on mobile view for product page.',
+            siteUrl: 'example.com/product/123',
+            os: 'iOS',
+            browser: 'Safari Mobile',
+            browserSize: '375 x 812 px',
+            resolution: '1920 x 1080 px',
+            screenshotUrl: 'https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg',
+            email: 'mobileuser@example.com'
+        },
+        {
+            id: 2002,
+            status: 'In Progress',
+            type: 'Bug',
+            severity: 'Important',
+            tags: ['UI/UX', 'Responsive'],
+            description: 'Layout breaks on mobile view for product page.',
+            siteUrl: 'example.com/product/123',
+            os: 'iOS',
+            browser: 'Safari Mobile',
+            browserSize: '375 x 812 px',
+            resolution: '1920 x 1080 px',
+            screenshotUrl: 'https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg',
+            email: 'mobileuser@example.com'
+        },
+        // Normal Issues
+        {
+            id: 3001,
+            status: 'New',
+            type: 'Enhancement',
+            severity: 'Normal',
+            tags: ['UI/UX', 'Accessibility'],
+            description: 'Improve color contrast for better accessibility.',
+            siteUrl: 'example.com/contact',
+            os: 'Windows 10',
+            browser: 'Chrome 114.0',
+            browserSize: '1920 x 1080 px',
+            resolution: '1920 x 1080 px',
+            screenshotUrl: 'https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg',
+            email: 'accessibility@example.com'
+        },
+        {
+            id: 3002,
+            status: 'New',
+            type: 'Enhancement',
+            severity: 'Normal',
+            tags: ['UI/UX', 'Accessibility'],
+            description: 'Improve color contrast for better accessibility.',
+            siteUrl: 'example.com/contact',
+            os: 'Windows 10',
+            browser: 'Chrome 114.0',
+            browserSize: '1920 x 1080 px',
+            resolution: '1920 x 1080 px',
+            screenshotUrl: 'https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg',
+            email: 'accessibility@example.com'
+        },
+        // Minor Issues
+        {
+            id: 4001,
+            status: 'New',
+            type: 'Cosmetic',
+            severity: 'Minor',
+            tags: ['UI/UX', 'Typography'],
+            description: 'Font size inconsistency in footer.',
+            siteUrl: 'example.com/about',
+            os: 'Windows 10',
+            browser: 'Edge 114.0',
+            browserSize: '1920 x 1080 px',
+            resolution: '1920 x 1080 px',
+            screenshotUrl: 'https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg',
+            email: 'design@example.com'
+        },
+        {
+            id: 4002,
+            status: 'New',
+            type: 'Cosmetic',
+            severity: 'Minor',
+            tags: ['UI/UX', 'Typography'],
+            description: 'Font size inconsistency in footer.',
+            siteUrl: 'example.com/about',
+            os: 'Windows 10',
+            browser: 'Edge 114.0',
+            browserSize: '1920 x 1080 px',
+            resolution: '1920 x 1080 px',
+            screenshotUrl: 'https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg',
+            email: 'design@example.com'
+        },
+        // Not Set Issues
+        {
+            id: 5001,
+            status: 'New',
+            type: 'Bug',
+            severity: 'Not Set',
+            tags: ['Documentation', 'Content'],
+            description: 'Missing help text for form fields.',
+            siteUrl: 'example.com/help',
+            os: 'macOS',
+            browser: 'Firefox 115.0',
+            browserSize: '1440 x 900 px',
+            resolution: '1920 x 1080 px',
+            screenshotUrl: 'https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg',
+            email: 'docs@example.com'
+        },
+        // Additional Not Set Issue
+        {
+            id: 5002,
+            status: 'New',
+            type: 'Task',
+            severity: 'Not Set',
+            tags: ['Documentation', 'Missing Info'],
+            description: 'Severity level not specified for this issue. Requires review.',
+            siteUrl: 'example.com/dashboard',
+            os: 'Windows 11',
+            browser: 'Chrome 116.0',
+            browserSize: '1536 x 864 px',
+            resolution: '1920 x 1080 px',
+            screenshotUrl: 'https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg',
+            email: 'review@example.com'
+        }, 
+        {
+            id: 5003,
+            status: 'New',
+            type: 'Task',
+            severity: 'Not Set',
+            tags: ['Documentation', 'Missing Info'],
+            description: 'Severity level not specified for this issue. Requires review.',
+            siteUrl: 'example.com/dashboard',
+            os: 'Windows 11',
+            browser: 'Chrome 116.0',
+            browserSize: '1536 x 864 px',
+            resolution: '1920 x 1080 px',
+            screenshotUrl: 'https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg',
+            email: 'review@example.com'
+        }  
+    ];
+
+    // Initialize with Critical issues shown by default
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize pie chart
+        const ctx = document.getElementById('severityChart').getContext('2d');
+        const severityChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Critical', 'Important', 'Normal', 'Minor', 'Not Set'],
+                datasets: [{
+                    data: [12, 19, 3, 5, 2],
+                    backgroundColor: [
+                        '#fee2e2',
+                        '#fef3c7',
+                        '#e0f2fe',
+                        '#e5e7eb',
+                        '#f3f4f6'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+
+        // Add click handler for chart segments
+        document.getElementById('severityChart').onclick = function(evt) {
+            const activePoints = severityChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+            if (activePoints.length > 0) {
+                const clickedElement = activePoints[0];
+                const label = severityChart.data.labels[clickedElement.index];
+                const severityMap = {
+                    'Critical': 'critical',
+                    'High': 'important',
+                    'Medium': 'normal',
+                    'Low': 'minor',
+                    'Info': 'notset'
+                };
+                filterIssues(severityMap[label]);
+                
+                // Update UI to show selected filter
+                const filterItems = document.querySelectorAll('.property-item');
+                handleFilterSelection(
+                    Array.from(filterItems).find(item => item.dataset.severity === severityMap[label].toLowerCase()),
+                    filterItems
+                );
+            }
+        };
+        // Add click handlers for sidebar filter items
+        document.querySelectorAll('.property-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const elements = document.querySelectorAll('.property-item');
+                handleFilterSelection(this, elements);
+            });
+        });
+
+        // Function to create issue cards from bugData
+        function createIssueCards() {
+            const issueList = document.querySelector('.issue-list');
+            if (!issueList) return;
+
+            // Clear existing cards
+            issueList.innerHTML = '';
+
+            // Group issues by URL and severity
+            const groupedIssues = {};
+            window.bugData.forEach(issue => {
+                const key = `${issue.siteUrl}-${issue.severity}`;
+                if (!groupedIssues[key]) {
+                    groupedIssues[key] = [];
+                }
+                groupedIssues[key].push(issue);
+            });
+
+            // Create cards for each group
+            Object.entries(groupedIssues).forEach(([key, issues]) => {
+                const firstIssue = issues[0];
+                const issueCard = document.createElement('div');
+                issueCard.className = 'issue-card';
+                issueCard.setAttribute('data-severity', firstIssue.severity.toLowerCase());
+                issueCard.setAttribute('data-url', firstIssue.siteUrl);
+                issueCard.setAttribute('data-issue-ids', issues.map(i => i.id).join(','));
+
+                const issueUrl = document.createElement('div');
+                issueUrl.className = 'issue-url';
+                issueUrl.textContent = firstIssue.siteUrl;
+
+                // Add issue count badge if multiple issues
+                if (issues.length > 1) {
+                    const badge = document.createElement('span');
+                    badge.className = 'issue-count-badge';
+                    badge.textContent = issues.length;
+                    issueUrl.appendChild(badge);
+                }
+
+                issueCard.appendChild(issueUrl);
+                issueList.appendChild(issueCard);
+
+                // Add click handler
+                issueCard.addEventListener('click', function() {
+                    // Remove selected class from all cards
+                    document.querySelectorAll('.issue-card').forEach(c => {
+                        c.classList.remove('selected');
+                    });
+                    // Add selected class to clicked card
+                    this.classList.add('selected');
+                    updateDetailsPanel(this);
+                    
+                    // Scroll to details panel on mobile
+                    if (window.innerWidth < 992) {
+                        document.querySelector('.details-panel').scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+
+            // Select first card by default
+            const firstCard = document.querySelector('.issue-card');
+            if (firstCard) {
+                firstCard.classList.add('selected');
+                updateDetailsPanel(firstCard);
+            }
+        }
+        
+        // Initialize the page
+        createIssueCards();
+        
+        // Initialize with Critical filter selected
+        const criticalFilterBtn = document.querySelector('.filter-option[data-severity="critical"]');
+        if (criticalFilterBtn) {
+            criticalFilterBtn.click();
+        }
+
+        // Filter to show only critical issues on page load
+        const criticalFilter = document.querySelector('.property-item[data-severity="critical"]');
+        if (criticalFilter) {
+            const elements = document.querySelectorAll('.property-item');
+            handleFilterSelection(criticalFilter, elements);
+            
+            // Select the first critical issue if available
+            const firstCriticalCard = document.querySelector('.issue-card[data-severity="critical"]');
+            if (firstCriticalCard) {
+                firstCriticalCard.classList.add('selected');
+                updateDetailsPanel(firstCriticalCard);
+            }
+        }
+        
+        // The accordion initialization is now handled dynamically within updateDetailsPanel
+        // so this old setTimeout block can be removed to avoid conflicts
+        // and redundant event listeners.
+    });
+</script>
+</body>
+</html>
