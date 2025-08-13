@@ -6,7 +6,7 @@ require('dotenv').config();
 
 class ReportGenerator {
     constructor() {
-        this.templatePath = path.join(__dirname, 'sample-font-report-2.html');
+        this.templatePath = path.join(__dirname, 'New template.html');
         this.outputPath = path.join(__dirname, 'generated-report.html');
         this.apiBaseUrl = 'https://www.bugherd.com/api_v2';
         this.apiKey = process.env.BUGHERD_API_KEY;
@@ -123,60 +123,137 @@ class ReportGenerator {
 
     async fetchTasks(projectId) {
         console.log(`Fetching tasks for project ${projectId}`);
+        
         try {
-            let allTasks = [];
-            let page = 1;
-            let hasMore = true;
+            console.log('Trying API with Basic Auth...');
+            const url = `${this.apiBaseUrl}/projects/${projectId}/tasks.json`;
             
-            while (hasMore) {
-                console.log(`Fetching page ${page} of tasks...`);
-                const response = await axios.get(`${this.apiBaseUrl}/projects/${projectId}/tasks.json`, {
+            console.log('Request URL:', url);
+            
+            // First, try to get project info to verify the project exists
+            try {
+                console.log('Fetching project info...');
+                const projectUrl = `${this.apiBaseUrl}/projects/${projectId}.json`;
+                const projectResponse = await axios.get(projectUrl, {
+                    auth: {
+                        username: this.apiKey,
+                        password: 'x'
+                    },
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    timeout: 10000
+                });
+                console.log('Project info:', {
+                    id: projectResponse.data?.project?.id,
+                    name: projectResponse.data?.project?.name,
+                    tasks_count: projectResponse.data?.project?.tasks_count
+                });
+            } catch (projectError) {
+                console.error('Failed to fetch project info:', projectError.message);
+                if (projectError.response) {
+                    console.error('Response status:', projectError.response.status);
+                    console.error('Response data:', projectError.response.data);
+                }
+                throw new Error('Failed to verify project');
+            }
+
+            // Now fetch all tasks with pagination, matching the CSV export approach
+            console.log('Fetching tasks with pagination...');
+            const allTasks = [];
+            const perPage = 100;
+            let currentPage = 1;
+            let hasMorePages = true;
+            
+            while (hasMorePages) {
+                console.log(`Fetching page ${currentPage}...`);
+                const response = await axios.get(url, {
                     params: {
-                        page: page,
-                        per_page: 100, // Maximum allowed by BugHerd API
-                        status: 'all'  // Get all statuses
+                        include: 'attachments',
+                        per_page: perPage,
+                        page: currentPage
                     },
                     auth: {
                         username: this.apiKey,
-                        password: 'x' // BugHerd requires a non-empty password
+                        password: 'x'
                     },
                     headers: {
-                        'Accept': 'application/json',
-                        'Authorization': `Bearer ${this.apiKey}`
+                        'Accept': 'application/json'
                     },
-                    timeout: 30000 // 30 seconds timeout
+                    timeout: 30000
                 });
                 
-                const tasks = response.data.tasks || [];
-                console.log(`Fetched ${tasks.length} tasks from page ${page}`);
-                allTasks = [...allTasks, ...tasks];
+                console.log(`Page ${currentPage} response status:`, response.status);
                 
-                // Check if we've reached the end of the list
-                hasMore = tasks.length === 100; // If we got a full page, there might be more
-                page++;
+                let pageTasks = [];
+                if (response.data?.tasks) {
+                    pageTasks = response.data.tasks;
+                } else if (Array.isArray(response.data)) {
+                    pageTasks = response.data;
+                }
                 
-                // Small delay to avoid hitting rate limits
-                if (hasMore) {
+                console.log(`Found ${pageTasks.length} tasks on page ${currentPage}`);
+                allTasks.push(...pageTasks);
+                
+                if (pageTasks.length < perPage) {
+                    hasMorePages = false;
+                } else {
+                    currentPage++;
+                    // Small delay to avoid rate limiting
                     await new Promise(resolve => setTimeout(resolve, 300));
                 }
             }
             
             console.log(`Total tasks fetched: ${allTasks.length}`);
+            if (allTasks.length === 0) {
+                console.log('No tasks found in the response.');
+                
+                // Try a direct API call for debugging
+                try {
+                    const directUrl = `https://www.bugherd.com/api_v2/projects/${projectId}/tasks.json?key=${this.apiKey}`;
+                    console.log('Attempting direct API call for debugging...');
+                    console.log('Direct URL:', directUrl);
+                    
+                    const directResponse = await axios.get(directUrl, {
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        timeout: 10000
+                    });
+                    
+                    console.log('Direct API response:', {
+                        status: directResponse.status,
+                        statusText: directResponse.statusText,
+                        data: directResponse.data ? 'Data received' : 'No data',
+                        tasksCount: directResponse.data?.tasks?.length || 0
+                    });
+                } catch (directError) {
+                    console.error('Direct API call failed:', directError.message);
+                }
+            }
+            
             return allTasks;
             
         } catch (error) {
             console.error('Error in fetchTasks:', error.message);
             if (error.response) {
                 console.error('Response status:', error.response.status);
+                console.error('Response headers:', error.response.headers);
                 if (error.response.data) {
                     console.error('Response data:', JSON.stringify(error.response.data, null, 2));
                 }
             } else if (error.request) {
-                console.error('No response received:', error.request);
+                console.error('No response received. This could be due to:');
+                console.error('1. Network connectivity issues');
+                console.error('2. CORS restrictions');
+                console.error('3. Server not responding');
+                console.error('Request details:', error.request);
             } else {
                 console.error('Request setup error:', error.message);
             }
-            throw error;
+            
+            // Return empty array instead of throwing to allow the report to be generated
+            return [];
         }
     }
     
@@ -191,41 +268,57 @@ class ReportGenerator {
             console.warn('No tasks provided for filtering');
             return [];
         }
+
+        console.log(`Filtering ${tasks.length} tasks with filters:`, JSON.stringify(filters, null, 2));
         
-        return tasks.filter(task => {
-            // Apply feedback filter
-            if (filters.feedback !== undefined) {
-                if (filters.feedback && !task.feedback) {
-                    return false;
-                }
-                if (!filters.feedback && task.feedback) {
-                    return false;
-                }
-            }
+        const filtered = tasks.filter(task => {
+            // Debug log for each task
+            console.log('\nProcessing task:', {
+                id: task.id,
+                status: task.status,
+                column_id: task.column_id,
+                description: task.description?.substring(0, 50) + '...',
+                priority_id: task.priority_id
+            });
+
+            // Get the task status (use status.name if available, otherwise status)
+            const status = task.status?.name || task.status || '';
+            const isArchived = status.toLowerCase() === 'closed' || status.toLowerCase() === 'resolved';
             
-            // Apply task board filter
-            if (filters.taskBoard !== undefined) {
-                if (filters.taskBoard && !task.task_type) {
-                    return false;
-                }
-                if (!filters.taskBoard && task.task_type) {
-                    return false;
-                }
-            }
+            // Debug log filters
+            console.log(`- Status: ${status}, isArchived: ${isArchived}`);
             
             // Apply archive filter
             if (filters.archive !== undefined) {
-                const isArchived = task.status === 'closed' || task.status === 'resolved';
                 if (filters.archive && !isArchived) {
+                    console.log('- Filtered out: Task is not archived but archive filter is true');
                     return false;
                 }
                 if (!filters.archive && isArchived) {
+                    console.log('- Filtered out: Task is archived but archive filter is false');
                     return false;
                 }
             }
             
+            // For task board filter, we'll check if the task has a column_id
+            if (filters.taskBoard !== undefined) {
+                console.log(`- Task has column_id: ${!!task.column_id}, taskBoard filter: ${filters.taskBoard}`);
+                if (filters.taskBoard && !task.column_id) {
+                    console.log('- Filtered out: Task has no column_id but taskBoard filter is true');
+                    return false;
+                }
+                if (!filters.taskBoard && task.column_id) {
+                    console.log('- Filtered out: Task has column_id but taskBoard filter is false');
+                    return false;
+                }
+            }
+            
+            console.log('- Task passed all filters');
             return true;
         });
+
+        console.log(`Filtering complete. ${filtered.length} of ${tasks.length} tasks passed the filters.`);
+        return filtered;
     }
 
     async generateCharts(tasks) {
@@ -355,45 +448,302 @@ class ReportGenerator {
         // Read the template file
         let html = fs.readFileSync(this.templatePath, 'utf8');
         
-        // Replace placeholders with actual data
-        html = html.replace('<!-- TITLE_PLACEHOLDER -->', `Bug Report - ${project.name}`);
-        
-        // Add charts data URLs
-        html = html.replace('<!-- SEVERITY_CHART_PLACEHOLDER -->', 
-            `data:image/png;base64,${charts.severity}`);
-        html = html.replace('<!-- STATUS_CHART_PLACEHOLDER -->', 
-            `data:image/png;base64,${charts.status}`);
-        
-        // Generate tasks HTML
-        const tasksHtml = this.generateTasksHtml(tasks);
-        html = html.replace('<!-- TASKS_PLACEHOLDER -->', tasksHtml);
-        
-        // Generate summary stats
-        const summary = this.generateSummary(tasks);
-        html = this.injectSummary(html, summary);
-        
-        return html;
-    }
+        // Format the current date
+        const currentDate = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
 
+        // Prepare bug data with all required fields for the new template
+        const bugData = tasks.map(task => ({
+            id: task.id,
+            status: (task.status?.name || 'new').toLowerCase(),
+            priority: (task.priority || 'Not set').toLowerCase(),
+            description: task.description || 'No description available',
+            siteUrl: task.site || 'No URL',
+            os: task.os || 'Not specified',
+            browser: task.browser || 'Not specified',
+            resolution: task.resolution || 'Not specified',
+            screenshotUrl: task.screenshot_url || '',
+            email: task.requester_email || 'No email',
+            created_at: task.created_at ? new Date(task.created_at).toLocaleDateString() : 'Unknown',
+            updated_at: task.updated_at ? new Date(task.updated_at).toLocaleDateString() : 'Unknown',
+            tags: task.tag_names ? task.tag_names.join(', ') : 'No tags',
+            url: task.site || 'No URL',
+            element: task.element || 'Not specified',
+            reporter: task.requester_email || 'Anonymous',
+            dateReported: task.created_at ? new Date(task.created_at).toLocaleDateString() : 'Unknown',
+            lastUpdated: task.updated_at ? new Date(task.updated_at).toLocaleDateString() : 'Unknown',
+            assignee: task.assignee_email || 'Unassigned',
+            comments: task.comments_count || 0
+        }));
+
+        // Inject the bug data as a JavaScript variable
+        const bugDataScript = `
+            <script>
+                window.bugData = ${JSON.stringify(bugData, null, 2)};
+            </script>
+        `;
+        
+        // Inject the bug data script before the closing head tag
+        html = html.replace('</head>', `${bugDataScript}</head>`);
+        
+        // Update the report title with project name and date
+        const reportTitle = `Bug Report - ${project.name || 'Project'} - ${currentDate}`;
+        html = html.replace('<title>Sample Font Style Report</title>', `<title>${reportTitle}</title>`);
+        
+        // Update the report title in the header
+        const reportTitleRegex = /<span\s+class=["']report-title["']>.*?<\/span>/i;
+        html = html.replace(reportTitleRegex, `<span class="report-title">${reportTitle}</span>`);
+        
+        // Prepare the charts initialization script
+        const chartsScript = `
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Initialize the UI with the new template's functions
+                    if (window.bugData && window.bugData.length > 0) {
+                        // Initialize the charts
+                        const severityCtx = document.getElementById('severityChart').getContext('2d');
+                        window.severityChart = new Chart(severityCtx, {
+                            type: 'pie',
+                            data: {
+                                labels: ['Critical', 'Important', 'Normal', 'Minor', 'Not Set'],
+                                datasets: [{
+                                    data: [
+                                        window.bugData.filter(b => b.priority === 'critical').length,
+                                        window.bugData.filter(b => b.priority === 'important').length,
+                                        window.bugData.filter(b => b.priority === 'normal').length,
+                                        window.bugData.filter(b => b.priority === 'minor').length,
+                                        window.bugData.filter(b => !b.priority || b.priority === 'not set').length
+                                    ],
+                                    backgroundColor: [
+                                        '#EF4444', // Critical - Red
+                                        '#F59E0B', // Important - Amber
+                                        '#3B82F6', // Normal - Blue
+                                        '#6B7280', // Minor - Gray
+                                        '#E5E7EB'  // Not Set - Light Gray
+                                    ],
+                                    borderWidth: 0
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom',
+                                        labels: {
+                                            font: {
+                                                family: 'Outfit, sans-serif'
+                                            },
+                                            padding: 20
+                                        }
+                                    }
+                                },
+                                cutout: '70%',
+                                onClick: function(evt, elements) {
+                                    if (elements.length > 0) {
+                                        const index = elements[0].index;
+                                        const labels = this.data.labels;
+                                        const severity = labels[index].toLowerCase();
+                                        if (typeof filterIssues === 'function') {
+                                            filterIssues(severity === 'not set' ? '' : severity);
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+                        // Initialize the UI components
+                        if (typeof createIssueCards === 'function') {
+                            createIssueCards();
+                        }
+                        
+                        if (typeof initializeAccordion === 'function') {
+                            initializeAccordion();
+                        }
+                        
+                        // Show critical issues by default if the function exists
+                        if (typeof filterIssues === 'function') {
+                            filterIssues('critical');
+                            
+                            // Update the UI to show the critical filter as active
+                            const criticalFilter = document.querySelector('.property-item');
+                            if (criticalFilter) {
+                                criticalFilter.classList.add('selected');
+                            }
+                        }
+                    } else {
+                        // No bugs case
+                        const issueList = document.querySelector('.issue-list');
+                        if (issueList) {
+                            const noIssuesDiv = document.createElement('div');
+                            noIssuesDiv.className = 'no-issues';
+                            
+                            const heading = document.createElement('h3');
+                            heading.textContent = 'No issues found';
+                            
+                            const paragraph = document.createElement('p');
+                            paragraph.textContent = 'There are no issues to display for the selected filters.';
+                            
+                            noIssuesDiv.appendChild(heading);
+                            noIssuesDiv.appendChild(paragraph);
+                            
+                            issueList.innerHTML = '';
+                            issueList.appendChild(noIssuesDiv);
+                        }
+                    }
+                });
+            </script>
+        `;
+        
+        // Inject the charts script before the closing body tag
+        return html.replace('</body>', `${chartsScript}</body>`);
+    }
+    
     generateTasksHtml(tasks) {
-        return tasks.map(task => `
-            <div class="issue-card" data-severity="${task.priority?.toLowerCase() || 'minor'}" 
-                 data-status="${task.status?.name?.toLowerCase() || 'open'}">
-                <div class="issue-header">
-                    <span class="issue-id">#${task.id}</span>
-                    <span class="issue-priority ${task.priority?.toLowerCase() || 'minor'}">
-                        ${task.priority || 'Minor'}
-                    </span>
+        return tasks.map((task, index) => {
+            // Helper function to safely get values
+            const getValue = (value, defaultValue = '') => {
+                if (value === null || value === undefined) return defaultValue;
+                if (Array.isArray(value)) return value.join(', ');
+                if (typeof value === 'object') return JSON.stringify(value);
+                return String(value).trim();
+            };
+
+            // Map priority_id to readable string
+            let priority = '';
+            const priorityMap = {
+                1: 'critical',
+                2: 'important',
+                3: 'normal',
+                4: 'minor',
+                0: 'not set',
+            };
+            
+            if (typeof task.priority_id !== 'undefined') {
+                priority = priorityMap[task.priority_id] || getValue(task.priority);
+            } else {
+                priority = getValue(task.priority);
+            }
+
+            // Get status with fallback
+            const status = task.status?.name || task.status || 'Open';
+            
+            // Format description with line breaks
+            const description = getValue(task.description).replace(/\n/g, '<br>');
+            
+            // Extract environment information
+            const extractEnvFromDescription = (desc) => {
+                if (typeof desc !== 'string') return {};
+                const osMatch = desc.match(/OS\s*:\s*([^\n]+)/i);
+                const browserMatch = desc.match(/Browser\s*:\s*([^\n]+)/i);
+                const resMatch = desc.match(/Resolution\s*:?\s*([^\n]+)/i);
+                const browserWindowMatch = desc.match(/Browser\s*Window\s*:?\s*([^\n]+)/i);
+                
+                return {
+                    os: osMatch ? osMatch[1].trim() : '',
+                    browser: browserMatch ? browserMatch[1].trim() : '',
+                    resolution: resMatch ? resMatch[1].trim() : '',
+                    browserWindow: browserWindowMatch ? browserWindowMatch[1].trim() : ''
+                };
+            };
+            
+            const env = extractEnvFromDescription(description);
+            
+            // Get site URL with fallbacks
+            const siteUrl = getValue(
+                task.url || 
+                task.site_url || 
+                task.page_url || 
+                task.site || 
+                task.page || 
+                task.site_page ||
+                task.URL ||
+                task['page-url'] ||
+                task['site-page'] ||
+                task['site_page'] ||
+                (task.attributes && (task.attributes.url || task.attributes.page_url || task.attributes.site_url))
+            );
+            
+            // Get screenshot URL
+            const screenshot = task.screenshot_url || 
+                             (task.attachments && task.attachments.length > 0 ? task.attachments[0].url : '');
+            
+            // Get requester email
+            const requesterEmail = task.requester_email || 
+                                 (task.requester && task.requester.email) || 
+                                 (task.reporter && (task.reporter.email || task.reporter.name)) || 
+                                 '';
+            
+            // Format tags
+            const tags = Array.isArray(task.tags) 
+                ? task.tags.map(tag => typeof tag === 'string' ? tag : tag.name).join(', ')
+                : getValue(task.tags);
+                
+            // Determine bug type based on status
+            const bugType = status && status.toLowerCase() === 'suggestion' 
+                ? 'Suggestion' 
+                : (status && status.toLowerCase() === 'qa team' ? 'Bug' : status);
+
+            // Create data object with only the required fields
+            const taskData = {
+                'BugID': index + 1,
+                'Bug Status': 'New',
+                'Bug Type': bugType,
+                'Priority': priority,
+                'Priority ID': task.priority_id || '',
+                'Description': description.replace(/<br\s*\/?>/g, '\n'), // Convert <br> back to newlines for display
+                'Tags': tags,
+                'Site URL': siteUrl,
+                'OS': env.os,
+                'Browser': env.browser,
+                'Browser Size': env.browserWindow,
+                'Resolution': env.resolution,
+                'Screenshot URL': screenshot,
+                'Reporter': requesterEmail,
+                'Severity': priority,
+                'Tags/Categories': tags
+            };
+
+            // Generate HTML for the task card
+            return `
+                <div class="issue-card" 
+                     data-severity="${priority}" 
+                     data-status="${status.toLowerCase()}"
+                     data-id="${task.id || ''}">
+                    <div class="issue-header">
+                        <span class="issue-id">#${taskData['BugID']}</span>
+                        <span class="issue-priority ${priority}">
+                            ${priority.charAt(0).toUpperCase() + priority.slice(1)}
+                        </span>
+                    </div>
+                    <div class="issue-description">
+                        <strong>Bug Type:</strong> ${taskData['Bug Type']}<br>
+                        <strong>Status:</strong> ${taskData['Bug Status']}<br>
+                        <strong>Priority:</strong> ${taskData['Priority']} (ID: ${taskData['Priority ID']})<br>
+                        <strong>Severity:</strong> ${taskData['Severity']}<br>
+                        <strong>Description:</strong> ${taskData['Description'].replace(/\n/g, '<br>')}<br><br>
+                        
+                        <strong>Environment:</strong>
+                        <ul>
+                            <li>Site URL: ${taskData['Site URL'] || 'N/A'}</li>
+                            <li>OS: ${taskData['OS'] || 'N/A'}</li>
+                            <li>Browser: ${taskData['Browser'] || 'N/A'}</li>
+                            <li>Browser Size: ${taskData['Browser Size'] || 'N/A'}</li>
+                            <li>Resolution: ${taskData['Resolution'] || 'N/A'}</li>
+                        </ul>
+                        
+                        ${taskData['Screenshot URL'] ? 
+                            `<strong>Screenshot:</strong> <a href="${taskData['Screenshot URL']}" target="_blank">View Screenshot</a><br>` : ''}
+                        
+                        <strong>Reporter:</strong> ${taskData['Reporter'] || 'N/A'}<br>
+                        <strong>Tags:</strong> ${taskData['Tags'] || 'None'}<br>
+                    </div>
                 </div>
-                <div class="issue-description">
-                    ${task.description || 'No description provided'}
-                </div>
-                <div class="issue-footer">
-                    <span class="issue-status">${task.status?.name || 'Open'}</span>
-                    <span class="issue-date">${new Date(task.created_at).toLocaleDateString()}</span>
-                </div>
-            </div>
-        `).join('\n');
+            `;
+        }).join('\n');
     }
 
     generateSummary(tasks) {
