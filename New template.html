@@ -527,6 +527,21 @@
     word-break: break-word;
 }
 
+/* URL Link styles */
+.url-link {
+    color: #4f46e5;
+    text-decoration: none;
+    word-break: break-all;
+    display: inline-block;
+    max-width: 100%;
+    transition: color 0.2s ease;
+}
+
+.url-link:hover {
+    color: #4338ca;
+    text-decoration: underline;
+}
+
 a.details-value {
     color: var(--primary);
     text-decoration: none;
@@ -805,7 +820,7 @@ a.details-value:hover {
             </div>
         </div>
         <div class="issue-list">
-            <h3 class="url-title">Page URLs</h3>
+            <h3 class="sidebar-title">Issues</h3>
         </div>
         <div class="details-panel">
                 <h3 class="url-title">Bug Details</h3>
@@ -867,13 +882,17 @@ a.details-value:hover {
                     <div class="details-value">${issueData.description.replace(/\n/g, '<br>')}</div>
                 </div>
                 <div class="details-row">
-                    <span class="details-label">Site URL:</span>
-                    <a href="${issueData.siteUrl.startsWith('http') ? '' : 'https://'}${issueData.siteUrl}" 
-                       class="details-value" 
-                       target="_blank" 
-                       rel="noopener noreferrer">
-                        ${issueData.siteUrl || 'No URL provided'}
-                    </a>
+                    <span class="details-label">Page URL:</span>
+                    <span class="details-value">
+                        ${issueData.siteUrl ? `
+                            ${issueData.siteUrl.match(/^https?:\/\//) ? 
+                                `<a href="${issueData.siteUrl}" target="_blank" rel="noopener noreferrer" class="url-link">${issueData.siteUrl}</a>` : 
+                                `<a href="https://${issueData.siteUrl}" target="_blank" rel="noopener noreferrer" class="url-link">https://${issueData.siteUrl}</a>`
+                            }
+                        ` : `
+                            <span class="text-muted">No URL provided</span>
+                        `}
+                    </span>
                 </div>
                 <div class="details-row">
                     <span class="details-label">OS:</span>

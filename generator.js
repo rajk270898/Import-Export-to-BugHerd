@@ -482,12 +482,52 @@ class ReportGenerator {
                 (Array.isArray(task.tag_names) ? task.tag_names.join(', ') : task.tag_names) : 
                 (task.tags ? (Array.isArray(task.tags) ? task.tags.join(', ') : task.tags) : '');
             
-            // Extract URL - check multiple possible fields
+            // Extract URL - check multiple possible fields with debug logging
             let siteUrl = '';
-            if (task.site) siteUrl = task.site;
-            else if (task.url) siteUrl = task.url;
-            else if (task.site_page) siteUrl = task.site_page;
-            else if (task.site_url) siteUrl = task.site_url;
+            
+            // Check direct URL fields first
+            const possibleUrlFields = [
+                'site', 'url', 'site_page', 'site_url', 'page_url', 
+                'page.url', 'siteUrl', 'pageUrl', 'pageUrl', 'page_url'
+            ];
+            
+            // Check direct properties
+            for (const field of possibleUrlFields) {
+                if (task[field]) {
+                    siteUrl = task[field];
+                    console.log(`Found URL in task.${field}: ${siteUrl}`);
+                    break;
+                }
+            }
+            
+            // If still no URL, check nested properties
+            if (!siteUrl && task.page && task.page.url) {
+                siteUrl = task.page.url;
+                console.log(`Found URL in task.page.url: ${siteUrl}`);
+            }
+            
+            // If still no URL, try to extract from description
+            if (!siteUrl && description) {
+                // Look for URLs in the description
+                const urlMatch = description.match(/https?:\/\/[^\s\n]+/);
+                if (urlMatch) {
+                    siteUrl = urlMatch[0];
+                    console.log(`Extracted URL from description: ${siteUrl}`);
+                }
+            }
+            
+            // Ensure URL has a protocol
+            if (siteUrl) {
+                if (!siteUrl.match(/^https?:\/\//)) {
+                    siteUrl = 'https://' + siteUrl.replace(/^\/\//, '');
+                    console.log(`Added protocol to URL: ${siteUrl}`);
+                }
+                // Clean up the URL
+                siteUrl = siteUrl.split('\n')[0].trim(); // Take only the first line if there are multiple
+                siteUrl = siteUrl.replace(/[\s,;]+$/, ''); // Remove trailing spaces and punctuation
+            } else {
+                console.log('No URL found in task data or description');
+            }
             
             // Extract screenshot URL
             let screenshot = '';
