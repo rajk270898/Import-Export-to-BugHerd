@@ -1,9 +1,9 @@
-BugID,Bug Status,Bug Type,Severity,Tags/Categories,Description,Site URL,OS,Browser,Browser Size,Resolution,Screenshot URL,Requester Email
-1,New,Bug,critical,Critical,Critical,https://,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg,reypatel@yopmail.com
-2,New,Bug,important,Important,Important,https://,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/cus6o0jmvdxt2xys4jmzla/screenshot.jpg,reypatel@yopmail.com
-3,New,Suggestion,normal,Normal,Normal,https://,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/6js7sposhtbggkrxpgydpw/screenshot.jpg,reypatel@yopmail.com
-4,New,Suggestion,minor,Minor,Minor,https://,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/vs6cpbtjd8otbmavegxwka/screenshot.jpg,reypatel@yopmail.com
-5,New,Bug,not set,Not Set,Not set,https://,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,reypatel@yopmail.com
+BugID,Bug Status,Bug Type,Severity,Tags/Categories,Description,Site + URL,OS,Browser,Browser Size,Resolution,Screenshot URL,Reporter
+1,New,Bug,critical,Critical,Critical,https://www.google.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/ehftux0dmhqlzi1xcqcrdw/screenshot.jpg,reypatel@yopmail.com
+2,New,Bug,important,Important,Important,https://www.google.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/cus6o0jmvdxt2xys4jmzla/screenshot.jpg,reypatel@yopmail.com
+3,New,Suggestion,normal,Normal,Normal,https://www.google.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/6js7sposhtbggkrxpgydpw/screenshot.jpg,reypatel@yopmail.com
+4,New,Suggestion,minor,Minor,Minor,https://www.google.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/vs6cpbtjd8otbmavegxwka/screenshot.jpg,reypatel@yopmail.com
+5,New,Bug,not set,Not Set,Not set,https://www.google.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,reypatel@yopmail.com
 6,New,Bug,not set,Hello,"8
 
 OS: Windows 10
@@ -132,3 +132,4 @@ Resolution: 1920 x 1080 px
 Browser Window: 1869 x 947 px
 URL: https://www.google.com
 Screenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",https://www.google.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg,khajanchirajvinay@gmail.com
+22,New,Bug,important,Bugati,bugatti,www.google.com/search?ei=I7idaLPlMNvDp84P95GnwQw&gs_lp=Egdnd3Mtd2l6IgZidWdhdGkyDhAuGIAEGLEDGNEDGMcBMggQABiABBixAzIIEAAYgAQYsQMyCBAAGIAEGLEDMggQABiABBixAzIIEAAYgAQYsQMyDhAuGIAEGLEDGNEDGMcBMggQABiABBixAzIIEAAYgAQYsQMyCBAAGIAEGLEDSOMOULgGWLwMcAF4AJABAJgB9wKgAaQOqgEDMy01uAEDyAEA-AEBmAIGoALSDqgCCsICBxAjGCcY6gLCAg0QLhjHARgnGOoCGK8BwgIKECMY8AUYJxjqAsICBBAjGCfCAgoQLhiABBgnGIoFwgIQEC4YgAQYxwEYJxiKBRivAcICDhAAGIAEGLEDGIMBGIoFwgIFEAAYgATCAgsQLhiABBjRAxjHAcICChAjGIAEGCcYigXCAgsQLhiABBjHARivAcICERAuGIAEGLEDGNEDGIMBGMcBwgIIEC4YgAQYsQPCAgsQLhiABBixAxjlBJgDCPEF5oGi8Qt7oIiSBwUxLjMtNaAHjUWyBwMzLTW4B8oOwgcFMi00LjLIByc&iflsig=AOw8s4IAAAAAaJ3GM_zSTls_ntvo5GYUM3mM9c0Ezthb&oq=bugati&q=bugati&sca_esv=faad85bc1449c4fd&sclient=gws-wiz&sei=KridaNTiN-bfp84P-63v2AU&source=hp&sxsrf=AE3TifN_RpWL3VvWD-x-JFLQOVhDi4R_OA%3A1755166755831&uact=5&ved=0ahUKEwjzgoHYiYqPAxXb4ckDHffIKcgQ4dUDCBo,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://files.bugherd.com/scft3vx5sgeptns4oa12ea/screenshot.jpg,reypatel@yopmail.com

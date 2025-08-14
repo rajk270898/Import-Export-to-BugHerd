@@ -71,71 +71,30 @@ const handleApiError = (error, res) => {
 // Get all projects
 app.get('/api/projects', async (req, res) => {
   try {
-    console.log('Fetching projects from BugHerd API...');
-    // Fetching projects from BugHerd API with debug logging
+    // Fetching projects from BugHerd API
     const response = await bugherdApi.get('/projects.json');
-    console.log('BugHerd API response received, status:', response.status);
     
     // Processing API response
-    let projects = [];
     
-    // Check different possible response formats
+    // Check if the response has the expected format
+    let projects = [];
     if (Array.isArray(response.data)) {
-      console.log('Response is an array, using directly as projects');
       projects = response.data;
     } else if (response.data && Array.isArray(response.data.projects)) {
-      console.log('Found projects array in response.data.projects');
       projects = response.data.projects;
-    } else if (response.data && response.data.project) {
-      // Handle case where a single project is returned
-      console.log('Found single project in response.data.project');
-      projects = [response.data.project];
-    } else if (response.data) {
-      // Try to extract projects from the response object
-      console.log('Looking for projects array in response data keys');
-      const possibleProjectKeys = Object.keys(response.data).filter(key => 
-        Array.isArray(response.data[key])
-      );
-      
-      if (possibleProjectKeys.length > 0) {
-        console.log(`Found possible projects in key: ${possibleProjectKeys[0]}`);
-        projects = response.data[possibleProjectKeys[0]];
-      } else {
-        console.log('No array found in response data, checking for projects in root');
-        // If we have a projects object but not an array, try to convert it
-        if (response.data.projects && typeof response.data.projects === 'object') {
-          projects = Object.values(response.data.projects);
-        }
-      }
-    }
-    
-    // Ensure we have an array of projects
-    if (!Array.isArray(projects)) {
-      console.error('Unexpected API response format:', response.data);
+    } else {
+      // Unexpected API response format
       return res.status(500).json({
         success: false,
         error: 'Unexpected API response format',
-        details: 'Expected an array of projects but received a different format',
-        response: response.data
+        details: response.data
       });
     }
     
-    // Transform projects to a consistent format
-    const formattedProjects = projects.map(project => ({
-      id: project.id,
-      name: project.name || `Project ${project.id}`,
-      created_at: project.created_at,
-      updated_at: project.updated_at || project.updated_at,
-      status: project.status || 'active',
-      // Include any additional fields that might be needed
-      ...(project.description && { description: project.description }),
-      ...(project.devurl && { url: project.devurl })
-    }));
-    
-    console.log(`Returning ${formattedProjects.length} projects`);
+    // Projects fetched successfully
     res.json({
       success: true,
-      projects: formattedProjects
+      projects: projects
     });
   } catch (error) {
     // Error fetching projects
@@ -854,24 +813,74 @@ function extractEnvFromDescription(description) {
         const requesterEmail = getValue(task.requester_email);
         // const taskUrl = task.id ? `https://www.bugherd.com/projects/${projectId}/tasks/${task.id}` : '';
         
-        // Return all available fields
+        // Get the site value from task.site if available, otherwise extract domain from siteUrl
+        let site = getValue(task.site);
+        
+        // If site is empty but we have a siteUrl, use the full URL
+        if ((!site || site === '') && siteUrl) {
+          try {
+            // Ensure the URL has a protocol
+            const fullUrl = siteUrl.match(/^https?:\/\//) ? siteUrl : `https://${siteUrl}`;
+            const url = new URL(fullUrl);
+            // Keep the full URL with protocol but clean it up
+            site = `${url.protocol}//${url.hostname}${url.port ? ':' + url.port : ''}`;
+          } catch (e) {
+            // If URL parsing fails, use the siteUrl as is
+            site = siteUrl;
+          }
+        }
+        
+        // Format site and URL, removing duplicates and fixing protocol issues
+        let siteDisplay = '';
+        let cleanSite = site || '';
+        let cleanUrl = siteUrl || '';
+        
+        // Remove any protocol from the site if present
+        cleanSite = cleanSite.replace(/^https?:\/\//, '');
+        
+        // Ensure URL has a protocol
+        if (cleanUrl && !cleanUrl.match(/^https?:\/\//)) {
+          cleanUrl = `https://${cleanUrl}`;
+        }
+        
+        if (cleanSite && cleanUrl) {
+          // Remove the protocol and www from the URL for comparison
+          const urlObj = new URL(cleanUrl);
+          const urlWithoutProtocol = urlObj.hostname.replace(/^www\./, '') + urlObj.pathname + urlObj.search;
+          const siteWithoutWww = cleanSite.replace(/^www\./, '');
+          
+          // Check if the site is already part of the URL
+          if (urlWithoutProtocol.includes(siteWithoutWww)) {
+            siteDisplay = cleanUrl; // Use the full URL if site is already in it
+          } else {
+            // Otherwise, combine them, making sure not to duplicate the protocol
+            const sitePart = cleanSite.endsWith('/') ? cleanSite.slice(0, -1) : cleanSite;
+            const urlPart = cleanUrl.startsWith('http') ? cleanUrl.replace(/^https?:\/\//, '') : cleanUrl;
+            siteDisplay = `${sitePart}/${urlPart}`;
+          }
+        } else if (cleanSite) {
+          siteDisplay = cleanSite;
+        } else if (cleanUrl) {
+          siteDisplay = cleanUrl;
+        }
+        
+        // Return all available fields with combined Site + URL
         return {
           'BugID': (index + 1),
           'Bug Status': 'New',
           'Bug Type': (status && status.toLowerCase() === 'suggestion' ? 'Suggestion' : (status && status.toLowerCase() === 'qa team' ? 'Bug' : status)),
+          'Severity': priority, // Add Severity field
           'Priority': priority,
           'Priority ID': task.priority_id || '',
           'Description': description,
-          'Tags': tags,
-          'Site URL': siteUrl,
+          'Tags/Categories': tags,
+          'Site + URL': siteDisplay,
           'OS': os,
           'Browser': browser,
           'Browser Size': browserSize,
           'Resolution': resolution,
           'Screenshot URL': screenshot,
-          'Reporter': requesterEmail,
-          'Severity': priority,
-          'Tags/Categories': tags
+          'Reporter': requesterEmail
         };
       } catch (error) {
         return null;
@@ -879,7 +888,7 @@ function extractEnvFromDescription(description) {
     }).filter(task => task !== null); // Remove any null entries from failed mappings
 
     try {
-      // Reorder headers to match the 2nd image
+      // Define CSV headers with combined Site and URL column
       const csvHeaders = [
         'BugID',
         'Bug Status',
@@ -887,7 +896,7 @@ function extractEnvFromDescription(description) {
         'Severity',
         'Tags/Categories',
         'Description',
-        'Site URL',
+        'Site + URL',  // Combined Site and URL column
         'OS',
         'Browser',
         'Browser Size',

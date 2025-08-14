@@ -485,48 +485,100 @@ class ReportGenerator {
             // Extract URL - check multiple possible fields with debug logging
             let siteUrl = '';
             
-            // Check direct URL fields first
+            // Enhanced URL extraction with more possible fields and better debugging
             const possibleUrlFields = [
                 'site', 'url', 'site_page', 'site_url', 'page_url', 
-                'page.url', 'siteUrl', 'pageUrl', 'pageUrl', 'page_url'
+                'page.url', 'siteUrl', 'pageUrl', 'pageUrl', 'page_url',
+                'pageUrl', 'siteurl', 'pageurl', 'page', 'site'
             ];
             
-            // Check direct properties
+            // 1. Check direct properties first
             for (const field of possibleUrlFields) {
-                if (task[field]) {
-                    siteUrl = task[field];
-                    console.log(`Found URL in task.${field}: ${siteUrl}`);
+                if (task[field] && typeof task[field] === 'string' && task[field].trim() !== '') {
+                    siteUrl = task[field].trim();
+                    console.log(`[URL Debug] Found URL in task.${field}: ${siteUrl}`);
                     break;
                 }
             }
             
-            // If still no URL, check nested properties
-            if (!siteUrl && task.page && task.page.url) {
-                siteUrl = task.page.url;
-                console.log(`Found URL in task.page.url: ${siteUrl}`);
-            }
-            
-            // If still no URL, try to extract from description
-            if (!siteUrl && description) {
-                // Look for URLs in the description
-                const urlMatch = description.match(/https?:\/\/[^\s\n]+/);
-                if (urlMatch) {
-                    siteUrl = urlMatch[0];
-                    console.log(`Extracted URL from description: ${siteUrl}`);
+            // 2. Check nested properties (like task.page.url)
+            if (!siteUrl) {
+                const nestedPaths = [
+                    'page.url', 'site.url', 'attributes.url', 'page_url', 'site_url'
+                ];
+                
+                for (const path of nestedPaths) {
+                    const parts = path.split('.');
+                    let value = task;
+                    
+                    for (const part of parts) {
+                        if (value && typeof value === 'object' && part in value) {
+                            value = value[part];
+                        } else {
+                            value = null;
+                            break;
+                        }
+                    }
+                    
+                    if (value && typeof value === 'string' && value.trim() !== '') {
+                        siteUrl = value.trim();
+                        console.log(`[URL Debug] Found URL in task.${path}: ${siteUrl}`);
+                        break;
+                    }
                 }
             }
             
-            // Ensure URL has a protocol
+            // 3. Check in attachments (common for extension-added bugs)
+            if (!siteUrl && task.attachments && Array.isArray(task.attachments)) {
+                for (const attachment of task.attachments) {
+                    if (attachment.url && typeof attachment.url === 'string' && attachment.url.trim() !== '') {
+                        siteUrl = attachment.url.trim();
+                        console.log(`[URL Debug] Found URL in attachment: ${siteUrl}`);
+                        break;
+                    }
+                }
+            }
+            
+            // 4. Try to extract from description as last resort
+            if (!siteUrl && description) {
+                // Enhanced URL regex to catch more URL patterns
+                const urlRegex = /(?:https?:\/\/|www\.)[^\s\n\)\]\}'">]+/gi;
+                const urls = description.match(urlRegex) || [];
+                
+                if (urls.length > 0) {
+                    siteUrl = urls[0].trim();
+                    console.log(`[URL Debug] Extracted URL from description: ${siteUrl}`);
+                    
+                    // Try to clean up common issues with extracted URLs
+                    siteUrl = siteUrl
+                        .replace(/[\s,;]+$/, '') // Remove trailing spaces and punctuation
+                        .replace(/\.$/, '') // Remove trailing period
+                        .replace(/[\])}>)"']*$/, ''); // Remove trailing quotes/brackets
+                }
+            }
+            
+            // Ensure URL has a protocol and clean it up
             if (siteUrl) {
+                // Clean up the URL first
+                siteUrl = siteUrl.split('\n')[0].trim(); // Take only the first line if there are multiple
+                
+                // Add protocol if missing
                 if (!siteUrl.match(/^https?:\/\//)) {
                     siteUrl = 'https://' + siteUrl.replace(/^\/\//, '');
-                    console.log(`Added protocol to URL: ${siteUrl}`);
+                    console.log(`[URL Debug] Added protocol to URL: ${siteUrl}`);
                 }
-                // Clean up the URL
-                siteUrl = siteUrl.split('\n')[0].trim(); // Take only the first line if there are multiple
-                siteUrl = siteUrl.replace(/[\s,;]+$/, ''); // Remove trailing spaces and punctuation
+                
+                console.log(`[URL Debug] Final URL: ${siteUrl}`);
             } else {
-                console.log('No URL found in task data or description');
+                console.log('[URL Debug] No URL found in task data, attachments, or description');
+                
+                // Log available task keys for debugging
+                console.log('[URL Debug] Available task keys:', Object.keys(task).join(', '));
+                
+                // If we have a description, log the first 200 chars for debugging
+                if (description) {
+                    console.log('[URL Debug] Description preview:', description.substring(0, 200) + (description.length > 200 ? '...' : ''));
+                }
             }
             
             // Extract screenshot URL
@@ -743,20 +795,63 @@ class ReportGenerator {
             // Extract environment information
             const env = this.extractEnvFromDescription(description);
             
-            // Get site URL with fallbacks
-            const siteUrl = getValue(
-                task.url || 
-                task.site_url || 
-                task.page_url || 
-                task.site || 
-                task.page || 
-                task.site_page ||
-                task.URL ||
-                task['page-url'] ||
-                task['site-page'] ||
-                task['site_page'] ||
-                (task.attributes && (task.attributes.url || task.attributes.page_url || task.attributes.site_url))
-            );
+            // Enhanced site URL extraction with comprehensive field checking
+            let siteUrl = '';
+            
+            // Check URL fields in order of preference based on BugHerd API response
+            const possibleUrlFields = [
+                task.url,                     // Direct URL from BugHerd
+                task.site_url,                // Alternative URL field
+                task.site,                    // Site field (might contain domain)
+                task.page_url,                // Page URL field
+                task.page,                    // Page field
+                task.site_page,               // Site page field
+                task.URL,                     // Uppercase URL field (just in case)
+                task['page_url'],             // Alternative syntax
+                task['page-url'],             // Kebab case
+                task['site-page'],            // Kebab case
+                task['site_page']             // Snake case
+            ];
+            
+            // Also check in the task's attributes if they exist
+            if (task.attributes && typeof task.attributes === 'object') {
+                possibleUrlFields.push(
+                    task.attributes.url,
+                    task.attributes.page_url,
+                    task.attributes.site_url
+                );
+            }
+            
+            // Find the first non-empty URL from the possible fields
+            for (const url of possibleUrlFields) {
+                if (url && typeof url === 'string' && url.trim() !== '') {
+                    siteUrl = url.trim();
+                    break;
+                }
+            }
+            
+            // If no URL found in direct fields, try to extract from description
+            if (!siteUrl) {
+                const urlRegex = /(?:https?:\/\/|www\.)[^\s\n\)\]\}'">]+/gi;
+                const urlsInDescription = (description || '').match(urlRegex) || [];
+                if (urlsInDescription.length > 0) {
+                    siteUrl = urlsInDescription[0];
+                }
+            }
+            
+            // Clean up the URL
+            if (siteUrl) {
+                siteUrl = siteUrl
+                    .replace(/^['"]+|['"]+$/g, '')  // Remove surrounding quotes
+                    .replace(/\s+$/, '')             // Remove trailing whitespace
+                    .replace(/[\s,;]+$/, '')         // Remove trailing punctuation
+                    .replace(/\.$/, '');             // Remove trailing period
+                    
+                // Ensure URL has protocol
+                if (siteUrl && !siteUrl.match(/^https?:\/\//) && siteUrl.match(/^[^\s:]+\.[^\s.]+/)) {
+                    siteUrl = 'https://' + siteUrl.replace(/^\/\//, '');
+                }
+            }
             
             // Get screenshot URL
             const screenshot = task.screenshot_url || 
@@ -778,24 +873,23 @@ class ReportGenerator {
                 ? 'Suggestion' 
                 : (status && status.toLowerCase() === 'qa team' ? 'Bug' : status);
 
-            // Create data object with only the required fields
+            // Create data object with property names that match the HTML template
             const taskData = {
-                'BugID': (index + 1),
-                'Bug Status': 'New',
-                'Bug Type': (status && status.toLowerCase() === 'suggestion' ? 'Suggestion' : (status && status.toLowerCase() === 'qa team' ? 'Bug' : status)),
-                'Priority': priority,
-                'Priority ID': task.priority_id || '',
-                'Description': description.replace(/<br\s*\/?>/g, '\n'), // Convert <br> back to newlines for display
-                'Tags': tags,
-                'Site URL': siteUrl,
-                'OS': env.os,
-                'Browser': env.browser,
-                'Browser Size': env.browserWindow,
-                'Resolution': env.resolution,
-                'Screenshot URL': screenshot,
-                'Reporter': requesterEmail,
-                'Severity': priority,
-                'Tags/Categories': tags
+                id: index + 1,  // BugID
+                bugStatus: 'New',
+                bugType: (status && status.toLowerCase() === 'suggestion' ? 'Suggestion' : (status && status.toLowerCase() === 'qa team' ? 'Bug' : status)),
+                severity: priority,
+                priority: priority,
+                priorityId: task.priority_id || '',
+                description: description.replace(/<br\s*\/?>/g, '\n'),
+                tags: tags,
+                siteUrl: siteUrl,  // This must match the template's expected property name
+                os: env.os,
+                browser: env.browser,
+                browserSize: env.browserWindow,
+                resolution: env.resolution,
+                screenshot: screenshot,  // This must match the template's expected property name
+                reporter: requesterEmail,  // This must match the template's expected property name
             };
 
             // Generate HTML for the task card
