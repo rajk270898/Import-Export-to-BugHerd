@@ -230,10 +230,28 @@
 
         .issue-url {
             font-weight: 500;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-            padding-right: 2rem;
+            color: var(--primary) !important;
+            margin: 0.5rem 0;
+            padding: 0.5rem 0;
             word-break: break-all;
+            border-bottom: 1px solid var(--border);
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .issue-url a {
+            color: var(--primary) !important;
+            text-decoration: none !important;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .issue-url a:hover {
+            text-decoration: underline !important;
         }
         
         .issue-count-badge {
@@ -807,6 +825,7 @@ a.details-value:hover {
     "description": "Critical",
     "tags": "Critical",
     "siteUrl": "",
+    "siteDisplay": "",
     "os": "",
     "browser": "",
     "browserSize": "",
@@ -832,6 +851,7 @@ a.details-value:hover {
     "description": "Important",
     "tags": "Important",
     "siteUrl": "",
+    "siteDisplay": "",
     "os": "",
     "browser": "",
     "browserSize": "",
@@ -857,6 +877,7 @@ a.details-value:hover {
     "description": "Normal",
     "tags": "Normal",
     "siteUrl": "",
+    "siteDisplay": "",
     "os": "",
     "browser": "",
     "browserSize": "",
@@ -882,6 +903,7 @@ a.details-value:hover {
     "description": "Minor",
     "tags": "Minor",
     "siteUrl": "",
+    "siteDisplay": "",
     "os": "",
     "browser": "",
     "browserSize": "",
@@ -907,6 +929,7 @@ a.details-value:hover {
     "description": "Not set",
     "tags": "Not Set",
     "siteUrl": "",
+    "siteDisplay": "",
     "os": "",
     "browser": "",
     "browserSize": "",
@@ -932,6 +955,7 @@ a.details-value:hover {
     "description": "8\n\nOS: Windows 10\nBrowser: Firefox 141.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Hello",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 10",
     "browser": "Firefox 141.0",
     "browserSize": "1869 x 947 px",
@@ -957,6 +981,7 @@ a.details-value:hover {
     "description": "7\n\nOS: Windows 10\nBrowser: Firefox 141.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Hello",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 10",
     "browser": "Firefox 141.0",
     "browserSize": "1869 x 947 px",
@@ -982,6 +1007,7 @@ a.details-value:hover {
     "description": "5\n\nOS: Windows 10\nBrowser: Firefox 141.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Hello",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 10",
     "browser": "Firefox 141.0",
     "browserSize": "1869 x 947 px",
@@ -1007,6 +1033,7 @@ a.details-value:hover {
     "description": "6\n\nOS: Windows 10\nBrowser: Firefox 141.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Suggestion",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 10",
     "browser": "Firefox 141.0",
     "browserSize": "1869 x 947 px",
@@ -1032,6 +1059,7 @@ a.details-value:hover {
     "description": "3\n\nOS: Windows 11\nBrowser: Chrome 138.0.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Hello",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 11",
     "browser": "Chrome 138.0.0",
     "browserSize": "1869 x 947 px",
@@ -1057,6 +1085,7 @@ a.details-value:hover {
     "description": "4\n\nOS: Windows 11\nBrowser: Chrome 138.0.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Suggestion",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 11",
     "browser": "Chrome 138.0.0",
     "browserSize": "1869 x 947 px",
@@ -1082,6 +1111,7 @@ a.details-value:hover {
     "description": "1\n\nOS: Windows 11\nBrowser: Chrome 138.0.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Hello",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 11",
     "browser": "Chrome 138.0.0",
     "browserSize": "1869 x 947 px",
@@ -1107,6 +1137,7 @@ a.details-value:hover {
     "description": "2\n\nOS: Windows 11\nBrowser: Chrome 138.0.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Suggestion",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 11",
     "browser": "Chrome 138.0.0",
     "browserSize": "1869 x 947 px",
@@ -1132,6 +1163,7 @@ a.details-value:hover {
     "description": "O\n\nOS: Windows 10\nBrowser: Firefox 141.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Hello",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 10",
     "browser": "Firefox 141.0",
     "browserSize": "1869 x 947 px",
@@ -1157,6 +1189,7 @@ a.details-value:hover {
     "description": "G\n\nOS: Windows 10\nBrowser: Firefox 141.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Hello",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 10",
     "browser": "Firefox 141.0",
     "browserSize": "1869 x 947 px",
@@ -1182,6 +1215,7 @@ a.details-value:hover {
     "description": "Red\n\nOS: Windows 10\nBrowser: Firefox 141.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Hello",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 10",
     "browser": "Firefox 141.0",
     "browserSize": "1869 x 947 px",
@@ -1207,6 +1241,7 @@ a.details-value:hover {
     "description": "Important\n\nOS: Windows 11\nBrowser: Chrome 138.0.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Hello",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 11",
     "browser": "Chrome 138.0.0",
     "browserSize": "1869 x 947 px",
@@ -1232,6 +1267,7 @@ a.details-value:hover {
     "description": "Hello\n\nOS: Windows 11\nBrowser: Chrome 138.0.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Hello",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 11",
     "browser": "Chrome 138.0.0",
     "browserSize": "1869 x 947 px",
@@ -1257,6 +1293,7 @@ a.details-value:hover {
     "description": "Suggestion\n\nOS: Windows 11\nBrowser: Chrome 138.0.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Suggestion",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 11",
     "browser": "Chrome 138.0.0",
     "browserSize": "1869 x 947 px",
@@ -1282,6 +1319,7 @@ a.details-value:hover {
     "description": "S_Important\n\nOS: Windows 11\nBrowser: Chrome 138.0.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Suggestion",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 11",
     "browser": "Chrome 138.0.0",
     "browserSize": "1869 x 947 px",
@@ -1307,6 +1345,7 @@ a.details-value:hover {
     "description": "E\n\nOS: Windows 10\nBrowser: Firefox 141.0\nResolution: 1920 x 1080 px\nBrowser Window: 1869 x 947 px\nURL: https://www.google.com\nScreenshot: https://files.bugherd.com/m7rvxpwuscwwibx4mgkntg/screenshot.jpg",
     "tags": "Suggestion",
     "siteUrl": "https://www.google.com",
+    "siteDisplay": "https://www.google.com",
     "os": "Windows 10",
     "browser": "Firefox 141.0",
     "browserSize": "1869 x 947 px",
@@ -1332,6 +1371,7 @@ a.details-value:hover {
     "description": "bugatti",
     "tags": "Bugati",
     "siteUrl": "",
+    "siteDisplay": "",
     "os": "",
     "browser": "",
     "browserSize": "",
@@ -1399,6 +1439,7 @@ a.details-value:hover {
             tags: issue.tags ? (Array.isArray(issue.tags) ? issue.tags : issue.tags.split(',').map(t => t.trim())) : [],
             description: issue.description || 'No description available',
             siteUrl: issue.siteUrl || '',
+            siteDisplay: issue.siteDisplay || issue.siteUrl || '',
             os: issue.os || 'Not specified',
             browser: issue.browser || 'Not specified',
             browserSize: issue.browserSize || 'Not specified',
@@ -1443,10 +1484,10 @@ a.details-value:hover {
                 <div class="details-row">
                     <span class="details-label">Page URL:</span>
                     <span class="details-value">
-                        ${issueData.siteUrl ? `
-                            ${issueData.siteUrl.match(/^https?:\/\//) ? 
-                                `<a href="${issueData.siteUrl}" target="_blank" rel="noopener noreferrer" class="url-link">${issueData.siteUrl}</a>` : 
-                                `<a href="https://${issueData.siteUrl}" target="_blank" rel="noopener noreferrer" class="url-link">https://${issueData.siteUrl}</a>`
+                        ${issueData.siteDisplay ? `
+                            ${issueData.siteDisplay.match(/^https?:\/\//) ? 
+                                `<a href="${issueData.siteDisplay}" target="_blank" rel="noopener noreferrer" class="url-link">${issueData.siteDisplay}</a>` : 
+                                `<a href="https://${issueData.siteDisplay}" target="_blank" rel="noopener noreferrer" class="url-link">https://${issueData.siteDisplay}</a>`
                             }
                         ` : `
                             <span class="text-muted">No URL provided</span>
@@ -1671,7 +1712,48 @@ a.details-value:hover {
 
     // Initialize with Critical issues shown by default
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize pie chart
+        console.log('Bug data loaded:', window.bugData);
+        
+        // Debug: Log the structure of the first few bugs
+        if (window.bugData && window.bugData.length > 0) {
+            console.log('=== BUG DATA ANALYSIS ===');
+            
+            // Log structure of first 3 bugs
+            const bugsToInspect = Math.min(3, window.bugData.length);
+            for (let i = 0; i < bugsToInspect; i++) {
+                console.log(`\n=== Bug #${i + 1} ===`);
+                console.log('All properties:', Object.keys(window.bugData[i]));
+                
+                // Log all properties that might contain URLs
+                const urlProps = ['siteUrl', 'siteDisplay', 'url', 'site', 'page_url', 'pageUrl', 'link'];
+                urlProps.forEach(prop => {
+                    if (window.bugData[i].hasOwnProperty(prop)) {
+                        console.log(`Property '${prop}':`, window.bugData[i][prop]);
+                    }
+                });
+                
+                // Log the full object for deeper inspection
+                console.log('Full object:', JSON.parse(JSON.stringify(window.bugData[i])));
+            }
+            
+            // Count how many bugs have each URL property
+            const urlCounts = {};
+            const possibleUrlProps = ['siteUrl', 'siteDisplay', 'url', 'site', 'page_url', 'pageUrl', 'link'];
+            
+            window.bugData.forEach(bug => {
+                possibleUrlProps.forEach(prop => {
+                    if (bug[prop]) {
+                        urlCounts[prop] = (urlCounts[prop] || 0) + 1;
+                    }
+                });
+            });
+            
+            console.log('\n=== URL Property Counts ===');
+            console.log('Total bugs:', window.bugData.length);
+            Object.entries(urlCounts).forEach(([prop, count]) => {
+                console.log(`${prop}: ${count} bugs (${Math.round((count / window.bugData.length) * 100)}%)`);
+            });
+        }
         const ctx = document.getElementById('severityChart').getContext('2d');
         const severityChart = new Chart(ctx, {
             type: 'pie',
@@ -1756,17 +1838,151 @@ a.details-value:hover {
             });
 
             // Create cards for each group
+            console.log('Bug data:', window.bugData); // Debug log
             Object.entries(groupedIssues).forEach(([key, issues]) => {
                 const firstIssue = issues[0];
+                console.log('Creating card for issue:', firstIssue); // Debug log
+                
+                // Debug: Log all properties of the first issue
+                console.log('Issue properties:', Object.keys(firstIssue));
+                console.log('siteUrl:', firstIssue.siteUrl);
+                console.log('siteDisplay:', firstIssue.siteDisplay);
+                
                 const issueCard = document.createElement('div');
                 issueCard.className = 'issue-card';
                 issueCard.setAttribute('data-severity', firstIssue.severity.toLowerCase());
-                issueCard.setAttribute('data-url', firstIssue.siteUrl);
+                // Use siteDisplay for the URL if available, otherwise fall back to siteUrl
+                const urlToUse = firstIssue.siteDisplay || firstIssue.siteUrl;
+                console.log('Using URL for card:', urlToUse); // Debug log
+                issueCard.setAttribute('data-url', urlToUse);
                 issueCard.setAttribute('data-issue-ids', issues.map(i => i.id).join(','));
 
+                // Debug: Log the entire issue object
+                console.log('Full issue object:', JSON.stringify(firstIssue, null, 2));
+                
+                // Create URL container with forced visibility
                 const issueUrl = document.createElement('div');
                 issueUrl.className = 'issue-url';
-                issueUrl.textContent = firstIssue.siteUrl;
+                issueUrl.style.cssText = `
+                    padding: 8px;
+                    border: 2px solid red !important;
+                    margin: 4px 0;
+                    background-color: #fff3cd !important;
+                    font-family: monospace;
+                    color: #000 !important;
+                    display: block !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    position: relative !important;
+                    z-index: 9999 !important;
+                `;
+                
+                // Get the URL to display - trying all possible URL properties
+                let displayUrl = '';
+                const possibleUrlProps = ['siteDisplay', 'siteUrl', 'url', 'site'];
+                
+                // Try to find the first non-empty URL property
+                for (const prop of possibleUrlProps) {
+                    if (firstIssue[prop] && firstIssue[prop].trim()) {
+                        displayUrl = firstIssue[prop].trim();
+                        break;
+                    }
+                }
+                
+                // If still no URL, try to extract from description
+                if (!displayUrl && firstIssue.description) {
+                    const urlMatch = firstIssue.description.match(/URL: (https?:\/\/[^\s\n]+)/i);
+                    if (urlMatch && urlMatch[1]) {
+                        displayUrl = urlMatch[1];
+                    }
+                }
+                
+                console.log(`[DEBUG] Final URL for issue ${firstIssue.id}:`, displayUrl);
+                
+                // Create URL container with better styling
+                const urlContainer = document.createElement('div');
+                urlContainer.className = 'issue-url';
+                urlContainer.style.cssText = `
+                    padding: 8px;
+                    margin: 4px 0;
+                    border-radius: 4px;
+                    background-color: #f8f9fa;
+                    border-left: 3px solid #6c757d;
+                    font-family: 'Courier New', monospace;
+                    word-break: break-all;
+                    font-size: 14px;
+                `;
+                
+                if (displayUrl) {
+                    // Create clickable link
+                    const link = document.createElement('a');
+                    link.href = displayUrl.startsWith('http') ? displayUrl : `https://${displayUrl}`;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.textContent = displayUrl;
+                    link.style.cssText = `
+                        color: #0d6efd;
+                        text-decoration: none;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    `;
+                    
+                    // Add external link icon
+                    const linkIcon = document.createElement('span');
+                    linkIcon.textContent = '🔗';
+                    link.prepend(linkIcon);
+                    
+                    // Add hover effect
+                    link.onmouseover = () => link.style.textDecoration = 'underline';
+                    link.onmouseout = () => link.style.textDecoration = 'none';
+                    
+                    urlContainer.appendChild(link);
+                } else {
+                    // Show fallback information when no URL is available
+                    const noUrlText = document.createElement('div');
+                    noUrlText.textContent = 'No URL specified';
+                    noUrlText.style.cssText = `
+                        color: #6c757d;
+                        font-style: italic;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    `;
+                    
+                    // Add info icon
+                    const infoIcon = document.createElement('span');
+                    infoIcon.textContent = 'ℹ️';
+                    noUrlText.prepend(infoIcon);
+                    
+                    urlContainer.appendChild(noUrlText);
+                    
+                    // Add a small note about where to find the URL
+                    const note = document.createElement('div');
+                    note.textContent = 'URLs can be added in the bug description or via the site URL field';
+                    note.style.cssText = `
+                        font-size: 0.8em;
+                        color: #6c757d;
+                        margin-top: 4px;
+                    `;
+                    urlContainer.appendChild(note);
+                }
+                
+                // Append the URL container to the issue card
+                issueCard.appendChild(urlContainer);
+                
+                // Append the issue card to the issue list
+                issueList.appendChild(issueCard);
+                
+                // Add click handler for the issue card
+                issueCard.addEventListener('click', function() {
+                    document.querySelectorAll('.issue-card').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    updateDetailsPanel(this);
+                    if (window.innerWidth < 992) {
+                        document.querySelector('.details-panel').scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
 
                 // Add issue count badge if multiple issues
                 if (issues.length > 1) {

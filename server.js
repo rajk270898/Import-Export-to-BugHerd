@@ -875,6 +875,8 @@ function extractEnvFromDescription(description) {
           'Description': description,
           'Tags/Categories': tags,
           'Site + URL': siteDisplay,
+          'siteDisplay': siteDisplay, // Add siteDisplay for HTML report
+          'siteUrl': siteUrl, // Keep original siteUrl for reference
           'OS': os,
           'Browser': browser,
           'Browser Size': browserSize,

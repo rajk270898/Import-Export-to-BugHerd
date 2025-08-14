@@ -598,8 +598,36 @@ class ReportGenerator {
             // Extract reporter/requester
             const reporter = getValue(task.requester_email || task.reporter);
             
+            // Create siteDisplay by combining site and URL
+            let siteDisplay = '';
+            try {
+                if (siteUrl) {
+                    // If URL already has a protocol, use it as is
+                    if (siteUrl.match(/^https?:\/\//)) {
+                        siteDisplay = siteUrl;
+                    } else {
+                        // Otherwise, add https://
+                        siteDisplay = 'https://' + siteUrl.replace(/^\/\//, '');
+                    }
+                    
+                    // Clean up the URL
+                    siteDisplay = siteDisplay
+                        .replace(/([^:])\/\//g, '$1/') // Remove duplicate slashes
+                        .replace(/\s+$/, '') // Remove trailing whitespace
+                        .replace(/\.+$/, ''); // Remove trailing dots
+                }
+            } catch (e) {
+                console.error('Error processing URL:', e);
+                siteDisplay = siteUrl || ''; // Fallback to original URL if there's an error
+            }
+            
+            // Debug log the URL data
+            console.log(`[DEBUG] Task ${index + 1}:`);
+            console.log(`- siteUrl: ${siteUrl}`);
+            console.log(`- siteDisplay: ${siteDisplay}`);
+            
             // Return data in the same format as CSV export
-            return {
+            const bugData = {
                 id: index + 1, // BugID is 1-based index
                 bugStatus: 'New',
                 bugType: bugType,
@@ -608,6 +636,7 @@ class ReportGenerator {
                 description: description,
                 tags: tags,
                 siteUrl: siteUrl,
+                siteDisplay: siteDisplay, // Add the combined site display URL
                 os: env.os,
                 browser: env.browser,
                 browserSize: env.browserWindow,
@@ -619,13 +648,15 @@ class ReportGenerator {
                 element: 'Not specified',
                 assignee: task.assignee_email || 'Unassigned',
                 comments: task.comments_count || 0,
-                
                 // Keep original fields for backward compatibility
                 title: `Task ${index + 1}`,
                 status: status,
                 created_at: task.created_at || new Date().toISOString(),
                 updated_at: task.updated_at || new Date().toISOString()
             };
+            
+            console.log(`[DEBUG] Bug data for task ${index + 1}:`, JSON.stringify(bugData, null, 2));
+            return bugData;
         });
 
         // Debug: Log the first task to verify the structure
