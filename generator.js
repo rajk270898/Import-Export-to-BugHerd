@@ -154,7 +154,7 @@ class ReportGenerator {
             // Now fetch all tasks with pagination, matching the CSV export approach
             console.log('Fetching tasks with pagination...');
             const allTasks = [];
-            const perPage = 100;
+            const perPage = 50; // Reduced from 100 to avoid timeouts
             let currentPage = 1;
             let hasMorePages = true;
             
@@ -173,7 +173,7 @@ class ReportGenerator {
                     headers: {
                         'Accept': 'application/json'
                     },
-                    timeout: 30000
+                    timeout: 60000 // Increased timeout
                 });
                 
                 console.log(`Page ${currentPage} response status:`, response.status);
@@ -186,18 +186,24 @@ class ReportGenerator {
                 }
                 
                 console.log(`Found ${pageTasks.length} tasks on page ${currentPage}`);
-                allTasks.push(...pageTasks);
+                
+                // Fetch detailed information for each task in this page
+                if (pageTasks.length > 0) {
+                    console.log(`Fetching detailed info for ${pageTasks.length} tasks...`);
+                    const detailedTasks = await this.fetchDetailedTasks(projectId, pageTasks);
+                    allTasks.push(...detailedTasks);
+                }
                 
                 if (pageTasks.length < perPage) {
                     hasMorePages = false;
                 } else {
                     currentPage++;
-                    // Small delay to avoid rate limiting
-                    await new Promise(resolve => setTimeout(resolve, 300));
+                    // Increased delay to avoid rate limiting
+                    await new Promise(resolve => setTimeout(resolve, 500));
                 }
             }
             
-            console.log(`Total tasks fetched: ${allTasks.length}`);
+            console.log(`Total tasks with details fetched: ${allTasks.length}`);
             if (allTasks.length === 0) {
                 console.log('No tasks found in the response.');
                 
@@ -437,6 +443,81 @@ class ReportGenerator {
         };
     }
 
+    /**
+     * Fetches detailed information for each task in the list
+     * @param {string} projectId - The project ID
+     * @param {Array} tasks - Array of basic task objects
+     * @returns {Promise<Array>} Array of detailed task objects
+     */
+    async fetchDetailedTasks(projectId, tasks) {
+        console.log(`Fetching detailed info for ${tasks.length} tasks...`);
+        
+        const detailedTasks = [];
+        
+        // Process tasks in batches to avoid overwhelming the API
+        const batchSize = 5;
+        for (let i = 0; i < tasks.length; i += batchSize) {
+            const batch = tasks.slice(i, i + batchSize);
+            const batchPromises = batch.map(task => 
+                this.fetchTaskDetails(projectId, task.id)
+                    .then(details => ({
+                        ...task,
+                        ...details // Merge basic task data with detailed data
+                    }))
+                    .catch(error => {
+                        console.error(`Error fetching details for task ${task.id}:`, error.message);
+                        return task; // Return original task if details fetch fails
+                    })
+            );
+            
+            const batchResults = await Promise.all(batchPromises);
+            detailedTasks.push(...batchResults);
+            
+            // Add delay between batches to avoid rate limiting
+            if (i + batchSize < tasks.length) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+        
+        console.log(`Fetched details for ${detailedTasks.length} tasks`);
+        return detailedTasks;
+    }
+    
+    /**
+     * Fetches detailed information for a single task
+     * @param {string} projectId - The project ID
+     * @param {string} taskId - The task ID
+     * @returns {Promise<Object>} Detailed task information
+     */
+    async fetchTaskDetails(projectId, taskId) {
+        const url = `${this.apiBaseUrl}/projects/${projectId}/tasks/${taskId}.json`;
+        
+        try {
+            const response = await axios.get(url, {
+                auth: {
+                    username: this.apiKey,
+                    password: 'x'
+                },
+                headers: {
+                    'Accept': 'application/json'
+                },
+                timeout: 30000
+            });
+            
+            // The detailed task data might be in response.data or response.data.task
+            return response.data?.task || response.data || {};
+        } catch (error) {
+            console.error(`Error fetching details for task ${taskId}:`, error.message);
+            if (error.response) {
+                console.error('Response status:', error.response.status);
+                if (error.response.status === 404) {
+                    console.error(`Task ${taskId} not found`);
+                }
+            }
+            return {}; // Return empty object if details can't be fetched
+        }
+    }
+
     async renderHtml(project, tasks, charts) {
         // Read the template file
         let html = fs.readFileSync(this.templatePath, 'utf8');
@@ -482,103 +563,95 @@ class ReportGenerator {
                 (Array.isArray(task.tag_names) ? task.tag_names.join(', ') : task.tag_names) : 
                 (task.tags ? (Array.isArray(task.tags) ? task.tags.join(', ') : task.tags) : '');
             
-            // Extract URL - check multiple possible fields with debug logging
+            // Extract URL - match CSV export logic from server.js exactly
             let siteUrl = '';
             
-            // Enhanced URL extraction with more possible fields and better debugging
+            // Check URL fields in order of preference based on BugHerd API response
             const possibleUrlFields = [
-                'site', 'url', 'site_page', 'site_url', 'page_url', 
-                'page.url', 'siteUrl', 'pageUrl', 'pageUrl', 'page_url',
-                'pageUrl', 'siteurl', 'pageurl', 'page', 'site'
+                task.url,                     // Direct URL from BugHerd
+                task.site_url,                // Alternative URL field
+                task.site,                    // Site field (might contain domain)
+                task.page_url,                // Page URL field
+                task.attributes?.url,         // Nested in attributes
+                task.attributes?.page_url,    // Nested page URL
+                task.attributes?.site_url,    // Nested site URL
+                task.meta?.url,               // Nested in meta
+                task.screenshot_url,          // Sometimes contains the page URL
+                task.screenshot               // Sometimes contains the page URL
             ];
             
-            // 1. Check direct properties first
-            for (const field of possibleUrlFields) {
-                if (task[field] && typeof task[field] === 'string' && task[field].trim() !== '') {
-                    siteUrl = task[field].trim();
-                    console.log(`[URL Debug] Found URL in task.${field}: ${siteUrl}`);
-                    break;
-                }
-            }
-            
-            // 2. Check nested properties (like task.page.url)
-            if (!siteUrl) {
-                const nestedPaths = [
-                    'page.url', 'site.url', 'attributes.url', 'page_url', 'site_url'
-                ];
-                
-                for (const path of nestedPaths) {
-                    const parts = path.split('.');
-                    let value = task;
-                    
-                    for (const part of parts) {
-                        if (value && typeof value === 'object' && part in value) {
-                            value = value[part];
-                        } else {
-                            value = null;
-                            break;
-                        }
-                    }
-                    
-                    if (value && typeof value === 'string' && value.trim() !== '') {
-                        siteUrl = value.trim();
-                        console.log(`[URL Debug] Found URL in task.${path}: ${siteUrl}`);
-                        break;
+            // Also check in attachments for URL
+            if (Array.isArray(task.attachments)) {
+                for (const att of task.attachments) {
+                    if (att.url && att.url.includes('http')) {
+                        possibleUrlFields.push(att.url);
                     }
                 }
             }
             
-            // 3. Check in attachments (common for extension-added bugs)
-            if (!siteUrl && task.attachments && Array.isArray(task.attachments)) {
-                for (const attachment of task.attachments) {
-                    if (attachment.url && typeof attachment.url === 'string' && attachment.url.trim() !== '') {
-                        siteUrl = attachment.url.trim();
-                        console.log(`[URL Debug] Found URL in attachment: ${siteUrl}`);
-                        break;
-                    }
+            // Try to extract from description
+            const urlRegex = /(?:https?:\/\/|www\.)[^\s\n\)\]\}'">]+/gi;
+            const urlsInDescription = (description || '').match(urlRegex) || [];
+            
+            // Combine all possible URL sources
+            const allUrlSources = [...possibleUrlFields, ...urlsInDescription];
+            
+            // Find the first valid URL
+            for (const url of allUrlSources) {
+                if (!url) continue;
+                
+                let cleanUrl = String(url)
+                    .trim()
+                    .replace(/^['"]+|['"]+$/g, '')  // Remove surrounding quotes
+                    .replace(/[\s,;]+$/, '')         // Remove trailing whitespace and common punctuation
+                    .replace(/[\])}>)"']*$/, '');    // Remove trailing brackets/quotes
+                
+                if (!cleanUrl) continue;
+                
+                // Ensure URL has protocol
+                if (!/^https?:\/\//i.test(cleanUrl) && /^[^\s:]+\.[^\s.]+/.test(cleanUrl)) {
+                    cleanUrl = 'https://' + cleanUrl.replace(/^\/\//, '');
+                }
+                
+                try {
+                    // Try to create URL object to validate
+                    new URL(cleanUrl);
+                    siteUrl = cleanUrl;
+                    break; // Use the first valid URL we find
+                } catch (e) {
+                    // Not a valid URL, continue to next candidate
+                    continue;
                 }
             }
             
-            // 4. Try to extract from description as last resort
-            if (!siteUrl && description) {
-                // Enhanced URL regex to catch more URL patterns
-                const urlRegex = /(?:https?:\/\/|www\.)[^\s\n\)\]\}'">]+/gi;
-                const urls = description.match(urlRegex) || [];
-                
-                if (urls.length > 0) {
-                    siteUrl = urls[0].trim();
-                    console.log(`[URL Debug] Extracted URL from description: ${siteUrl}`);
-                    
-                    // Try to clean up common issues with extracted URLs
-                    siteUrl = siteUrl
-                        .replace(/[\s,;]+$/, '') // Remove trailing spaces and punctuation
-                        .replace(/\.$/, '') // Remove trailing period
-                        .replace(/[\])}>)"']*$/, ''); // Remove trailing quotes/brackets
-                }
-            }
+            // Format site and URL, removing duplicates and fixing protocol issues
+            let siteDisplay = '';
+            let cleanSite = task.site || '';
+            let cleanUrl = siteUrl || '';
             
-            // Ensure URL has a protocol and clean it up
-            if (siteUrl) {
-                // Clean up the URL first
-                siteUrl = siteUrl.split('\n')[0].trim(); // Take only the first line if there are multiple
+            // Clean up site and URL
+            cleanSite = cleanSite.toString().trim().replace(/^https?:\/\//, '').replace(/\/+$/, '');
+            cleanUrl = cleanUrl.toString().trim();
+            
+            // Create siteDisplay combining site and URL if both exist
+            if (cleanSite && cleanUrl) {
+                const siteWithoutWww = cleanSite.replace(/^www\./i, '');
+                const urlWithoutProtocol = cleanUrl.replace(/^https?:\/\//, '');
+                const urlWithoutWww = urlWithoutProtocol.replace(/^www\./i, '');
                 
-                // Add protocol if missing
-                if (!siteUrl.match(/^https?:\/\//)) {
-                    siteUrl = 'https://' + siteUrl.replace(/^\/\//, '');
-                    console.log(`[URL Debug] Added protocol to URL: ${siteUrl}`);
+                // Check if the site is already part of the URL
+                if (urlWithoutProtocol.includes(siteWithoutWww)) {
+                    siteDisplay = cleanUrl; // Use the full URL if site is already in it
+                } else {
+                    // Otherwise, combine them, making sure not to duplicate the protocol
+                    const sitePart = cleanSite.endsWith('/') ? cleanSite.slice(0, -1) : cleanSite;
+                    const urlPart = cleanUrl.startsWith('http') ? cleanUrl.replace(/^https?:\/\//, '') : cleanUrl;
+                    siteDisplay = `${sitePart}/${urlPart}`;
                 }
-                
-                console.log(`[URL Debug] Final URL: ${siteUrl}`);
-            } else {
-                console.log('[URL Debug] No URL found in task data, attachments, or description');
-                
-                // Log available task keys for debugging
-                console.log('[URL Debug] Available task keys:', Object.keys(task).join(', '));
-                
-                // If we have a description, log the first 200 chars for debugging
-                if (description) {
-                    console.log('[URL Debug] Description preview:', description.substring(0, 200) + (description.length > 200 ? '...' : ''));
-                }
+            } else if (cleanSite) {
+                siteDisplay = cleanSite;
+            } else if (cleanUrl) {
+                siteDisplay = cleanUrl;
             }
             
             // Extract screenshot URL
@@ -598,28 +671,7 @@ class ReportGenerator {
             // Extract reporter/requester
             const reporter = getValue(task.requester_email || task.reporter);
             
-            // Create siteDisplay by combining site and URL
-            let siteDisplay = '';
-            try {
-                if (siteUrl) {
-                    // If URL already has a protocol, use it as is
-                    if (siteUrl.match(/^https?:\/\//)) {
-                        siteDisplay = siteUrl;
-                    } else {
-                        // Otherwise, add https://
-                        siteDisplay = 'https://' + siteUrl.replace(/^\/\//, '');
-                    }
-                    
-                    // Clean up the URL
-                    siteDisplay = siteDisplay
-                        .replace(/([^:])\/\//g, '$1/') // Remove duplicate slashes
-                        .replace(/\s+$/, '') // Remove trailing whitespace
-                        .replace(/\.+$/, ''); // Remove trailing dots
-                }
-            } catch (e) {
-                console.error('Error processing URL:', e);
-                siteDisplay = siteUrl || ''; // Fallback to original URL if there's an error
-            }
+            // siteDisplay is already created above with the same logic as CSV export
             
             // Debug log the URL data
             console.log(`[DEBUG] Task ${index + 1}:`);
