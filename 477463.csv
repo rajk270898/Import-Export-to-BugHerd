@@ -1,9 +1,0 @@
-id,priority,status,tags,description,requester_email,os,browser,browser_size,resolution,site
-15,critical,QA Team,Hello,1,khajanchirajvinay@gmail.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://www.google.com
-16,critical,Suggestion,Suggestion,2,khajanchirajvinay@gmail.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://www.google.com
-17,important,QA Team,Hello,3,khajanchirajvinay@gmail.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://www.google.com
-18,important,Suggestion,Suggestion,4,khajanchirajvinay@gmail.com,Windows 11,Chrome 138.0.0,1869 x 947 px,1920 x 1080 px,https://www.google.com
-19,normal,QA Team,Hello,5,khajanchirajvinay@gmail.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://www.google.com
-20,normal,Suggestion,Suggestion,6,khajanchirajvinay@gmail.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://www.google.com
-21,minor,Suggestion,Hello,7,khajanchirajvinay@gmail.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://www.google.com
-22,not set,QA Team,Hello,8,khajanchirajvinay@gmail.com,Windows 10,Firefox 141.0,1869 x 947 px,1920 x 1080 px,https://www.google.com

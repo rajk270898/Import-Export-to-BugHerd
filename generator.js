@@ -538,6 +538,40 @@ class ReportGenerator {
                 return String(value).trim() || defaultValue;
             };
 
+            // Helper: Deep-search the task object for the first plausible http(s) URL
+            const findFirstUrlDeep = (obj) => {
+                const seen = new Set();
+                const stack = [obj];
+                const urlLike = /https?:\/\//i;
+                while (stack.length) {
+                    const cur = stack.pop();
+                    if (!cur || typeof cur !== 'object') continue;
+                    if (seen.has(cur)) continue;
+                    seen.add(cur);
+                    for (const [k, v] of Object.entries(cur)) {
+                        if (v && typeof v === 'string') {
+                            const s = v.trim();
+                            if (urlLike.test(s)) {
+                                // Strip surrounding quotes/brackets and trailing punctuations
+                                const cleaned = s
+                                    .replace(/^['"\[\(\{]+|['"\]\)\}]+$/g, '')
+                                    .replace(/[\s,;]+$/, '')
+                                    .replace(/[\])}>\)"']*$/, '');
+                                // Validate
+                                try { new URL(cleaned); return cleaned; } catch (_) {}
+                            }
+                        } else if (v && typeof v === 'object') {
+                            stack.push(v);
+                        }
+                        // Also consider keys that look like page_url/url
+                        if ((/page_url|url/i).test(k) && typeof v === 'string' && urlLike.test(v)) {
+                            try { new URL(v); return v; } catch (_) {}
+                        }
+                    }
+                }
+                return '';
+            };
+
             // Extract status and type
             const status = getValue(task.status?.name || task.status);
             const bugType = status && status.toLowerCase() === 'suggestion' ? 'Suggestion' : 
@@ -565,19 +599,20 @@ class ReportGenerator {
             
             // Extract URL - match CSV export logic from server.js exactly
             let siteUrl = '';
+            let pageUrlRaw = '';
             
             // Check URL fields in order of preference based on BugHerd API response
             const possibleUrlFields = [
+                // Prefer page-level URLs with path and query first
+                task.page_url,
+                task.attributes?.page_url,
+                task.attributes?.url,
+                task.meta?.url,
                 task.url,                     // Direct URL from BugHerd
                 task.site_url,                // Alternative URL field
-                task.site,                    // Site field (might contain domain)
-                task.page_url,                // Page URL field
-                task.attributes?.url,         // Nested in attributes
-                task.attributes?.page_url,    // Nested page URL
-                task.attributes?.site_url,    // Nested site URL
-                task.meta?.url,               // Nested in meta
-                task.screenshot_url,          // Sometimes contains the page URL
-                task.screenshot               // Sometimes contains the page URL
+                // Last-resort hints
+                task.screenshot_url,
+                task.screenshot
             ];
             
             // Also check in attachments for URL
@@ -617,41 +652,103 @@ class ReportGenerator {
                     // Try to create URL object to validate
                     new URL(cleanUrl);
                     siteUrl = cleanUrl;
+                    pageUrlRaw = cleanUrl;
                     break; // Use the first valid URL we find
                 } catch (e) {
                     // Not a valid URL, continue to next candidate
                     continue;
                 }
             }
-            
-            // Format site and URL, removing duplicates and fixing protocol issues
-            let siteDisplay = '';
-            let cleanSite = task.site || '';
-            let cleanUrl = siteUrl || '';
-            
-            // Clean up site and URL
-            cleanSite = cleanSite.toString().trim().replace(/^https?:\/\//, '').replace(/\/+$/, '');
-            cleanUrl = cleanUrl.toString().trim();
-            
-            // Create siteDisplay combining site and URL if both exist
-            if (cleanSite && cleanUrl) {
-                const siteWithoutWww = cleanSite.replace(/^www\./i, '');
-                const urlWithoutProtocol = cleanUrl.replace(/^https?:\/\//, '');
-                const urlWithoutWww = urlWithoutProtocol.replace(/^www\./i, '');
-                
-                // Check if the site is already part of the URL
-                if (urlWithoutProtocol.includes(siteWithoutWww)) {
-                    siteDisplay = cleanUrl; // Use the full URL if site is already in it
-                } else {
-                    // Otherwise, combine them, making sure not to duplicate the protocol
-                    const sitePart = cleanSite.endsWith('/') ? cleanSite.slice(0, -1) : cleanSite;
-                    const urlPart = cleanUrl.startsWith('http') ? cleanUrl.replace(/^https?:\/\//, '') : cleanUrl;
-                    siteDisplay = `${sitePart}/${urlPart}`;
+
+            // If still no URL, deep-search the task object
+            if (!siteUrl) {
+                const deepUrl = findFirstUrlDeep(task);
+                if (deepUrl) {
+                    try {
+                        const validated = new URL(deepUrl).toString();
+                        siteUrl = validated;
+                        pageUrlRaw = validated;
+                    } catch (_) {}
                 }
+            }
+
+            // If BugHerd provided domain separately and path in url/page_url, compose them
+            {
+                const candidatePaths = [task.url, task.page_url, task.attributes?.page_url, task.attributes?.url];
+                const baseSiteRaw = (task.site || '').toString().trim();
+                const rel = candidatePaths.find(p => typeof p === 'string' && p.trim().startsWith('/'));
+                if (baseSiteRaw && rel) {
+                    try {
+                        const base = baseSiteRaw.match(/^https?:\/\//) ? baseSiteRaw : `https://${baseSiteRaw}`;
+                        const composedUrl = new URL(rel, base);
+                        const composed = composedUrl.toString();
+                        const baseUrlObj = new URL(base);
+                        const isScreenshot = (u) => /\.(png|jpe?g|gif|webp|bmp|svg|tiff?)($|[?#])/i.test(u) || /files\.bugherd\.com/i.test(u);
+                        const isBaseOnly = (u) => {
+                            try { const o = new URL(u); return (o.hostname === baseUrlObj.hostname) && (o.pathname === '/' || o.pathname === ''); } catch { return false; }
+                        };
+                        // Always use composed full URL for grouping/display
+                        pageUrlRaw = composed;
+                        // Replace siteUrl if it's empty, a screenshot, or just the base domain
+                        if (!siteUrl || isScreenshot(siteUrl) || isBaseOnly(siteUrl)) {
+                            siteUrl = composed;
+                        }
+                    } catch (_) {}
+                }
+            }
+            
+            // Build siteDisplay exactly like server.js (combine Site + URL cleanly)
+            // Get the site value from task.site if available, otherwise extract domain from siteUrl
+            let site = (task.site || '').toString().trim();
+            
+            // If site is empty but we have a siteUrl, derive site from it
+            if ((!site || site === '') && siteUrl) {
+                try {
+                    // Ensure the URL has a protocol
+                    const fullUrl = siteUrl.match(/^https?:\/\//) ? siteUrl : `https://${siteUrl}`;
+                    const url = new URL(fullUrl);
+                    // Keep the full URL with protocol but only protocol + host (+port)
+                    site = `${url.protocol}//${url.hostname}${url.port ? ':' + url.port : ''}`;
+                } catch (e) {
+                    // If URL parsing fails, fallback to siteUrl
+                    site = siteUrl;
+                }
+            }
+
+            // Format siteDisplay: prefer full URL (with query) when available; otherwise fall back to site
+            let siteDisplay = '';
+            let cleanSite = site || '';
+            let cleanUrl = pageUrlRaw || siteUrl || '';
+
+            // Normalize: remove protocol from site; ensure URL has protocol
+            cleanSite = cleanSite.replace(/^https?:\/\//, '');
+            if (cleanUrl && !/^https?:\/\//i.test(cleanUrl)) {
+                cleanUrl = `https://${cleanUrl}`;
+            }
+
+            // Always use the full URL (with path and query) if present
+            if (cleanUrl) {
+                siteDisplay = cleanUrl;
             } else if (cleanSite) {
                 siteDisplay = cleanSite;
-            } else if (cleanUrl) {
-                siteDisplay = cleanUrl;
+            } else {
+                siteDisplay = '';
+            }
+
+            // Compute siteGroup for grouping by domain (hostname[:port])
+            // Use the derived `site` (protocol + host) when available, otherwise derive from cleanUrl
+            let siteGroup = '';
+            try {
+                if (site) {
+                    // site is protocol + host[:port]; strip protocol for grouping key
+                    siteGroup = site.replace(/^https?:\/\//i, '');
+                } else if (cleanUrl) {
+                    const u = new URL(cleanUrl);
+                    siteGroup = `${u.hostname}${u.port ? ':' + u.port : ''}`;
+                }
+            } catch (e) {
+                // Fallback: try to salvage a hostname-like value
+                siteGroup = (cleanSite || cleanUrl || '').replace(/^https?:\/\//i, '');
             }
             
             // Extract screenshot URL
@@ -671,11 +768,10 @@ class ReportGenerator {
             // Extract reporter/requester
             const reporter = getValue(task.requester_email || task.reporter);
             
-            // siteDisplay is already created above with the same logic as CSV export
-            
             // Debug log the URL data
             console.log(`[DEBUG] Task ${index + 1}:`);
             console.log(`- siteUrl: ${siteUrl}`);
+            console.log(`- pageUrlRaw: ${pageUrlRaw}`);
             console.log(`- siteDisplay: ${siteDisplay}`);
             
             // Return data in the same format as CSV export
@@ -689,6 +785,8 @@ class ReportGenerator {
                 tags: tags,
                 siteUrl: siteUrl,
                 siteDisplay: siteDisplay, // Add the combined site display URL
+                pageUrlRaw: pageUrlRaw, // Raw full URL detected anywhere in the task
+                siteGroup: siteGroup, // Domain-only key used for grouping in the UI
                 os: env.os,
                 browser: env.browser,
                 browserSize: env.browserWindow,
@@ -1053,11 +1151,11 @@ class ReportGenerator {
 
     injectSummary(html, summary) {
         // Update total count
-        html = html.replace('<!-- TOTAL_ISSUES -->', summary.total);
+        html = html.replace('', summary.total);
         
         // Update severity counts
         Object.entries(summary.bySeverity).forEach(([severity, count]) => {
-            html = html.replace(`<!-- ${severity.toUpperCase()}_COUNT -->`, count);
+            html = html.replace(``, count);
         });
         
         // Update status counts
@@ -1071,7 +1169,7 @@ class ReportGenerator {
             `;
         });
         
-        return html.replace('<!-- STATUS_ITEMS -->', statusHtml);
+        return html.replace('', statusHtml);
     }
 
     async saveReport(html) {
