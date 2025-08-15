@@ -589,8 +589,8 @@ class ReportGenerator {
                 priorityMap[task.priority_id] || 'Normal' : 'Normal';
             
             // Extract description and environment info
-            const description = getValue(task.description);
-            const env = this.extractEnvFromDescription(description);
+            const rawDescription = getValue(task.description);
+            const env = this.extractEnvFromDescription(rawDescription);
             
             // Extract tags
             const tags = task.tag_names ? 
@@ -626,7 +626,7 @@ class ReportGenerator {
             
             // Try to extract from description
             const urlRegex = /(?:https?:\/\/|www\.)[^\s\n\)\]\}'">]+/gi;
-            const urlsInDescription = (description || '').match(urlRegex) || [];
+            const urlsInDescription = (rawDescription || '').match(urlRegex) || [];
             
             // Combine all possible URL sources
             const allUrlSources = [...possibleUrlFields, ...urlsInDescription];
@@ -753,6 +753,7 @@ class ReportGenerator {
             
             // Extract screenshot URL
             let screenshot = '';
+            // 1) Prefer explicit endpoint fields
             if (task.screenshot_url) screenshot = task.screenshot_url;
             else if (task.screenshot) screenshot = task.screenshot;
             else if (task.attachments && task.attachments.length > 0) {
@@ -764,6 +765,13 @@ class ReportGenerator {
                     screenshot = imageAttachment.url || '';
                 }
             }
+            // 2) Fallback to parsing from description using 'Screenshot:'
+            if (!screenshot) {
+                const fromDesc = this.extractScreenshotFromDescription(rawDescription);
+                if (fromDesc) screenshot = fromDesc;
+            }
+            // 3) Last resort text
+            if (!screenshot) screenshot = 'No Screenshot found';
             
             // Extract reporter/requester
             const reporter = getValue(task.requester_email || task.reporter);
@@ -781,7 +789,7 @@ class ReportGenerator {
                 bugType: bugType,
                 priority: priority,
                 priorityId: task.priority_id || '',
-                description: description,
+                description: rawDescription,
                 tags: tags,
                 siteUrl: siteUrl,
                 siteDisplay: siteDisplay, // Add the combined site display URL
@@ -970,8 +978,9 @@ class ReportGenerator {
             // Get status with fallback
             const status = task.status?.name || task.status || 'Open';
             
-            // Format description with line breaks
-            const description = getValue(task.description).replace(/\n/g, '<br>');
+            // Keep raw description for parsing and a HTML version for display
+            const rawDescription = getValue(task.description);
+            const description = rawDescription.replace(/\n/g, '<br>');
             
             // Extract environment information
             const env = this.extractEnvFromDescription(description);
@@ -1034,9 +1043,21 @@ class ReportGenerator {
                 }
             }
             
-            // Get screenshot URL
-            const screenshot = task.screenshot_url || 
-                             (task.attachments && task.attachments.length > 0 ? task.attachments[0].url : '');
+            // Get screenshot URL with priority: endpoint -> description -> fallback text
+            let screenshot = '';
+            if (task.screenshot_url) screenshot = task.screenshot_url;
+            else if (task.screenshot) screenshot = task.screenshot;
+            else if (task.attachments && task.attachments.length > 0) {
+                const imageAttachment = task.attachments.find(att => 
+                    att.content_type && att.content_type.startsWith('image/')
+                ) || task.attachments[0];
+                if (imageAttachment) screenshot = imageAttachment.url || '';
+            }
+            if (!screenshot) {
+                const fromDesc = this.extractScreenshotFromDescription(rawDescription);
+                if (fromDesc) screenshot = fromDesc;
+            }
+            if (!screenshot) screenshot = 'No Screenshot found';
             
             // Get requester email
             const requesterEmail = task.requester_email || 
@@ -1070,6 +1091,7 @@ class ReportGenerator {
                 browserSize: env.browserWindow,
                 resolution: env.resolution,
                 screenshot: screenshot,  // This must match the template's expected property name
+                'Screenshot URL': screenshot,
                 reporter: requesterEmail,  // This must match the template's expected property name
             };
 
@@ -1126,6 +1148,33 @@ class ReportGenerator {
             resolution: resMatch ? resMatch[1].trim() : '',
             browserWindow: browserWindowMatch ? browserWindowMatch[1].trim() : ''
         };
+    }
+
+    /**
+     * Extract a screenshot URL from a task description using the label 'Screenshot:'
+     * Priority is given to the first valid http(s) URL found on the same line.
+     * @param {string} desc
+     * @returns {string} URL or empty string
+     */
+    extractScreenshotFromDescription(desc) {
+        if (typeof desc !== 'string') return '';
+        // Find a line that starts with or contains 'Screenshot:' and capture the rest of the line
+        const m = desc.match(/Screenshot\s*:\s*([^\n\r]+)/i);
+        if (!m) return '';
+        const line = m[1].trim();
+        // From that line, extract the first plausible URL
+        const urlMatch = line.match(/https?:\/\/[^\s\]\)>'"}]+/i);
+        if (!urlMatch) return '';
+        let url = urlMatch[0]
+            .replace(/^['"]+|['"]+$/g, '')
+            .replace(/[\s,;]+$/, '')
+            .replace(/[\])}>"']*$/, '');
+        try {
+            // Validate URL
+            return new URL(url).toString();
+        } catch (_) {
+            return '';
+        }
     }
 
     generateSummary(tasks) {
