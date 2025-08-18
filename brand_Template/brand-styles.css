@@ -11,7 +11,7 @@
   --text-muted: #999999;
   --background-white: #FFFFFF;
   --background-light: #f8f9fa;
-  --border-color: #000;
+  --border-color: #e0e0e0;
   
   /* Severity Colors (Keep for status indicators) */
   --critical-color: #dc3545;
@@ -107,6 +107,98 @@ p {
   overflow: hidden;
 }
 
+.space {
+  padding-left: 40px;
+}
+
+/* Table Styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 11pt;
+  font-family: var(--font-family-primary);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+table thead {
+  background-color: var(--primary-color);
+  color: white;
+  text-align: left;
+}
+
+table th,
+table td {
+  padding: 0.75em 1em;
+  border: 1px solid var(--border-color);
+}
+
+table th {
+  font-family: var(--font-family-bold);
+  font-weight: normal;
+  text-transform: uppercase;
+  font-size: 10pt;
+  letter-spacing: 0.5px;
+}
+
+table tbody tr:nth-child(even) {
+  background-color: var(--background-light);
+}
+
+table tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+/* Findings Table */
+.findings-table {
+  margin-bottom: var(--spacing-xl);
+}
+
+.findings-table h2 {
+  font-family: var(--font-family-bold);
+  font-weight: normal;
+  font-size: 18pt;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.findings-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.findings-table th,
+.findings-table td {
+  text-align: left;
+  border: 1px solid var(--border-color);
+  padding: 10px;
+  font-size: 10pt;
+}
+
+.findings-table th {
+  font-family: var(--font-family-bold);
+  font-weight: normal;
+}
+
+.findings-table p {
+  color: var(--primary-color);
+  font-size: 12pt;
+  font-family: var(--font-family-primary);
+  margin: 0;
+}
+
 .cover-page::after {
   content: '';
   position: absolute;
@@ -153,12 +245,6 @@ p {
   color: var(--background-white);
   font-family: var(--font-family-primary);
   font-weight: normal;
-}
-
-/* Audit Scope list spacing */
-.executive-overview .overview-content ul {
-  margin-left: var(--spacing-lg);
-  margin-top: var(--spacing-sm);
 }
 
 .cover-main {
@@ -314,6 +400,14 @@ p {
   color: var(--text-primary);
   font-family: var(--font-family-primary);
   margin: 0;
+}
+
+.executive-overview .overview-content ul li {
+  margin-bottom: 15px
+}
+
+.executive-overview .overview-content ul li:last-child {
+  margin-bottom: 0px
 }
 
 /* Metrics Dashboard */
@@ -787,37 +881,6 @@ p {
   display: none;
 }
 
-/* Findings Table */
-.findings-table {
-  margin-bottom: var(--spacing-xl);
-}
-
-.findings-table h2 {
-  font-family: var(--font-family-bold);
-  font-weight: normal;
-  font-size: 18pt;
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-md);
-}
-
-.findings-table table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.findings-table th,
-.findings-table td {
-  text-align: left;
-  border: 1px solid var(--border-color);
-  padding: 10px;
-  font-size: 10pt;
-}
-
-.findings-table th {
-  font-family: var(--font-family-bold);
-  font-weight: normal;
-}
-
 /* Technical Details */
 .technical-details {
   margin-bottom: var(--spacing-xl);
@@ -920,10 +983,9 @@ p {
 
 /* Print Optimizations */
 @media print {
-  /* Ensure all printed pages are uniform A4 size */
   @page {
     size: A4;
-    margin: 0; /* we use section padding for margins */
+    margin: 0;
   }
   
   body {
@@ -932,11 +994,10 @@ p {
   }
   
   .page-section {
-    width: auto; /* fill the printable area defined by @page */
-    height: auto; /* allow natural flow across pages */
-    min-height: auto;
+    width: 210mm;
+    height: 297mm;
     margin: 0;
-    padding: 20mm; /* provides the page margin look */
+    padding: 20mm;
     page-break-after: always;
     background: white;
   }
@@ -945,18 +1006,6 @@ p {
     page-break-after: avoid;
   }
   
-  /* Allow lists and paragraphs to break across pages */
-  ul, li, p {
-    page-break-inside: auto;
-    break-inside: auto;
-  }
-
-  /* Keep table rows intact on a single page */
-  table { page-break-inside: auto; break-inside: auto; }
-  tr { page-break-inside: avoid; break-inside: avoid; }
-  thead { display: table-header-group; }
-  tfoot { display: table-footer-group; }
-
   /* Ensure proper page breaks */
   .violation-section,
   .compliance-level {
