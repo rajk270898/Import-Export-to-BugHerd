@@ -7,6 +7,7 @@
   <link rel="icon" type="image/svg+xml" href="./assets/favicon.png" />
   <link rel="stylesheet" href="brand-styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 </head>
 <body>
   <div class="page-section cover-page">
@@ -227,6 +228,24 @@
     { pageName: 'Page 27', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
     { pageName: 'Page 28', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
     { pageName: 'Page 29', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 30', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 31', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 32', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 33', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 34', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 35', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 36', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 37', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 38', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 39', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 40', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 41', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 42', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    // { pageName: 'Page 43', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    // { pageName: 'Page 44', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    // { pageName: 'Page 45', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    // { pageName: 'Page 46', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    // { pageName: 'Page 47', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
   ];
 
   // Function to create a page section with table
@@ -276,24 +295,26 @@
       setTimeout(initSeverityChart, 100);
     }
     
-    // Add findings table
-    container.innerHTML += `
-      <h2>Summary of Findings</h2>
-      <table class="findings-table">
-        <thead>
-          <tr>
-            <th>Page Name</th>
-            <th>Total Issues</th>
-            <th>Critical</th>
-            <th>Important</th>
-            <th>Normal</th>
-            <th>Minor</th>
-            <th>Not Set</th>
-          </tr>
-        </thead>
-        <tbody id="findingsTableBody-${pageNumber}"></tbody>
-      </table>
-    `;
+    // Only add the table if there are rows to display
+    if (data.length > 0) {
+      container.innerHTML += `
+        <h2>Summary of Findings</h2>
+        <table class="findings-table">
+          <thead>
+            <tr>
+              <th>Page Name</th>
+              <th>Total Issues</th>
+              <th>Critical</th>
+              <th>Important</th>
+              <th>Normal</th>
+              <th>Minor</th>
+              <th>Not Set</th>
+            </tr>
+          </thead>
+          <tbody id="findingsTableBody-${pageNumber}"></tbody>
+        </table>
+      `;
+    }
     
     // Add severity content only on the last page, after the table
     if (isLastPage) {
@@ -321,27 +342,82 @@
     
     targetElement.appendChild(section);
     
-    // Populate the table with data
-    const tbody = document.getElementById(`findingsTableBody-${pageNumber}`);
-    data.forEach(item => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${item.pageName}</td>
-        <td>${item.total}</td>
-        <td>${item.critical}</td>
-        <td>${item.important}</td>
-        <td>${item.normal}</td>
-        <td>${item.minor}</td>
-        <td>${item.notSet}</td>
-      `;
-      tbody.appendChild(row);
-    });
+    // Populate the table with data if there are rows
+    if (data.length > 0) {
+      const tbody = document.getElementById(`findingsTableBody-${pageNumber}`);
+      data.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${item.pageName}</td>
+          <td>${item.total}</td>
+          <td>${item.critical}</td>
+          <td>${item.important}</td>
+          <td>${item.normal}</td>
+          <td>${item.minor}</td>
+          <td>${item.notSet}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+  }
+
+  // Function to check if there's enough space for Severity Definitions
+  function shouldAddNewPage(rowsOnPage) {
+    // If there are more than 12 rows, we need a new page for Severity Definitions
+    return rowsOnPage > 12;
+  }
+
+  // Function to check if we need a new page for Severity Definitions
+  function needsNewPageForSeverity(rowsOnPage) {
+    // If there are more than 10 rows, we need a new page for Severity Definitions
+    return rowsOnPage > 10;
   }
 
   // Function to generate tables with pagination
   function generateTables() {
-    const rowsPerPage = 10;
-    const totalPages = Math.ceil(findingsData.length / rowsPerPage);
+    const firstPageRows = 10; // First page shows 10 rows
+    const subsequentPageRows = 18; // Middle pages show up to 18 rows
+    const maxLastPageRows = 10; // Maximum rows on last page before needing new page for Severity Definitions
+    
+    // Calculate total pages with different row counts
+    let remainingRows = findingsData.length;
+    let totalPages = 0;
+    let pageRowCounts = [];
+    
+    // First page always gets exactly firstPageRows (10) rows if possible
+    if (remainingRows > 0) {
+      const rowsForFirstPage = Math.min(firstPageRows, remainingRows);
+      pageRowCounts.push(rowsForFirstPage);
+      remainingRows -= rowsForFirstPage;
+      totalPages++;
+    }
+    
+    // Distribute remaining rows across subsequent pages
+    while (remainingRows > 0) {
+      let rowsForThisPage = Math.min(subsequentPageRows, remainingRows);
+      
+      // If this is the last page of data
+      if (remainingRows <= rowsForThisPage) {
+        // If we need a new page for Severity Definitions
+        if (needsNewPageForSeverity(rowsForThisPage)) {
+          // Add current rows to a new page
+          pageRowCounts.push(rowsForThisPage);
+          // Add an empty page for Severity Definitions
+          pageRowCounts.push(0);
+          totalPages += 2;
+        } else {
+          // If it fits, add it as is
+          pageRowCounts.push(rowsForThisPage);
+          totalPages++;
+        }
+        remainingRows = 0;
+      } else {
+        // Regular middle page
+        pageRowCounts.push(rowsForThisPage);
+        remainingRows -= rowsForThisPage;
+        totalPages++;
+      }
+    }
     
     // Remove any existing tables
     const findingsContainer = document.getElementById('findingsContainer');
@@ -349,12 +425,13 @@
     findingsContainer.innerHTML = '';
     
     // Create a page for each set of rows
+    let currentIndex = 0;
     for (let i = 0; i < totalPages; i++) {
-      const start = i * rowsPerPage;
-      const end = start + rowsPerPage;
-      const pageData = findingsData.slice(start, end);
+      const rowsToTake = pageRowCounts[i];
+      const pageData = findingsData.slice(currentIndex, currentIndex + rowsToTake);
       const isLastPage = (i === totalPages - 1);
       createPageSection(i + 1, pageData, findingsContainer, isLastPage);
+      currentIndex += rowsToTake;
     }
   }
 
@@ -488,134 +565,283 @@
       counts.notset += item.notSet || 0;
     });
 
-    return counts;
+// Create header for the section
+const header = document.createElement('div');
+header.className = 'page-header';
+header.innerHTML = `
+<div class="header-brand">
+<div class="header-title">
+<h1>Detailed Audit Log</h1>
+<p class="header-subtitle">QA Audit Report</p>
+</div>
+<div class="header-logo-small">
+<img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
+</div>
+</div>
+`;
+
+// Create table container
+const container = document.createElement('div');
+container.className = 'findings-container';
+container.innerHTML = `
+<h2>Detailed Audit Log</h2>
+<table class="findings-table">
+<thead>
+<tr>
+<th>Page URL</th>
+<th>Page Name</th>
+<th>Issue Type</th>
+<th>Description</th>
+<th>Priority</th>
+<th>Status</th>
+<th>Screenshot</th>
+</tr>
+</thead>
+<tbody id="auditLogTableBody-${pageNumber}"></tbody>
+</table>
+`;
+
+// Populate the table with data
+const tbody = container.querySelector(`#auditLogTableBody-${pageNumber}`);
+data.forEach(item => {
+const row = document.createElement('tr');
+row.innerHTML = `
+<td>${item.pageUrl || ''}</td>
+<td>${item.pageName || ''}</td>
+<td>${item.issueType || ''}</td>
+<td>${item.description || ''}</td>
+<td><span class="priority-${(item.priority || '').toLowerCase().replace(' ', '-')}">${item.priority || ''}</span></td>
+<td><span class="status-${(item.status || '').toLowerCase().replace(' ', '-')}">${item.status || ''}</span></td>
+<td>${item.screenshot || ''}</td>
+`;
+tbody.appendChild(row);
+});
+
+// Add the audit log note only on the last page, after the table
+if (isLastPage) {
+const note = document.createElement('p');
+note.className = 'audit-log-note';
+// note.style.textAlign = 'center';
+// note.style.marginTop = '20px';
+// note.style.padding = '10px';
+// note.style.fontSize = '16px';
+// note.style.color = '#666';
+note.innerHTML = `
+<em>(Full table is available in the original 
+<a target="_blank" href="https://docs.google.com/spreadsheets/d/1qdvBcAQzfZ7uWuYJtdGbr13a4fSYYr_GT5aCzaKVtpo/edit?gid=1217729186#gid=1217729186">sheet</a> for reference.)</em>
+`;
+container.appendChild(note);
+}
+
+// Append header and container with table
+section.appendChild(header);
+section.appendChild(container);
+
+targetElement.appendChild(section);
+}
+
+// Function to generate audit log tables with pagination
+function generateAuditLogTables() {
+const container = document.getElementById('auditLogContainer');
+if (!container) return;
+
+container.innerHTML = ''; // Clear existing content
+
+const rowsPerPage = 5; // Show 5 rows per page
+const totalPages = Math.ceil(auditLogData.length / rowsPerPage);
+
+for (let i = 0; i < totalPages; i++) {
+const start = i * rowsPerPage;
+const end = start + rowsPerPage;
+const pageData = auditLogData.slice(start, end);
+const isLastPage = (i === totalPages - 1);
+createAuditLogPage(i, pageData, container, isLastPage);
+}
+}
+
+// Function to count issues by severity
+function countIssuesBySeverity() {
+const counts = {
+critical: 0,
+important: 0,
+normal: 0,
+minor: 0,
+notset: 0
+};
+
+// Count issues from the findings data
+findingsData.forEach(item => {
+counts.critical += item.critical || 0;
+counts.important += item.important || 0;
+counts.normal += item.normal || 0;
+counts.minor += item.minor || 0;
+counts.notset += item.notSet || 0;
+});
+
+return counts;
+}
+
+// Initialize the pie chart
+function initSeverityChart() {
+console.log('Initializing severity chart...');
+
+const ctx = document.getElementById('severityChart');
+if (!ctx) {
+console.error('Canvas element not found');
+return;
+}
+
+// Ensure canvas has dimensions
+const container = ctx.parentElement;
+console.log('Container dimensions:', container.offsetWidth, 'x', container.offsetHeight);
+
+if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+console.error('Chart container has no dimensions');
+// Try again after a short delay
+setTimeout(initSeverityChart, 100);
+return;
+}
+
+try {
+// Get the issue counts
+const counts = countIssuesBySeverity();
+const dataValues = [
+counts.critical,
+counts.important,
+counts.normal,
+counts.minor,
+counts.notset
+];
+
+// Calculate total for percentages
+const total = dataValues.reduce((a, b) => a + b, 0);
+
+// Destroy existing chart if it exists
+if (window.severityChart instanceof Chart) {
+window.severityChart.destroy();
+}
+
+// Create the chart
+window.severityChart = new Chart(ctx, {
+type: 'pie',
+data: {
+labels: ['Critical', 'Important', 'Normal', 'Minor', 'Not Set'],
+datasets: [{
+data: dataValues,
+backgroundColor: [
+'#fecaca', // Critical - light red
+'#fde68a', // Important - light yellow
+'#bae6fd', // Normal - light blue
+'#d1d5db', // Minor - light gray
+'#f3f4f6'  // Not Set - lighter gray
+],
+borderWidth: 1,
+borderColor: '#fff'
+}]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+interaction: {
+  mode: 'nearest',
+  intersect: false
+},
+onHover: (event, chartElement) => {
+  if (window.matchMedia('print').matches) {
+    event.native.target.style.cursor = 'default';
   }
-
-  // Initialize the pie chart
-  function initSeverityChart() {
-    console.log('Initializing severity chart...');
-    
-    const ctx = document.getElementById('severityChart');
-    if (!ctx) {
-      console.error('Canvas element not found');
-      return;
-    }
-    
-    // Ensure canvas has dimensions
-    const container = ctx.parentElement;
-    console.log('Container dimensions:', container.offsetWidth, 'x', container.offsetHeight);
-    
-    if (container.offsetWidth === 0 || container.offsetHeight === 0) {
-      console.error('Chart container has no dimensions');
-      // Try again after a short delay
-      setTimeout(initSeverityChart, 100);
-      return;
-    }
-
-    const severityCounts = countIssuesBySeverity();
-    console.log('Severity counts:', severityCounts);
-    
-    // Ensure we have some data to display
-    const totalIssues = Object.values(severityCounts).reduce((a, b) => a + b, 0);
-    if (totalIssues === 0) {
-      console.warn('No issues found to display in the chart');
-      container.innerHTML = '<p>No issues found to display in the chart</p>';
-      return;
-    }
-    
-    try {
-      new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: ['Critical', 'Important', 'Normal', 'Minor', 'Not Set'],
-          datasets: [{
-            data: [
-              severityCounts.critical || 0,
-              severityCounts.important || 0,
-              severityCounts.normal || 0,
-              severityCounts.minor || 0,
-              severityCounts.notset || 0
-            ],
-            backgroundColor: [
-              '#fecaca', // Critical - light red
-              '#fde68a', // Important - light yellow
-              '#bae6fd', // Normal - light blue
-              '#d1d5db', // Minor - light gray
-              '#f3f4f6'  // Not Set - lighter gray
-            ],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: {
-            animateScale: true,
-            animateRotate: true
-          },
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: {
-                usePointStyle: true,
-                padding: 20,
-                font: {
-                  size: 12
-                }
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const label = context.label || '';
-                  const value = context.raw || 0;
-                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                  const percentage = Math.round((value / total) * 100) || 0;
-                  return `${label}: ${value} (${percentage}%)`;
-                }
-              }
-            }
-          }
-        }
-      });
-      console.log('Chart initialized successfully');
-    } catch (error) {
-      console.error('Error initializing chart:', error);
-      container.innerHTML = '<p>Error initializing chart. Please check console for details.</p>';
+},
+animation: {
+  onComplete: function() {
+    if (window.matchMedia('print').matches) {
+      this.options.animation.duration = 0;
     }
   }
+},
+plugins: {
+legend: {
+position: 'right',
+labels: {
+boxWidth: 20,
+padding: 15,
+font: {
+size: 12
+}
+}
+},
+tooltip: {
+callbacks: {
+label: function(context) {
+const label = context.label || '';
+const value = context.raw || 0;
+const percentage = Math.round((value / total) * 100) || 0;
+return `${label}: ${value} (${percentage}%)`;
+}
+}
+},
+datalabels: {
+formatter: (value, ctx) => {
+if (value === 0) return ''; // Don't show 0 values
+const percentage = Math.round((value / total) * 100);
+return `${value}\n(${percentage}%)`;
+},
+color: '#fff',
+font: {
+weight: 'bold',
+size: 12
+},
+textAlign: 'center',
+textShadowColor: 'rgba(0,0,0,0.5)',
+textShadowBlur: 3
+}
+},
+layout: {
+padding: 10
+},
+elements: {
+arc: {
+borderWidth: 2
+}
+}
+},
+plugins: [ChartDataLabels] // Add the datalabels plugin
+});
 
-  // Generate all tables when the DOM is fully loaded
-  document.addEventListener('DOMContentLoaded', function() {
-    // Initialize the pie chart on the first page
-    initSeverityChart();
-    
+console.log('Chart initialized successfully');
+} catch (error) {
+console.error('Error initializing chart:', error);
+container.innerHTML = '<p>Error initializing chart. Please check console for details.</p>';
+}
+}
+
+// Generate all tables when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', function() {
     // Find the Key Highlights section
     const keyHighlightsSection = Array.from(document.querySelectorAll('.page-section')).find(section => {
-      return section.querySelector('h1')?.textContent === 'Key Highlights';
+        return section.querySelector('h1')?.textContent === 'Key Highlights';
     });
     
     if (keyHighlightsSection) {
-      // Create a container for both findings and audit log sections
-      const sectionsContainer = document.createElement('div');
-      
-      // Create and append the findings container
-      const findingsContainer = document.createElement('div');
-      findingsContainer.id = 'findingsContainer';
-      sectionsContainer.appendChild(findingsContainer);
-      
-      // Create and append the audit log container below findings
-      const auditLogContainer = document.createElement('div');
-      auditLogContainer.id = 'auditLogContainer';
-      sectionsContainer.appendChild(auditLogContainer);
-      
-      // Insert the combined container before Key Highlights
-      keyHighlightsSection.parentNode.insertBefore(sectionsContainer, keyHighlightsSection);
-      
-      // Then initialize the content
-      initSeverityChart();  // Initialize chart first
-      generateTables();     // Then generate findings tables
-      generateAuditLogTables(); // Finally generate audit log tables
+        // Create a container for both findings and audit log sections
+        const sectionsContainer = document.createElement('div');
+        
+        // Create and append the findings container
+        const findingsContainer = document.createElement('div');
+        findingsContainer.id = 'findingsContainer';
+        sectionsContainer.appendChild(findingsContainer);
+        
+        // Create and append the audit log container below findings
+        const auditLogContainer = document.createElement('div');
+        auditLogContainer.id = 'auditLogContainer';
+        sectionsContainer.appendChild(auditLogContainer);
+
+        // Insert the combined container before Key Highlights
+        keyHighlightsSection.parentNode.insertBefore(sectionsContainer, keyHighlightsSection);
+
+        // Initialize the content
+        initSeverityChart();  // Initialize chart first
+        generateTables();     // Then generate findings tables
+        generateAuditLogTables(); // Finally generate audit log tables
     }
   });
 </script>
