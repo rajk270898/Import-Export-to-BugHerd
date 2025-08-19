@@ -6,9 +6,9 @@
   <title>Accessibility Audit Report</title>
   <link rel="icon" type="image/svg+xml" href="./assets/favicon.png" />
   <link rel="stylesheet" href="brand-styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <!-- Cover Page -->
   <div class="page-section cover-page">
     <div class="cover-content">
       <div class="cover-header">
@@ -33,7 +33,6 @@
       </div>
     </div>
     
-    <!-- Cover Page Footer -->
     <div class="page-footer">
       <div class="footer-content">
         
@@ -45,9 +44,7 @@
     </div>
   </div>
 
-  <!-- Page 1: Executive Summary -->
   <div class="page-section">
-    <!-- Page Header with Logo -->
     <div class="page-header">
       <div class="header-brand">
         <div class="header-title">
@@ -60,7 +57,6 @@
       </div>
     </div>
 
-    <!-- Executive Overview -->
     <div class="executive-overview">
       <div class="overview-content">
         <h2>Audit Overview</h2>
@@ -86,9 +82,7 @@
     </div>
 </div>
 
-  <!-- Page 2: Executive Summary -->
   <div class="page-section">
-    <!-- Page Header with Logo -->
     <div class="page-header">
       <div class="header-brand">
         <div class="header-title">
@@ -101,7 +95,6 @@
       </div>
     </div>
 
-    <!-- Executive Overview -->
     <div class="executive-overview">
       <div class="overview-content">
         <ul class="space">
@@ -115,391 +108,7 @@
     </div>
   </div>
 
-  <!-- Page 2: Executive Summary -->
   <div class="page-section">
-    <!-- Page Header with Logo -->
-    <div class="page-header">
-      <div class="header-brand">
-        <div class="header-title">
-          <h1>Summary of Findings</h1>
-          <p class="header-subtitle">QA Audit Report</p>
-        </div>
-        <div class="header-logo-small">
-          <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
-        </div>
-      </div>
-    </div>
-
-   <!-- Findings Table -->
-  <div class="findings-container">
-  <h2>Summary of Findings</h2>
-  <table class="findings-table">
-    <thead>
-        <tr>
-          <th>Page Name</th>
-          <th>Total Issues</th>
-          <th>Critical</th>
-          <th>Important</th>
-          <th>Normal</th>
-          <th>Minor</th>
-          <th>Not Set</th>
-        </tr>
-      </thead>
-      <tbody id="findingsTableBody">
-        <!-- Table rows will be dynamically inserted here by JavaScript --></td>
-          <td>...</td>
-          <td>...</td>
-          <td>...</td>
-          <td>...</td>
-          <td>...</td>
-        </tr>
-        <tr>
-          <td>[More Categories...]</td>
-          <td>...</td>
-          <td>...</td>
-          <td>...</td>
-          <td>...</td>
-          <td>...</td>
-          <td>...</td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="serverity-content">
-      <ul class="space">
-        <li><strong>Critical: </strong> Needs urgent fix before launch</li>
-        <li><strong>Important: </strong> High priority. Should be addressed promptly as it can impact user experience or business goals.</li>
-        <li><strong>Normal: </strong>Should be fixed soon, but not launch-blocking</li>
-        <li><strong>Minor: </strong>Small issues that won’t impact function, but polish the experience</li>
-        <li><strong>Not Set: </strong>No priority assigned yet. Needs review and categorization.</li>
-      </ul>
-    </div>
-  </div>
-</div>
-</div>
-
-  <!-- Page 2: Executive Summary -->
-  <div class="page-section">
-    <!-- Page Header with Logo -->
-    <div class="page-header">
-      <div class="header-brand">
-        <div class="header-title">
-          <h1>Detailed Audit Log</h1>
-          <p class="header-subtitle">QA Audit Report</p>
-        </div>
-        <div class="header-logo-small">
-          <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Detailed Audit Log (Sample) -->
-    <div class="findings-table">
-      <h2>Detailed Audit Log</h2>
-      <p>Here are sample rows from the full issue log:</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Page URL</th>
-            <th>Page Name</th>
-            <th>Issue Type</th>
-            <th>Description</th>
-            <th>Priority</th>
-            <th>Status</th>
-            <th>Screenshot</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>/about-us</td>
-            <td>About</td>
-            <td>Bug (UI)</td>
-            <td>H1 tag is missing; affects <em>SEO</em></td>
-            <td>Moderate</td>
-            <td>New</td>
-            <td>View</td>
-          </tr>
-          <tr>
-            <td>/about-us</td>
-            <td>About</td>
-            <td>Bug (UI)</td>
-            <td>H2 font size inconsistent across pages</td>
-            <td>Critical</td>
-            <td>New</td>
-            <td>View</td>
-          </tr>
-          <tr>
-            <td>/</td>
-            <td>Footer</td>
-            <td>Bug (UI)</td>
-            <td>Logo link missing in footer</td>
-            <td>Moderate</td>
-            <td>New</td>
-            <td>View</td>
-          </tr>
-          <tr>
-            <td>/contact</td>
-            <td>Contact US</td>
-            <td>Bug (UI)</td>
-            <td>Contact form button not working</td>
-            <td>Critical</td>
-            <td>New</td>
-            <td>[Link]</td>
-          </tr>
-        </tbody>
-      </table>
-      <p><em>(Full table is available in the original 
-       <a target="_blank" href="https://docs.google.com/spreadsheets/d/1qdvBcAQzfZ7uWuYJtdGbr13a4fSYYr_GT5aCzaKVtpo/edit?gid=1217729186#gid=1217729186">sheet</a> for reference.)</em></p>
-    </div>
-  </div>
-
-
-   <!-- Page 3: Detailed Violations -->
-   <div class="page-section detailed-violations-section">
-    <!-- Page Header with Logo -->
-    <div class="page-header">
-      <div class="header-brand">
-        <div class="header-title">
-          <h1>Detailed Violations</h1>
-        </div>
-        <div class="header-logo-small">
-          <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Issue Categories - Page 3 (Max 2 sections) -->
-    <div class="violations-section">
-      <!-- Critical Issues -->
-      <div class="violation-category critical">
-        <h3>Critical Issues</h3>
-        <div class="violation-item">
-          <div class="violation-header">
-            <h4>Viewport Scaling Disabled</h4>
-            <span class="violation-impact critical">Critical</span>
-          </div>
-          <div class="violation-summary">
-            <div class="summary-stats">
-              <span class="stat-item"><strong>Instances:</strong> 1</span>
-              <span class="stat-item"><strong>WCAG Criteria:</strong> 1.4.4</span>
-              <span class="stat-item"><strong>User Impact:</strong> High</span>
-            </div>
-            <p><strong>Description:</strong> The viewport meta tag prevents users from zooming content on mobile devices, making the site inaccessible to users with visual impairments.</p>
-            <p><strong>Solution:</strong> Remove <code>user-scalable=no</code> from the viewport meta tag to allow content zooming on mobile devices.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Serious Issues -->
-      <div class="violation-category serious">
-        <h3>Serious Issues</h3>
-        <div class="violation-item">
-          <div class="violation-header">
-            <h4>Color Contrast Insufficient</h4>
-            <span class="violation-impact serious">Serious</span>
-          </div>
-          <div class="violation-summary">
-            <div class="summary-stats">
-              <span class="stat-item"><strong>Instances:</strong> 2</span>
-              <span class="stat-item"><strong>WCAG Criteria:</strong> 1.4.3</span>
-              <span class="stat-item"><strong>User Impact:</strong> Medium</span>
-            </div>
-            <p><strong>Description:</strong> Text elements have insufficient color contrast ratios below WCAG 2.1 AA standards, making content difficult to read for users with visual impairments.</p>
-            <p><strong>Affected Elements:</strong> Cookie policy buttons with contrast ratio of 2.26:1 (required: 4.5:1)</p>
-            <p><strong>Solution:</strong> Increase color contrast to meet WCAG 2.1 AA standards by using darker text colors or lighter background colors.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Page 4: Detailed Violations - Additional Sections -->
-  <div class="page-section">
-    <!-- Page Header with Logo -->
-    <div class="page-header">
-      <div class="header-brand">
-        <div class="header-title">
-          <h1>Detailed Violations</h1>
-        </div>
-        <div class="header-logo-small">
-          <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Issue Categories - Page 4 (Additional sections) -->
-    <div class="violations-section">
-      <!-- Moderate Issues -->
-      <div class="violation-category moderate">
-        <h3>Moderate Issues</h3>
-        
-        <div class="violation-item">
-          <div class="violation-header">
-            <h4>Heading Structure Issues</h4>
-            <span class="violation-impact moderate">Moderate</span>
-          </div>
-          <div class="violation-summary">
-            <div class="summary-stats">
-              <span class="stat-item"><strong>Instances:</strong> 1</span>
-              <span class="stat-item"><strong>WCAG Criteria:</strong> 1.3.1</span>
-              <span class="stat-item"><strong>User Impact:</strong> Low</span>
-            </div>
-            <p><strong>Description:</strong> Heading levels do not follow a logical sequence, making it difficult for screen reader users to understand document structure.</p>
-            <p><strong>Affected Elements:</strong> Footer heading with invalid heading order</p>
-            <p><strong>Solution:</strong> Ensure heading levels increase by only one level at a time (h1 → h2 → h3 → h4).</p>
-          </div>
-        </div>
-
-        <div class="violation-item">
-          <div class="violation-header">
-            <h4>Landmark Structure Issues</h4>
-            <span class="violation-impact moderate">Moderate</span>
-          </div>
-          <div class="violation-summary">
-            <div class="summary-stats">
-              <span class="stat-item"><strong>Instances:</strong> 3</span>
-              <span class="stat-item"><strong>WCAG Criteria:</strong> 1.3.1</span>
-              <span class="stat-item"><strong>User Impact:</strong> Low</span>
-            </div>
-            <p><strong>Description:</strong> Multiple landmark and structure issues affecting navigation for screen reader users.</p>
-            <p><strong>Issues:</strong></p>
-            <ul class="audit-focus-areas">
-              <li>Complementary landmark contained in another landmark</li>
-              <li>Missing main landmark element</li>
-              <li>Content not contained within landmarks</li>
-            </ul>
-            <p><strong>Solution:</strong> Implement proper landmark structure with main, navigation, and complementary landmarks to improve navigation.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-<!-- Page 2: Summary of Findings (Table) -->
-
-  <!-- Page 3: Detailed Violations -->
-  <div class="page-section">
-    <!-- Page Header with Logo -->
-    <div class="page-header">
-      <div class="header-brand">
-        <div class="header-title">
-          <h1>Detailed Violations</h1>
-        </div>
-        <div class="header-logo-small">
-          <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Issue Categories - Page 3 (Max 2 sections) -->
-    <div class="violations-section">
-      <!-- Critical Issues -->
-      <div class="violation-category critical">
-        <h3>Critical Issues</h3>
-        <div class="violation-item">
-          <div class="violation-header">
-            <h4>Viewport Scaling Disabled</h4>
-            <span class="violation-impact critical">Critical</span>
-          </div>
-          <div class="violation-summary">
-            <div class="summary-stats">
-              <span class="stat-item"><strong>Instances:</strong> 1</span>
-              <span class="stat-item"><strong>WCAG Criteria:</strong> 1.4.4</span>
-              <span class="stat-item"><strong>User Impact:</strong> High</span>
-            </div>
-            <p><strong>Description:</strong> The viewport meta tag prevents users from zooming content on mobile devices, making the site inaccessible to users with visual impairments.</p>
-            <p><strong>Solution:</strong> Remove <code>user-scalable=no</code> from the viewport meta tag to allow content zooming on mobile devices.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Serious Issues -->
-      <div class="violation-category serious">
-        <h3>Serious Issues</h3>
-        <div class="violation-item">
-          <div class="violation-header">
-            <h4>Color Contrast Insufficient</h4>
-            <span class="violation-impact serious">Serious</span>
-          </div>
-          <div class="violation-summary">
-            <div class="summary-stats">
-              <span class="stat-item"><strong>Instances:</strong> 2</span>
-              <span class="stat-item"><strong>WCAG Criteria:</strong> 1.4.3</span>
-              <span class="stat-item"><strong>User Impact:</strong> Medium</span>
-            </div>
-            <p><strong>Description:</strong> Text elements have insufficient color contrast ratios below WCAG 2.1 AA standards, making content difficult to read for users with visual impairments.</p>
-            <p><strong>Affected Elements:</strong> Cookie policy buttons with contrast ratio of 2.26:1 (required: 4.5:1)</p>
-            <p><strong>Solution:</strong> Increase color contrast to meet WCAG 2.1 AA standards by using darker text colors or lighter background colors.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Page 4: Detailed Violations - Additional Sections -->
-  <div class="page-section">
-    <!-- Page Header with Logo -->
-    <div class="page-header">
-      <div class="header-brand">
-        <div class="header-title">
-          <h1>Detailed Violations</h1>
-        </div>
-        <div class="header-logo-small">
-          <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Issue Categories - Page 4 (Additional sections) -->
-    <div class="violations-section">
-      <!-- Moderate Issues -->
-      <div class="violation-category moderate">
-        <h3>Moderate Issues</h3>
-        
-        <div class="violation-item">
-          <div class="violation-header">
-            <h4>Heading Structure Issues</h4>
-            <span class="violation-impact moderate">Moderate</span>
-          </div>
-          <div class="violation-summary">
-            <div class="summary-stats">
-              <span class="stat-item"><strong>Instances:</strong> 1</span>
-              <span class="stat-item"><strong>WCAG Criteria:</strong> 1.3.1</span>
-              <span class="stat-item"><strong>User Impact:</strong> Low</span>
-            </div>
-            <p><strong>Description:</strong> Heading levels do not follow a logical sequence, making it difficult for screen reader users to understand document structure.</p>
-            <p><strong>Affected Elements:</strong> Footer heading with invalid heading order</p>
-            <p><strong>Solution:</strong> Ensure heading levels increase by only one level at a time (h1 → h2 → h3 → h4).</p>
-          </div>
-        </div>
-
-        <div class="violation-item">
-          <div class="violation-header">
-            <h4>Landmark Structure Issues</h4>
-            <span class="violation-impact moderate">Moderate</span>
-          </div>
-          <div class="violation-summary">
-            <div class="summary-stats">
-              <span class="stat-item"><strong>Instances:</strong> 3</span>
-              <span class="stat-item"><strong>WCAG Criteria:</strong> 1.3.1</span>
-              <span class="stat-item"><strong>User Impact:</strong> Low</span>
-            </div>
-            <p><strong>Description:</strong> Multiple landmark and structure issues affecting navigation for screen reader users.</p>
-            <p><strong>Issues:</strong></p>
-            <ul class="audit-focus-areas">
-              <li>Complementary landmark contained in another landmark</li>
-              <li>Missing main landmark element</li>
-              <li>Content not contained within landmarks</li>
-            </ul>
-            <p><strong>Solution:</strong> Implement proper landmark structure with main, navigation, and complementary landmarks to improve navigation.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
- <!-- Page 2: Executive Summary -->
- <div class="page-section">
-  <!-- Page Header with Logo -->
   <div class="page-header">
     <div class="header-brand">
       <div class="header-title">
@@ -524,315 +133,138 @@
   </div>
 </div>
 
-    
+<div class="page-section">
+  <div class="page-header">
+    <div class="header-brand">
+      <div class="header-title">
+        <h1>Recommendations</h1>
+        <p class="header-subtitle">Key Performance Indicators</p>
+      </div>
+      <div class="header-logo-small">
+        <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
+      </div>
+    </div>
+  </div>
+  <div class="executive-overview">
+    <div class="overview-content">
+      <p class="overview-description">To prepare the website for a successful public launch, we recommend:</p>
+      <ul class="space">
+        <li>Fix all Critical and Moderate issues before launching or marketing the site</li>
+        <li>Test all fixes again on mobile, tablet, and desktop after making changes</li>
+        <li>Run a basic SEO review to address missing headings and page metadata</li>
+        <li>Consider a more in-depth accessibility audit if you plan to meet ADA or WCAG standards</li>
+        <li>Verify all contact forms and buttons are working smoothly on every page</li>
+      </ul>
+    </div>
+  </div>
+</div>
 
-  <!-- Page 2: Metrics & Compliance -->
-  <div class="page-section">
-    <!-- Page Header with Logo -->
-    <div class="page-header">
+<div class="page-section">
+  <div class="end-cover">
+    <div class="end-header">
+      <div class="end-logo">
+        <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="256" height="47" />
+      </div>
+      <div class="end-date">
+        <span>Report Generated: August 5, 2025</span>
+      </div>
+    </div>
+
+    <div class="end-content">
+      <div class="end-title">
+        <h1>Accessibility Audit Report</h1>
+        <h2>Wyoming WIC Resources</h2>
+      </div>
+
+      <div class="end-summary">
+        <p>This comprehensive accessibility audit has identified key areas for improvement to ensure your website meets WCAG 2.1 AA standards. The findings presented in this report provide a clear roadmap for enhancing accessibility and creating a more inclusive digital experience for all users.</p>
+        
+        <p>We recommend prioritizing the critical and serious issues identified, as these have the most significant impact on user accessibility. The moderate issues, while less urgent, should also be addressed to achieve full compliance.</p>
+      </div>
+
+
+      <div class="end-footer">
+        <p>Thank you for choosing White Label IQ for your accessibility needs. We're committed to helping you create inclusive digital experiences.</p>
+        <div class="signature">
+        
+          <span class="signature-title">White Label IQ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Data for the findings table
+  const findingsData = [
+    { pageName: 'About', total: 15, critical: 4, important: 4, normal: 7, minor: 7, notSet: 7 },
+    { pageName: 'Contact Us', total: 5, critical: 3, important: 0, normal: 2, minor: 2, notSet: 2 },
+    { pageName: 'Residential Construction', total: 2, critical: 2, important: 0, normal: 0, minor: 0, notSet: 0 },
+    { pageName: 'Search', total: 1, critical: 1, important: 0, normal: 0, minor: 0, notSet: 0 },
+    { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
+    { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
+    { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
+    { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
+    { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
+    { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
+    // Additional test data
+    { pageName: 'Page 11', total: 3, critical: 1, important: 1, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 12', total: 2, critical: 0, important: 1, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 13', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 }
+  ];
+
+  // Function to create a page section with table
+  function createPageSection(pageNumber, data, targetElement, isLastPage = false) {
+    const section = document.createElement('div');
+    section.className = 'page-section';
+    
+    // Create header for the section
+    const header = document.createElement('div');
+    header.className = 'page-header';
+    header.innerHTML = `
       <div class="header-brand">
         <div class="header-title">
-          <h1>Recommendations</h1>
-          <p class="header-subtitle">Key Performance Indicators</p>
+          <h1>Summary of Findings</h1>
+          <p class="header-subtitle">QA Audit Report</p>
         </div>
         <div class="header-logo-small">
           <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
         </div>
       </div>
-    </div>
-    <div class="executive-overview">
-      <div class="overview-content">
-        <p class="overview-description">To prepare the website for a successful public launch, we recommend:</p>
-        <ul class="space">
-          <li>Fix all Critical and Moderate issues before launching or marketing the site</li>
-          <li>Test all fixes again on mobile, tablet, and desktop after making changes</li>
-          <li>Run a basic SEO review to address missing headings and page metadata</li>
-          <li>Consider a more in-depth accessibility audit if you plan to meet ADA or WCAG standards</li>
-          <li>Verify all contact forms and buttons are working smoothly on every page</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- Page 5: Test Results Summary -->
-  <div class="page-section">
-    <!-- Page Header with Logo -->
-    <div class="page-header">
-      <div class="header-brand">
-        <div class="header-title">
-          <h1>Test Results Summary</h1>
-          <p class="header-subtitle">Comprehensive Accessibility Audit Results</p>
-        </div>
-        <div class="header-logo-small">
-          <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Test Results Overview -->
-    <div class="test-overview">
-      <h2>Test Results Overview</h2>
-      
-      <div class="overview-description">
-        <p><strong>Passed Tests:</strong> These are accessibility tests that the website successfully passed, indicating good accessibility practices are already in place.</p>
-        <p><strong>Inapplicable Tests:</strong> These tests were not applicable to the current website content and structure, meaning the elements they test for don't exist on this site.</p>
-      </div>
-      
-      <div class="results-summary">
-        <div class="summary-item passed">
-          <div class="summary-content">
-            <h3>Passed Tests</h3>
-            <div class="summary-count">45</div>
-          </div>
-        </div>
-        <div class="summary-item inapplicable">
-          <div class="summary-content">
-            <h3>Inapplicable Tests</h3>
-            <div class="summary-count">32</div>
-          </div>
-        </div>
-        <div class="summary-item total">
-          <div class="summary-content">
-            <h3>Total Tests</h3>
-            <div class="summary-count">84</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Passed Tests Categories -->
-    <div class="passed-tests">
-      <h2>Passed Tests by Category</h2>
-      <div class="category-list">
-        <div class="category-row">
-          <div class="category-name">ARIA & Semantics</div>
-          <div class="category-bar">
-            <div class="bar-fill" style="width: 40%"></div>
-          </div>
-          <div class="category-count">18</div>
-        </div>
-        <div class="category-row">
-          <div class="category-name">Color & Contrast</div>
-          <div class="category-bar">
-            <div class="bar-fill" style="width: 27%"></div>
-          </div>
-          <div class="category-count">12</div>
-        </div>
-        <div class="category-row">
-          <div class="category-name">Forms & Inputs</div>
-          <div class="category-bar">
-            <div class="bar-fill" style="width: 18%"></div>
-          </div>
-          <div class="category-count">8</div>
-        </div>
-        <div class="category-row">
-          <div class="category-name">Navigation & Focus</div>
-          <div class="category-bar">
-            <div class="bar-fill" style="width: 15%"></div>
-          </div>
-          <div class="category-count">7</div>
-        </div>
-      </div>
-    </div>
+    `;
     
-    <!-- 
-    DYNAMIC PROGRESS BAR CALCULATION:
-    The progress bar width should be calculated as: (category_count / total_passed_tests) * 100
+    // Create table container
+    const container = document.createElement('div');
+    container.className = 'findings-container';
+    container.innerHTML = `
+      <h2>Summary of Findings</h2>
+      <table class="findings-table">
+        <thead>
+          <tr>
+            <th>Page Name</th>
+            <th>Total Issues</th>
+            <th>Critical</th>
+            <th>Important</th>
+            <th>Normal</th>
+            <th>Minor</th>
+            <th>Not Set</th>
+          </tr>
+        </thead>
+        <tbody id="findingsTableBody-${pageNumber}"></tbody>
+      </table>
+    `;
     
-    Example:
-    - Total passed tests: 45
-    - ARIA & Semantics: 18 tests
-    - Progress bar width: (18 / 45) * 100 = 40%
-    
-    This ensures the progress bars accurately represent the proportion of tests in each category.
-    -->
-  </div>
-
-  <!-- Page 6: Test Results Summary - Inapplicable Tests -->
-  <div class="page-section">
-    <!-- Page Header with Logo -->
-    <div class="page-header">
-      <div class="header-brand">
-        <div class="header-title">
-          <h1>Test Results Summary</h1>
-          <p class="header-subtitle">Inapplicable Tests</p>
-        </div>
-        <div class="header-logo-small">
-          <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Inapplicable Tests -->
-    <div class="inapplicable-tests">
-      <h2>Inapplicable Tests</h2>
-      <p class="section-description">These tests were not applicable to the current website content and structure.</p>
-      <div class="inapplicable-list">
-        <div class="inapplicable-item">
-          <h4>Access Keys</h4>
-          <p>No accesskey attributes found on the page</p>
-        </div>
-        <div class="inapplicable-item">
-          <h4>Image Maps</h4>
-          <p>No area elements or image maps detected</p>
-        </div>
-        <div class="inapplicable-item">
-          <h4>Video Captions</h4>
-          <p>No video elements requiring captions</p>
-        </div>
-        <div class="inapplicable-item">
-          <h4>Marquee Elements</h4>
-          <p>No marquee or scrolling text elements</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Page 7: End Cover Letter -->
-  <div class="page-section">
-    <div class="end-cover">
-      <div class="end-header">
-        <div class="end-logo">
-          <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="256" height="47" />
-        </div>
-        <div class="end-date">
-          <span>Report Generated: August 5, 2025</span>
-        </div>
-      </div>
-
-      <div class="end-content">
-        <div class="end-title">
-          <h1>Accessibility Audit Report</h1>
-          <h2>Wyoming WIC Resources</h2>
-        </div>
-
-        <div class="end-summary">
-          <p>This comprehensive accessibility audit has identified key areas for improvement to ensure your website meets WCAG 2.1 AA standards. The findings presented in this report provide a clear roadmap for enhancing accessibility and creating a more inclusive digital experience for all users.</p>
-          
-          <p>We recommend prioritizing the critical and serious issues identified, as these have the most significant impact on user accessibility. The moderate issues, while less urgent, should also be addressed to achieve full compliance.</p>
-        </div>
-
-
-        <div class="end-footer">
-          <p>Thank you for choosing White Label IQ for your accessibility needs. We're committed to helping you create inclusive digital experiences.</p>
-          <div class="signature">
-          
-            <span class="signature-title">White Label IQ</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <script>
-    window.addEventListener("beforeprint", function () {
-      const findingsContainer = document.querySelector(".findings-container");
-      if (!findingsContainer) return;
-    
-      const originalTable = findingsContainer.querySelector(".findings-table");
-      const overviewContent = findingsContainer.querySelector(".serverity-content");
-      if (!originalTable || !overviewContent) return;
-    
-      const rows = Array.from(originalTable.querySelectorAll("tbody tr"));
-      const chunkSize = 10; // rows per page
-      if (rows.length <= chunkSize) return;
-    
-      // Clean up previously generated chunks
-      findingsContainer.querySelectorAll(".split-section").forEach(el => el.remove());
-    
-      // --- Create the first table (first chunk) ---
-      const tbody = originalTable.querySelector("tbody");
-      tbody.innerHTML = "";
-      rows.slice(0, chunkSize).forEach(r => tbody.appendChild(r));
-    
-      // --- For remaining rows, create full new sections ---
-      for (let i = chunkSize; i < rows.length; i += chunkSize) {
-        const newSection = document.createElement("div");
-        newSection.classList.add("page-section", "split-section");
-    
-        // Clone the original table structure
-        const newTable = originalTable.cloneNode(true);
-        const newBody = newTable.querySelector("tbody");
-        newBody.innerHTML = "";
-    
-        rows.slice(i, i + chunkSize).forEach(r => newBody.appendChild(r));
-        newSection.appendChild(newTable);
-    
-        // Insert just before overview-content
-        findingsContainer.insertBefore(newSection, overviewContent);
-      }
-    
-      // --- Finally, move overview-content to its own page-section after last table ---
-      const overviewSection = document.createElement("div");
-      overviewSection.classList.add("page-section", "split-section");
-      overviewSection.appendChild(overviewContent);
-      findingsContainer.appendChild(overviewSection);
-    });
-    </script>       
-  <script>
-    // Data for the findings table
-    const findingsData = [
-      { pageName: 'About', total: 15, critical: 4, important: 4, normal: 7, minor: 7, notSet: 7 },
-      { pageName: 'Contact Us', total: 5, critical: 3, important: 0, normal: 2, minor: 2, notSet: 2 },
-      { pageName: 'Residential Construction', total: 2, critical: 2, important: 0, normal: 0, minor: 0, notSet: 0 },
-      { pageName: 'Search', total: 1, critical: 1, important: 0, normal: 0, minor: 0, notSet: 0 },
-      { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
-      { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
-      { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
-      { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
-      { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
-      { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
-      // Additional test data
-      { pageName: 'Page 11', total: 3, critical: 1, important: 1, normal: 1, minor: 0, notSet: 0 },
-      { pageName: 'Page 12', total: 2, critical: 0, important: 1, normal: 1, minor: 0, notSet: 0 },
-      { pageName: 'Page 13', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 }
-    ];
-
-    // Function to create a page section with table
-    function createPageSection(pageNumber, data, targetElement) {
-      const section = document.createElement('div');
-      section.className = 'page-section';
-      
-      // Create header for the section
-      const header = document.createElement('div');
-      header.className = 'page-header';
-      header.innerHTML = `
-        <div class="header-brand">
-          <div class="header-title">
-            <h1>Summary of Findings</h1>
-            <p class="header-subtitle">QA Audit Report - Page ${pageNumber}</p>
-          </div>
-          <div class="header-logo-small">
-            <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
-          </div>
-        </div>
-      `;
-      
-      // Create table container
-      const container = document.createElement('div');
-      container.className = 'findings-container';
-      container.innerHTML = `
-        <h2>Summary of Findings</h2>
-        <table class="findings-table">
-          <thead>
-            <tr>
-              <th>Page Name</th>
-              <th>Total Issues</th>
-              <th>Critical</th>
-              <th>Important</th>
-              <th>Normal</th>
-              <th>Minor</th>
-              <th>Not Set</th>
-            </tr>
-          </thead>
-          <tbody id="findingsTableBody-${pageNumber}"></tbody>
-        </table>
-      `;
-      
-      // Add severity content after the table
+    // Add severity content only on the last page, after the table
+    if (isLastPage) {
       const severityContent = document.createElement('div');
       severityContent.className = 'serverity-content';
+      severityContent.style.marginTop = '20px';
+      severityContent.style.padding = '15px';
+      severityContent.style.backgroundColor = '#f8f9fa';
+      severityContent.style.borderRadius = '4px';
       severityContent.innerHTML = `
-        <ul class="space">
+        <h3>Severity Definitions</h3>
+        <ul class="space" style="margin-top: 10px;">
           <li><strong>Critical: </strong> Needs urgent fix before launch</li>
           <li><strong>Important: </strong> High priority. Should be addressed promptly as it can impact user experience or business goals.</li>
           <li><strong>Normal: </strong>Should be fixed soon, but not launch-blocking</li>
@@ -840,60 +272,270 @@
           <li><strong>Not Set: </strong>No priority assigned yet. Needs review and categorization.</li>
         </ul>
       `;
-      
-      section.appendChild(header);
-      section.appendChild(container);
-      section.appendChild(severityContent);
-      
-      // Add the section before the target element (Detailed Violations)
-      const detailedViolationsSection = document.querySelector('.detailed-violations-section');
-      if (detailedViolationsSection) {
-        detailedViolationsSection.parentNode.insertBefore(section, detailedViolationsSection);
-      } else {
-        // Fallback: append to body if target element not found
-        document.body.appendChild(section);
-      }
-      
-      // Populate the table with data
-      const tbody = document.getElementById(`findingsTableBody-${pageNumber}`);
-      data.forEach(item => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${item.pageName}</td>
-          <td>${item.total}</td>
-          <td>${item.critical}</td>
-          <td>${item.important}</td>
-          <td>${item.normal}</td>
-          <td>${item.minor}</td>
-          <td>${item.notSet}</td>
-        `;
-        tbody.appendChild(row);
-      });
+      container.appendChild(severityContent);
     }
+    
+    section.appendChild(header);
+    section.appendChild(container);
+    
+    targetElement.appendChild(section);
+    
+    // Populate the table with data
+    const tbody = document.getElementById(`findingsTableBody-${pageNumber}`);
+    data.forEach(item => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${item.pageName}</td>
+        <td>${item.total}</td>
+        <td>${item.critical}</td>
+        <td>${item.important}</td>
+        <td>${item.normal}</td>
+        <td>${item.minor}</td>
+        <td>${item.notSet}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
 
-    // Function to generate tables with pagination
-    function generateTables() {
-      const rowsPerPage = 10;
-      const totalPages = Math.ceil(findingsData.length / rowsPerPage);
-      
-      // Remove any existing tables
-      const existingTables = document.querySelectorAll('.findings-table');
-      existingTables.forEach(table => table.closest('.page-section')?.remove());
-      
-      // Find the target element (Detailed Violations section)
-      const targetElement = document.querySelector('.detailed-violations-section');
-      
-      // Create a page for each set of rows
-      for (let i = 0; i < totalPages; i++) {
-        const start = i * rowsPerPage;
-        const end = start + rowsPerPage;
-        const pageData = findingsData.slice(start, end);
-        createPageSection(i + 1, pageData, targetElement);
-      }
+  // Function to generate tables with pagination
+  function generateTables() {
+    const rowsPerPage = 10;
+    const totalPages = Math.ceil(findingsData.length / rowsPerPage);
+    
+    // Remove any existing tables
+    const findingsContainer = document.getElementById('findingsContainer');
+    if (!findingsContainer) return;
+    findingsContainer.innerHTML = '';
+    
+    // Create a page for each set of rows
+    for (let i = 0; i < totalPages; i++) {
+      const start = i * rowsPerPage;
+      const end = start + rowsPerPage;
+      const pageData = findingsData.slice(start, end);
+      const isLastPage = (i === totalPages - 1);
+      createPageSection(i + 1, pageData, findingsContainer, isLastPage);
     }
+  }
 
-    // Generate tables when the DOM is fully loaded
-    document.addEventListener('DOMContentLoaded', generateTables);
-  </script>
+  // Data for the detailed audit log
+  const auditLogData = [
+    { pageUrl: '/about-us', pageName: 'About', issueType: 'Bug (UI)', description: 'H1 tag is missing; affects SEO', priority: 'Moderate', status: 'New', screenshot: 'View' },
+    { pageUrl: '/about-us', pageName: 'About', issueType: 'Bug (UI)', description: 'H2 font size inconsistent across pages', priority: 'Critical', status: 'New', screenshot: 'View' },
+    { pageUrl: '/', pageName: 'Home', issueType: 'Bug (UI)', description: 'Logo link missing in footer', priority: 'Moderate', status: 'New', screenshot: 'View' },
+    { pageUrl: '/contact', pageName: 'Contact Us', issueType: 'Bug (Functionality)', description: 'Contact form button not working', priority: 'Critical', status: 'In Progress', screenshot: 'Link' },
+    { pageUrl: '/products', pageName: 'Products', issueType: 'Content', description: 'Product images not loading on mobile', priority: 'High', status: 'New', screenshot: 'View' },
+    { pageUrl: '/blog', pageName: 'Blog', issueType: 'Performance', description: 'Page load time exceeds 5 seconds', priority: 'High', status: 'New', screenshot: 'View' },
+    { pageUrl: '/checkout', pageName: 'Checkout', issueType: 'Bug (Functionality)', description: 'Coupon code field not accepting valid codes', priority: 'Critical', status: 'New', screenshot: 'View' },
+    { pageUrl: '/account', pageName: 'My Account', issueType: 'Security', description: 'Password strength meter not working', priority: 'High', status: 'New', screenshot: 'View' }
+  ];
+
+  // Function to create audit log page section
+  function createAuditLogPage(pageNumber, data, targetElement, isLastPage = false) {
+    const section = document.createElement('div');
+    section.className = 'page-section';
+    
+    // Create header for the section
+    const header = document.createElement('div');
+    header.className = 'page-header';
+    header.innerHTML = `
+      <div class="header-brand">
+        <div class="header-title">
+          <h1>Detailed Audit Log</h1>
+          <p class="header-subtitle">QA Audit Report</p>
+        </div>
+        <div class="header-logo-small">
+          <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
+        </div>
+      </div>
+    `;
+    
+    // Create table container
+    const container = document.createElement('div');
+    container.className = 'findings-container';
+    container.innerHTML = `
+      <h2>Detailed Audit Log</h2>
+      <table class="findings-table">
+        <thead>
+          <tr>
+            <th>Page URL</th>
+            <th>Page Name</th>
+            <th>Issue Type</th>
+            <th>Description</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Screenshot</th>
+          </tr>
+        </thead>
+        <tbody id="auditLogTableBody-${pageNumber}"></tbody>
+      </table>
+    `;
+
+    // Populate the table with data
+    const tbody = container.querySelector(`#auditLogTableBody-${pageNumber}`);
+    data.forEach(item => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${item.pageUrl || ''}</td>
+        <td>${item.pageName || ''}</td>
+        <td>${item.issueType || ''}</td>
+        <td>${item.description || ''}</td>
+        <td><span class="priority-${(item.priority || '').toLowerCase().replace(' ', '-')}">${item.priority || ''}</span></td>
+        <td><span class="status-${(item.status || '').toLowerCase().replace(' ', '-')}">${item.status || ''}</span></td>
+        <td>${item.screenshot || ''}</td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    // Add the audit log note only on the last page, after the table
+    if (isLastPage) {
+      const note = document.createElement('p');
+      note.className = 'audit-log-note';
+      // note.style.textAlign = 'center';
+      // note.style.marginTop = '20px';
+      // note.style.padding = '10px';
+      // note.style.fontSize = '16px';
+      // note.style.color = '#666';
+      note.innerHTML = `
+        <em>(Full table is available in the original 
+        <a target="_blank" href="https://docs.google.com/spreadsheets/d/1qdvBcAQzfZ7uWuYJtdGbr13a4fSYYr_GT5aCzaKVtpo/edit?gid=1217729186#gid=1217729186">sheet</a> for reference.)</em>
+      `;
+      container.appendChild(note);
+    }
+    
+    // Append header and container with table
+    section.appendChild(header);
+    section.appendChild(container);
+    
+    targetElement.appendChild(section);
+  }
+
+  // Function to generate audit log tables with pagination
+  function generateAuditLogTables() {
+    const container = document.getElementById('auditLogContainer');
+    if (!container) return;
+
+    container.innerHTML = ''; // Clear existing content
+    
+    const rowsPerPage = 5; // Show 5 rows per page
+    const totalPages = Math.ceil(auditLogData.length / rowsPerPage);
+    
+    for (let i = 0; i < totalPages; i++) {
+      const start = i * rowsPerPage;
+      const end = start + rowsPerPage;
+      const pageData = auditLogData.slice(start, end);
+      const isLastPage = (i === totalPages - 1);
+      createAuditLogPage(i, pageData, container, isLastPage);
+    }
+  }
+
+  // Function to count issues by severity
+  function countIssuesBySeverity() {
+    const counts = {
+      critical: 0,
+      important: 0,
+      normal: 0,
+      minor: 0,
+      notset: 0
+    };
+
+    // Count issues from the findings data
+    findingsData.forEach(item => {
+      counts.critical += item.critical || 0;
+      counts.important += item.important || 0;
+      counts.normal += item.normal || 0;
+      counts.minor += item.minor || 0;
+      counts.notset += item.notSet || 0;
+    });
+
+    return counts;
+  }
+
+  // Initialize the pie chart
+  function initSeverityChart() {
+    const ctx = document.getElementById('severityChart');
+    if (!ctx) return;
+
+    const severityCounts = countIssuesBySeverity();
+    
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Critical', 'Important', 'Normal', 'Minor', 'Not Set'],
+        datasets: [{
+          data: [
+            severityCounts.critical,
+            severityCounts.important,
+            severityCounts.normal,
+            severityCounts.minor,
+            severityCounts.notset
+          ],
+          backgroundColor: [
+            '#fecaca', // Critical - light red
+            '#fde68a', // Important - light yellow
+            '#bae6fd', // Normal - light blue
+            '#d1d5db', // Minor - light gray
+            '#f3f4f6'  // Not Set - lighter gray
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              usePointStyle: true,
+              padding: 20
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.raw || 0;
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = Math.round((value / total) * 100) || 0;
+                return `${label}: ${value} (${percentage}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Generate all tables when the DOM is fully loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    // Find the Key Highlights section
+    const keyHighlightsSection = Array.from(document.querySelectorAll('.page-section')).find(section => {
+      return section.querySelector('h1')?.textContent === 'Key Highlights';
+    });
+    
+    if (keyHighlightsSection) {
+      // Create a container for both findings and audit log sections
+      const sectionsContainer = document.createElement('div');
+      
+      // Create and append the findings container
+      const findingsContainer = document.createElement('div');
+      findingsContainer.id = 'findingsContainer';
+      sectionsContainer.appendChild(findingsContainer);
+      
+      // Create and append the audit log container below findings
+      const auditLogContainer = document.createElement('div');
+      auditLogContainer.id = 'auditLogContainer';
+      sectionsContainer.appendChild(auditLogContainer);
+      
+      // Insert the combined container before Key Highlights
+      keyHighlightsSection.parentNode.insertBefore(sectionsContainer, keyHighlightsSection);
+      
+      // Then initialize the content
+      initSeverityChart();  // Initialize chart first
+      generateTables();     // Then generate findings tables
+      generateAuditLogTables(); // Finally generate audit log tables
+    }
+  });
+</script>
 </body>
-</html> 
+</html>

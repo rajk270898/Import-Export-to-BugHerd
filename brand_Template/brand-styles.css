@@ -65,13 +65,15 @@ body {
   height: 297mm;
   margin: 0 auto;
   padding: 20mm;
-  page-break-after: always;
   position: relative;
   background: var(--background-white);
+  page-break-after: always;
 }
 
-.page-section:last-child {
-  page-break-after: avoid;
+/* Remove page break after the last section */
+.page-section:last-child,
+.page-section:last-of-type {
+  page-break-after: auto;
 }
 
 /* Typography */
@@ -108,7 +110,7 @@ p {
 }
 
 .space {
-  padding-left: 40px;
+  padding-left: 30px;
 }
 
 /* Table Styles */
@@ -368,6 +370,12 @@ table tbody tr:hover {
 
 .header-subtitle {
   color: var(--text-secondary);
+  font-size: 12pt;
+  font-family: var(--font-family-primary);
+  margin: 0;
+}
+.audit-log-note {
+  color: var(--primary-color);
   font-size: 12pt;
   font-family: var(--font-family-primary);
   margin: 0;
@@ -991,6 +999,33 @@ table tbody tr:hover {
 
 /* Print Optimizations */
 @media print {
+  /* Table header styles for print */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1rem;
+    background-color: transparent;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  thead th {
+    background-color: #000 !important;
+    color: #fff !important;
+    font-weight: bold;
+    text-align: left;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  tbody td {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    vertical-align: top;
+  }
+
   .findings-container {
     page-break-inside: auto;
   }
