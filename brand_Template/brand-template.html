@@ -131,53 +131,27 @@
     </div>
 
    <!-- Findings Table -->
-   <div class="findings-table">
-    <h2>Summary of Findings</h2>
-    <table>
-      <thead>
+  <div class="findings-container">
+  <h2>Summary of Findings</h2>
+  <table class="findings-table">
+    <thead>
         <tr>
           <th>Page Name</th>
           <th>Total Issues</th>
           <th>Critical</th>
-          <th>Moderate</th>
+          <th>Important</th>
+          <th>Normal</th>
           <th>Minor</th>
+          <th>Not Set</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td>About</td>
-          <td>15</td>
-          <td>4</td>
-          <td>4</td>
-          <td>7</td>
-        </tr>
-        <tr>
-          <td>Contact Us</td>
-          <td>5</td>
-          <td>3</td>
-          <td>0</td>
-          <td>2</td>
-        </tr>
-        <tr>
-          <td>Residential Construction</td>
-          <td>2</td>
-          <td>2</td>
-          <td>0</td>
-          <td>0</td>
-        </tr>
-        <tr>
-          <td>Search</td>
-          <td>1</td>
-          <td>1</td>
-          <td>0</td>
-          <td>0</td>
-        </tr>
-        <tr>
-          <td>Old-Blog / Blog</td>
-          <td>1</td>
-          <td>0</td>
-          <td>0</td>
-          <td>1</td>
+      <tbody id="findingsTableBody">
+        <!-- Table rows will be dynamically inserted here by JavaScript --></td>
+          <td>...</td>
+          <td>...</td>
+          <td>...</td>
+          <td>...</td>
+          <td>...</td>
         </tr>
         <tr>
           <td>[More Categories...]</td>
@@ -185,10 +159,12 @@
           <td>...</td>
           <td>...</td>
           <td>...</td>
+          <td>...</td>
+          <td>...</td>
         </tr>
       </tbody>
     </table>
-    <div class="overview-content">
+    <div class="serverity-content">
       <ul class="space">
         <li><strong>Critical: </strong> Needs urgent fix before launch</li>
         <li><strong>Important: </strong> High priority. Should be addressed promptly as it can impact user experience or business goals.</li>
@@ -198,6 +174,7 @@
       </ul>
     </div>
   </div>
+</div>
 </div>
 
   <!-- Page 2: Executive Summary -->
@@ -277,7 +254,7 @@
 
 
    <!-- Page 3: Detailed Violations -->
-   <div class="page-section">
+   <div class="page-section detailed-violations-section">
     <!-- Page Header with Logo -->
     <div class="page-header">
       <div class="header-brand">
@@ -746,5 +723,177 @@
       </div>
     </div>
   </div>
+  <script>
+    window.addEventListener("beforeprint", function () {
+      const findingsContainer = document.querySelector(".findings-container");
+      if (!findingsContainer) return;
+    
+      const originalTable = findingsContainer.querySelector(".findings-table");
+      const overviewContent = findingsContainer.querySelector(".serverity-content");
+      if (!originalTable || !overviewContent) return;
+    
+      const rows = Array.from(originalTable.querySelectorAll("tbody tr"));
+      const chunkSize = 10; // rows per page
+      if (rows.length <= chunkSize) return;
+    
+      // Clean up previously generated chunks
+      findingsContainer.querySelectorAll(".split-section").forEach(el => el.remove());
+    
+      // --- Create the first table (first chunk) ---
+      const tbody = originalTable.querySelector("tbody");
+      tbody.innerHTML = "";
+      rows.slice(0, chunkSize).forEach(r => tbody.appendChild(r));
+    
+      // --- For remaining rows, create full new sections ---
+      for (let i = chunkSize; i < rows.length; i += chunkSize) {
+        const newSection = document.createElement("div");
+        newSection.classList.add("page-section", "split-section");
+    
+        // Clone the original table structure
+        const newTable = originalTable.cloneNode(true);
+        const newBody = newTable.querySelector("tbody");
+        newBody.innerHTML = "";
+    
+        rows.slice(i, i + chunkSize).forEach(r => newBody.appendChild(r));
+        newSection.appendChild(newTable);
+    
+        // Insert just before overview-content
+        findingsContainer.insertBefore(newSection, overviewContent);
+      }
+    
+      // --- Finally, move overview-content to its own page-section after last table ---
+      const overviewSection = document.createElement("div");
+      overviewSection.classList.add("page-section", "split-section");
+      overviewSection.appendChild(overviewContent);
+      findingsContainer.appendChild(overviewSection);
+    });
+    </script>       
+  <script>
+    // Data for the findings table
+    const findingsData = [
+      { pageName: 'About', total: 15, critical: 4, important: 4, normal: 7, minor: 7, notSet: 7 },
+      { pageName: 'Contact Us', total: 5, critical: 3, important: 0, normal: 2, minor: 2, notSet: 2 },
+      { pageName: 'Residential Construction', total: 2, critical: 2, important: 0, normal: 0, minor: 0, notSet: 0 },
+      { pageName: 'Search', total: 1, critical: 1, important: 0, normal: 0, minor: 0, notSet: 0 },
+      { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
+      { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
+      { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
+      { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
+      { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
+      { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
+      // Additional test data
+      { pageName: 'Page 11', total: 3, critical: 1, important: 1, normal: 1, minor: 0, notSet: 0 },
+      { pageName: 'Page 12', total: 2, critical: 0, important: 1, normal: 1, minor: 0, notSet: 0 },
+      { pageName: 'Page 13', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 }
+    ];
+
+    // Function to create a page section with table
+    function createPageSection(pageNumber, data, targetElement) {
+      const section = document.createElement('div');
+      section.className = 'page-section';
+      
+      // Create header for the section
+      const header = document.createElement('div');
+      header.className = 'page-header';
+      header.innerHTML = `
+        <div class="header-brand">
+          <div class="header-title">
+            <h1>Summary of Findings</h1>
+            <p class="header-subtitle">QA Audit Report - Page ${pageNumber}</p>
+          </div>
+          <div class="header-logo-small">
+            <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
+          </div>
+        </div>
+      `;
+      
+      // Create table container
+      const container = document.createElement('div');
+      container.className = 'findings-container';
+      container.innerHTML = `
+        <h2>Summary of Findings</h2>
+        <table class="findings-table">
+          <thead>
+            <tr>
+              <th>Page Name</th>
+              <th>Total Issues</th>
+              <th>Critical</th>
+              <th>Important</th>
+              <th>Normal</th>
+              <th>Minor</th>
+              <th>Not Set</th>
+            </tr>
+          </thead>
+          <tbody id="findingsTableBody-${pageNumber}"></tbody>
+        </table>
+      `;
+      
+      // Add severity content after the table
+      const severityContent = document.createElement('div');
+      severityContent.className = 'serverity-content';
+      severityContent.innerHTML = `
+        <ul class="space">
+          <li><strong>Critical: </strong> Needs urgent fix before launch</li>
+          <li><strong>Important: </strong> High priority. Should be addressed promptly as it can impact user experience or business goals.</li>
+          <li><strong>Normal: </strong>Should be fixed soon, but not launch-blocking</li>
+          <li><strong>Minor: </strong>Small issues that won't impact function, but polish the experience</li>
+          <li><strong>Not Set: </strong>No priority assigned yet. Needs review and categorization.</li>
+        </ul>
+      `;
+      
+      section.appendChild(header);
+      section.appendChild(container);
+      section.appendChild(severityContent);
+      
+      // Add the section before the target element (Detailed Violations)
+      const detailedViolationsSection = document.querySelector('.detailed-violations-section');
+      if (detailedViolationsSection) {
+        detailedViolationsSection.parentNode.insertBefore(section, detailedViolationsSection);
+      } else {
+        // Fallback: append to body if target element not found
+        document.body.appendChild(section);
+      }
+      
+      // Populate the table with data
+      const tbody = document.getElementById(`findingsTableBody-${pageNumber}`);
+      data.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${item.pageName}</td>
+          <td>${item.total}</td>
+          <td>${item.critical}</td>
+          <td>${item.important}</td>
+          <td>${item.normal}</td>
+          <td>${item.minor}</td>
+          <td>${item.notSet}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Function to generate tables with pagination
+    function generateTables() {
+      const rowsPerPage = 10;
+      const totalPages = Math.ceil(findingsData.length / rowsPerPage);
+      
+      // Remove any existing tables
+      const existingTables = document.querySelectorAll('.findings-table');
+      existingTables.forEach(table => table.closest('.page-section')?.remove());
+      
+      // Find the target element (Detailed Violations section)
+      const targetElement = document.querySelector('.detailed-violations-section');
+      
+      // Create a page for each set of rows
+      for (let i = 0; i < totalPages; i++) {
+        const start = i * rowsPerPage;
+        const end = start + rowsPerPage;
+        const pageData = findingsData.slice(start, end);
+        createPageSection(i + 1, pageData, targetElement);
+      }
+    }
+
+    // Generate tables when the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', generateTables);
+  </script>
 </body>
 </html> 

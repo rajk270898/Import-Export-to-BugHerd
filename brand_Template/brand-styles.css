@@ -394,6 +394,14 @@ table tbody tr:hover {
   font-size: 18pt;
 }
 
+.severity-content {
+  color: var(--primary-color);
+  font-family: var(--font-family-bold);
+  font-weight: normal;
+  margin-bottom: var(--spacing-md);
+  font-size: 18pt;
+}
+
 .overview-description {
   font-size: 12pt;
   line-height: 1.7;
@@ -983,9 +991,22 @@ table tbody tr:hover {
 
 /* Print Optimizations */
 @media print {
+  .findings-container {
+    page-break-inside: auto;
+  }
+
+  .findings-table {
+    page-break-inside: auto;
+  }
+
+  .findings-table tbody tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  
   @page {
     size: A4;
-    margin: 0;
+    margin: 15mm 10mm 15mm 10mm;
   }
   
   body {
@@ -1707,6 +1728,7 @@ table tbody tr:hover {
 
 /* Print styles for simple tags */
 @media print {
+
   .tags-section {
     page-break-inside: avoid;
     margin: 10mm 0;
