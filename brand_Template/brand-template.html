@@ -210,7 +210,23 @@
     // Additional test data
     { pageName: 'Page 11', total: 3, critical: 1, important: 1, normal: 1, minor: 0, notSet: 0 },
     { pageName: 'Page 12', total: 2, critical: 0, important: 1, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 13', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 }
+    { pageName: 'Page 13', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 14', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 15', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 16', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 17', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 18', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 19', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 20', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 21', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 22', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 23', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 24', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 25', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 26', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 27', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 28', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+    { pageName: 'Page 29', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
   ];
 
   // Function to create a page section with table
@@ -233,10 +249,35 @@
       </div>
     `;
     
-    // Create table container
+    // Create findings container with chart
     const container = document.createElement('div');
     container.className = 'findings-container';
-    container.innerHTML = `
+    
+    // Add chart container only on first page
+    if (pageNumber === 1) {
+      const chartContainer = document.createElement('div');
+      chartContainer.className = 'chart-container';
+      chartContainer.style.marginBottom = '30px';
+      chartContainer.style.height = '300px';
+      chartContainer.style.position = 'relative'; // Needed for Chart.js
+      chartContainer.style.width = '100%';
+      
+      const canvas = document.createElement('canvas');
+      canvas.id = 'severityChart';
+      canvas.style.display = 'block';
+      canvas.style.height = '300px';
+      canvas.style.width = '100%';
+      
+      chartContainer.appendChild(canvas);
+      container.appendChild(chartContainer);
+      
+      // Initialize the chart only on first page after a small delay
+      // to ensure the canvas is in the DOM and has dimensions
+      setTimeout(initSeverityChart, 100);
+    }
+    
+    // Add findings table
+    container.innerHTML += `
       <h2>Summary of Findings</h2>
       <table class="findings-table">
         <thead>
@@ -452,62 +493,103 @@
 
   // Initialize the pie chart
   function initSeverityChart() {
+    console.log('Initializing severity chart...');
+    
     const ctx = document.getElementById('severityChart');
-    if (!ctx) return;
+    if (!ctx) {
+      console.error('Canvas element not found');
+      return;
+    }
+    
+    // Ensure canvas has dimensions
+    const container = ctx.parentElement;
+    console.log('Container dimensions:', container.offsetWidth, 'x', container.offsetHeight);
+    
+    if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+      console.error('Chart container has no dimensions');
+      // Try again after a short delay
+      setTimeout(initSeverityChart, 100);
+      return;
+    }
 
     const severityCounts = countIssuesBySeverity();
+    console.log('Severity counts:', severityCounts);
     
-    new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: ['Critical', 'Important', 'Normal', 'Minor', 'Not Set'],
-        datasets: [{
-          data: [
-            severityCounts.critical,
-            severityCounts.important,
-            severityCounts.normal,
-            severityCounts.minor,
-            severityCounts.notset
-          ],
-          backgroundColor: [
-            '#fecaca', // Critical - light red
-            '#fde68a', // Important - light yellow
-            '#bae6fd', // Normal - light blue
-            '#d1d5db', // Minor - light gray
-            '#f3f4f6'  // Not Set - lighter gray
-          ],
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              usePointStyle: true,
-              padding: 20
-            }
+    // Ensure we have some data to display
+    const totalIssues = Object.values(severityCounts).reduce((a, b) => a + b, 0);
+    if (totalIssues === 0) {
+      console.warn('No issues found to display in the chart');
+      container.innerHTML = '<p>No issues found to display in the chart</p>';
+      return;
+    }
+    
+    try {
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Critical', 'Important', 'Normal', 'Minor', 'Not Set'],
+          datasets: [{
+            data: [
+              severityCounts.critical || 0,
+              severityCounts.important || 0,
+              severityCounts.normal || 0,
+              severityCounts.minor || 0,
+              severityCounts.notset || 0
+            ],
+            backgroundColor: [
+              '#fecaca', // Critical - light red
+              '#fde68a', // Important - light yellow
+              '#bae6fd', // Normal - light blue
+              '#d1d5db', // Minor - light gray
+              '#f3f4f6'  // Not Set - lighter gray
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            animateScale: true,
+            animateRotate: true
           },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                const label = context.label || '';
-                const value = context.raw || 0;
-                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                const percentage = Math.round((value / total) * 100) || 0;
-                return `${label}: ${value} (${percentage}%)`;
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                usePointStyle: true,
+                padding: 20,
+                font: {
+                  size: 12
+                }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.raw || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = Math.round((value / total) * 100) || 0;
+                  return `${label}: ${value} (${percentage}%)`;
+                }
               }
             }
           }
         }
-      }
-    });
+      });
+      console.log('Chart initialized successfully');
+    } catch (error) {
+      console.error('Error initializing chart:', error);
+      container.innerHTML = '<p>Error initializing chart. Please check console for details.</p>';
+    }
   }
 
   // Generate all tables when the DOM is fully loaded
   document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the pie chart on the first page
+    initSeverityChart();
+    
     // Find the Key Highlights section
     const keyHighlightsSection = Array.from(document.querySelectorAll('.page-section')).find(section => {
       return section.querySelector('h1')?.textContent === 'Key Highlights';
