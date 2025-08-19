@@ -1111,22 +1111,167 @@ a.details-value:hover {
         filterIssues(severity);
     }
 
-    // Initialize with Critical issues shown by default
+    // Function to count issues by severity
+    function countIssuesBySeverity(issues) {
+        const counts = {
+            critical: 0,
+            important: 0,
+            normal: 0,
+            minor: 0,
+            notset: 0
+        };
+
+        if (!issues || !Array.isArray(issues)) {
+            return counts;
+        }
+
+        issues.forEach(issue => {
+            if (!issue) return;
+            const severity = (issue.severity || 'notset').toLowerCase();
+            if (counts.hasOwnProperty(severity)) {
+                counts[severity]++;
+            } else {
+                counts.notset++;
+            }
+        });
+
+        return counts;
+    }
+
+    // Helper function to build URL key
+    function buildUrlKey(fullUrl) {
+        try {
+            const u = new URL(fullUrl);
+            // Normalize: lowercase host, keep path+search to preserve uniqueness
+            return `${u.protocol}//${u.hostname.toLowerCase()}${u.port ? ':' + u.port : ''}${u.pathname}${u.search}`;
+        } catch (e) {
+            return fullUrl;
+        }
+    }
+
+    // Helper function to ensure full URL with protocol
+    function ensureFullUrl(issue) {
+        const raw = issue.pageUrlRaw || issue.siteDisplay || issue.siteUrl || '';
+        if (!raw) return '';
+        return /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    }
+
+    // Function to create and display issue cards
+    function createIssueCards() {
+        const issueList = document.querySelector('.issue-list');
+        if (!issueList) return;
+
+        // Clear existing cards
+        issueList.innerHTML = '';
+
+        if (!window.bugData || !Array.isArray(window.bugData)) {
+            console.error('No bug data available');
+            return;
+        }
+
+        // Group issues by exact full URL and severity
+        const groupedIssues = {};
+        window.bugData.forEach(issue => {
+            const fullUrl = ensureFullUrl(issue);
+            const urlKey = buildUrlKey(fullUrl);
+            const key = `${urlKey}-${(issue.severity || '').toLowerCase()}`;
+            if (!groupedIssues[key]) groupedIssues[key] = [];
+            groupedIssues[key].push(issue);
+        });
+
+        // Sort groups so base paths appear before deeper paths for the same host
+        const entries = Object.entries(groupedIssues).map(([key, issues]) => {
+            const firstIssue = issues[0];
+            const fullUrl = ensureFullUrl(firstIssue);
+            let host = '', path = '/', depth = 0, normUrl = fullUrl;
+            try {
+                const u = new URL(fullUrl);
+                host = (u.hostname || '').toLowerCase() + (u.port ? ':' + u.port : '');
+                path = u.pathname || '/';
+                depth = (path === '/' ? 0 : path.split('/').filter(Boolean).length);
+                normUrl = buildUrlKey(fullUrl);
+            } catch (e) { /* ignore */ }
+            return { key, issues, firstIssue, host, depth, path, normUrl };
+        }).sort((a, b) => {
+            if (a.host !== b.host) return a.host.localeCompare(b.host);
+            if (a.depth !== b.depth) return a.depth - b.depth;
+            return a.normUrl.localeCompare(b.normUrl);
+        });
+
+        // Create cards for each sorted group
+        entries.forEach(({ issues, firstIssue }) => {
+            const issueCard = document.createElement('div');
+            issueCard.className = 'issue-card';
+            issueCard.setAttribute('data-severity', (firstIssue.severity || '').toLowerCase());
+            // Store the exact URL for reference in data-url
+            const fullUrl = ensureFullUrl(firstIssue);
+            issueCard.setAttribute('data-url', fullUrl);
+            issueCard.setAttribute('data-issue-ids', issues.map(i => i.id).join(','));
+
+            const issueUrl = document.createElement('div');
+            issueUrl.className = 'issue-url';
+            issueUrl.textContent = firstIssue.siteDisplay || firstIssue.siteUrl || '';
+
+            // Add issue count badge if multiple issues
+            if (issues.length > 1) {
+                const badge = document.createElement('span');
+                badge.className = 'issue-count-badge';
+                badge.textContent = issues.length;
+                issueUrl.appendChild(badge);
+            }
+
+            issueCard.appendChild(issueUrl);
+            issueList.appendChild(issueCard);
+
+            // Add click handler
+            issueCard.addEventListener('click', function() {
+                // Remove selected class from all cards
+                document.querySelectorAll('.issue-card').forEach(c => {
+                    c.classList.remove('selected');
+                });
+                // Add selected class to clicked card
+                this.classList.add('selected');
+                updateDetailsPanel(this);
+                
+                // Scroll to details panel on mobile
+                if (window.innerWidth < 992) {
+                    document.querySelector('.details-panel').scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Select first card by default
+        const firstCard = document.querySelector('.issue-card');
+        if (firstCard) {
+            firstCard.classList.add('selected');
+            updateDetailsPanel(firstCard);
+        }
+    }
+    
+    // Initialize the page when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize pie chart
+        // Initialize the pie chart
         const ctx = document.getElementById('severityChart').getContext('2d');
+        const severityCounts = countIssuesBySeverity(window.bugData || []);
+        
         const severityChart = new Chart(ctx, {
             type: 'pie',
             data: {
                 labels: ['Critical', 'Important', 'Normal', 'Minor', 'Not Set'],
                 datasets: [{
-                    data: [12, 19, 3, 5, 2],
+                    data: [
+                        severityCounts.critical,
+                        severityCounts.important,
+                        severityCounts.normal,
+                        severityCounts.minor,
+                        severityCounts.notset
+                    ],
                     backgroundColor: [
-                        '#fee2e2',
-                        '#fef3c7',
-                        '#e0f2fe',
-                        '#e5e7eb',
-                        '#f3f4f6'
+                        '#fecaca', // Critical - light red
+                        '#fde68a', // Important - light yellow
+                        '#bae6fd', // Normal - light blue
+                        '#d1d5db', // Minor - light gray
+                        '#f3f4f6'  // Not Set - lighter gray
                     ],
                     borderWidth: 1
                 }]
@@ -1139,37 +1284,39 @@ a.details-value:hover {
                         position: 'bottom',
                         labels: {
                             usePointStyle: true,
-                            padding: 20
+                            padding: 20,
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                if (data.labels.length && data.datasets.length) {
+                                    return data.labels.map((label, i) => {
+                                        const value = data.datasets[0].data[i];
+                                        return {
+                                            text: `${label}: ${value}`,
+                                            fillStyle: data.datasets[0].backgroundColor[i],
+                                            hidden: isNaN(value) || value === 0,
+                                            lineCap: 'round',
+                                            lineDash: [],
+                                            lineDashOffset: 0,
+                                            lineJoin: 'round',
+                                            lineWidth: 1,
+                                            strokeStyle: 'rgba(0,0,0,0.1)',
+                                            pointStyle: 'circle',
+                                            rotation: 0
+                                        };
+                                    });
+                                }
+                                return [];
+                            }
                         }
                     }
                 }
             }
         });
 
-        // Add click handler for chart segments
-        document.getElementById('severityChart').onclick = function(evt) {
-            const activePoints = severityChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
-            if (activePoints.length > 0) {
-                const clickedElement = activePoints[0];
-                const label = severityChart.data.labels[clickedElement.index];
-                const severityMap = {
-                    'Critical': 'critical',
-                    'High': 'important',
-                    'Medium': 'normal',
-                    'Low': 'minor',
-                    'Info': 'notset'
-                };
-                filterIssues(severityMap[label]);
-                
-                // Update UI to show selected filter
-                const filterItems = document.querySelectorAll('.property-item');
-                handleFilterSelection(
-                    Array.from(filterItems).find(item => item.dataset.severity === severityMap[label].toLowerCase()),
-                    filterItems
-                );
-            }
-        };
-        // Add click handlers for sidebar filter items
+        // Create issue cards
+        createIssueCards();
+
+        // Add click handlers for severity filters
         document.querySelectorAll('.property-item').forEach(item => {
             item.addEventListener('click', function() {
                 const elements = document.querySelectorAll('.property-item');
@@ -1177,114 +1324,6 @@ a.details-value:hover {
             });
         });
 
-        // Function to create issue cards from bugData
-        function createIssueCards() {
-            const issueList = document.querySelector('.issue-list');
-            if (!issueList) return;
-
-            // Clear existing cards
-            issueList.innerHTML = '';
-
-            // Helper: ensure we have a full URL with protocol
-            const ensureFullUrl = (issue) => {
-                const raw = issue.pageUrlRaw || issue.siteDisplay || issue.siteUrl || '';
-                if (!raw) return '';
-                return /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
-            };
-
-            // Helper: build a normalized key for exact URL grouping (case-insensitive for host)
-            const buildUrlKey = (fullUrl) => {
-                try {
-                    const u = new URL(fullUrl);
-                    // Normalize: lowercase host, keep path+search to preserve uniqueness
-                    return `${u.protocol}//${u.hostname.toLowerCase()}${u.port ? ':' + u.port : ''}${u.pathname}${u.search}`;
-                } catch (e) {
-                    return fullUrl;
-                }
-            };
-
-            // Group issues by exact full URL and severity
-            const groupedIssues = {};
-            window.bugData.forEach(issue => {
-                const fullUrl = ensureFullUrl(issue);
-                const urlKey = buildUrlKey(fullUrl);
-                const key = `${urlKey}-${(issue.severity || '').toLowerCase()}`;
-                if (!groupedIssues[key]) groupedIssues[key] = [];
-                groupedIssues[key].push(issue);
-            });
-
-            // Sort groups so base paths appear before deeper paths for the same host
-            const entries = Object.entries(groupedIssues).map(([key, issues]) => {
-                const firstIssue = issues[0];
-                const fullUrl = ensureFullUrl(firstIssue);
-                let host = '', path = '/', depth = 0, normUrl = fullUrl;
-                try {
-                    const u = new URL(fullUrl);
-                    host = (u.hostname || '').toLowerCase() + (u.port ? ':' + u.port : '');
-                    path = u.pathname || '/';
-                    depth = (path === '/' ? 0 : path.split('/').filter(Boolean).length);
-                    normUrl = buildUrlKey(fullUrl);
-                } catch (e) { /* ignore */ }
-                return { key, issues, firstIssue, host, depth, path, normUrl };
-            }).sort((a, b) => {
-                if (a.host !== b.host) return a.host.localeCompare(b.host);
-                if (a.depth !== b.depth) return a.depth - b.depth;
-                return a.normUrl.localeCompare(b.normUrl);
-            });
-
-            // Create cards for each sorted group
-            entries.forEach(({ issues, firstIssue }) => {
-                const issueCard = document.createElement('div');
-                issueCard.className = 'issue-card';
-                issueCard.setAttribute('data-severity', (firstIssue.severity || '').toLowerCase());
-                // Store the exact URL for reference in data-url
-                const fullUrl = ensureFullUrl(firstIssue);
-                issueCard.setAttribute('data-url', fullUrl);
-                issueCard.setAttribute('data-issue-ids', issues.map(i => i.id).join(','));
-
-                const issueUrl = document.createElement('div');
-                issueUrl.className = 'issue-url';
-                issueUrl.textContent = firstIssue.siteDisplay || firstIssue.siteUrl || '';
-
-                // Add issue count badge if multiple issues
-                if (issues.length > 1) {
-                    const badge = document.createElement('span');
-                    badge.className = 'issue-count-badge';
-                    badge.textContent = issues.length;
-                    issueUrl.appendChild(badge);
-                }
-
-                issueCard.appendChild(issueUrl);
-                issueList.appendChild(issueCard);
-
-                // Add click handler
-                issueCard.addEventListener('click', function() {
-                    // Remove selected class from all cards
-                    document.querySelectorAll('.issue-card').forEach(c => {
-                        c.classList.remove('selected');
-                    });
-                    // Add selected class to clicked card
-                    this.classList.add('selected');
-                    updateDetailsPanel(this);
-                    
-                    // Scroll to details panel on mobile
-                    if (window.innerWidth < 992) {
-                        document.querySelector('.details-panel').scrollIntoView({ behavior: 'smooth' });
-                    }
-                });
-            });
-
-            // Select first card by default
-            const firstCard = document.querySelector('.issue-card');
-            if (firstCard) {
-                firstCard.classList.add('selected');
-                updateDetailsPanel(firstCard);
-            }
-        }
-        
-        // Initialize the page
-        createIssueCards();
-        
         // Initialize with Critical filter selected
         const criticalFilterBtn = document.querySelector('.filter-option[data-severity="critical"]');
         if (criticalFilterBtn) {
@@ -1304,10 +1343,6 @@ a.details-value:hover {
                 updateDetailsPanel(firstCriticalCard);
             }
         }
-        
-        // The accordion initialization is now handled dynamically within updateDetailsPanel
-        // so this old setTimeout block can be removed to avoid conflicts
-        // and redundant event listeners.
     });
 </script>
 </body>

@@ -1328,10 +1328,29 @@
                     // Get the HTML content
                     const html = await response.text();
                     
-                    // Open the HTML in a new tab
-                    const newWindow = window.open('', '_blank');
-                    newWindow.document.write(html);
-                    newWindow.document.close();
+                    // Create a new window first
+                    const newWindow = window.open('about:blank', '_blank');
+                    
+                    if (newWindow) {
+                        try {
+                            // Write the HTML content to the new window
+                            newWindow.document.write(html);
+                            newWindow.document.close();
+                            
+                            // Focus the new window
+                            newWindow.focus();
+                            
+                            // Show success message
+                            showSuccess('HTML report opened in a new tab.');
+                        } catch (e) {
+                            // If there was an error writing to the window, close it and show error
+                            newWindow.close();
+                            throw new Error('Failed to generate report. Please try again.');
+                        }
+                    } else {
+                        // If window.open was blocked, guide user to allow popups
+                        showError('Could not open report. Please allow popups for this site and try again.');
+                    }
                     
                     showSuccess('HTML report generated successfully!');
                 } catch (error) {
