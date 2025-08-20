@@ -327,11 +327,8 @@ app.post('/api/generate-html-report', async (req, res) => {
     console.log(`Generating HTML report for project ${projectId} with filters:`, filters);
     
     try {
-      // Generate the report with filters
-      const reportPath = await reportGenerator.generateReport(projectId, filters);
-      
-      // Read the generated report
-      const reportHtml = fs.readFileSync(reportPath, 'utf8');
+      // Generate the report with filters and get the HTML content directly
+      const reportHtml = await reportGenerator.generateReport(projectId, filters);
       
       // Send the HTML content
       res.setHeader('Content-Type', 'text/html');

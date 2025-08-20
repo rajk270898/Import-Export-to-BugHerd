@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Accessibility Audit Report</title>
+  <title>QA Audit Report</title>
   <link rel="icon" type="image/svg+xml" href="./assets/favicon.png" />
-  <link rel="stylesheet" href="brand-styles.css" />
+  <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 </head>
@@ -17,7 +17,7 @@
           <div class="header-logo">
             <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="256" height="47" />
           </div>
-          <div class="cover-date">Created 5 Aug 2025</div>
+          <div class="cover-date">Created 20 Aug 2025</div>
         </div>
       </div>
       
@@ -167,28 +167,29 @@
         <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="256" height="47" />
       </div>
       <div class="end-date">
-        <span>Report Generated: August 5, 2025</span>
+        <span>Report Generated: August 20, 2025</span>
       </div>
     </div>
 
     <div class="end-content">
       <div class="end-title">
-        <h1>Accessibility Audit Report</h1>
-        <h2>Wyoming WIC Resources</h2>
+        <h1>QA Audit Report</h1>
+        <h2>Google Alphabets</h2>
       </div>
 
       <div class="end-summary">
-        <p>This comprehensive accessibility audit has identified key areas for improvement to ensure your website meets WCAG 2.1 AA standards. The findings presented in this report provide a clear roadmap for enhancing accessibility and creating a more inclusive digital experience for all users.</p>
+        <p>This QA Audit has identified key areas for improvement to ensure your software meets the highest standards of quality, reliability, and performance. The findings presented in this report provide a clear roadmap for enhancing the user experience and ensuring a robust, error-free product.</p>
         
-        <p>We recommend prioritizing the critical and serious issues identified, as these have the most significant impact on user accessibility. The moderate issues, while less urgent, should also be addressed to achieve full compliance.</p>
+        <p>We recommend prioritizing the critical and high-severity issues identified, as these have the most significant impact on software functionality and user satisfaction. The medium-severity issues, while less urgent, should also be addressed to achieve full quality assurance.</p>
       </div>
 
 
       <div class="end-footer">
-        <p>Thank you for choosing White Label IQ for your accessibility needs. We're committed to helping you create inclusive digital experiences.</p>
+        <p>Thank you for choosing White Label IQ for your QA Audit needs. We're committed to helping you create inclusive digital experiences.</p>
         <div class="signature">
-        
-          <span class="signature-title">White Label IQ</span>
+            <div class="end-logo">
+              <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="256" height="47" />
+            </div>
         </div>
       </div>
     </div>
@@ -318,14 +319,10 @@
     
     // Add severity content only on the last page, after the table
     if (isLastPage) {
-      const severityContent = document.createElement('div');
-      severityContent.className = 'serverity-content';
-      severityContent.style.marginTop = '20px';
-      severityContent.style.padding = '15px';
-      severityContent.style.backgroundColor = '#f8f9fa';
-      severityContent.style.borderRadius = '4px';
       severityContent.innerHTML = `
-        <h3>Severity Definitions</h3>
+       <div class="executive-overview">
+      <div class="overview-content">
+        <h2>Severity Definitions</h2>
         <ul class="space" style="margin-top: 10px;">
           <li><strong>Critical: </strong> Needs urgent fix before launch</li>
           <li><strong>Important: </strong> High priority. Should be addressed promptly as it can impact user experience or business goals.</li>
@@ -333,6 +330,8 @@
           <li><strong>Minor: </strong>Small issues that won't impact function, but polish the experience</li>
           <li><strong>Not Set: </strong>No priority assigned yet. Needs review and categorization.</li>
         </ul>
+      </div>
+      </div>
       `;
       container.appendChild(severityContent);
     }

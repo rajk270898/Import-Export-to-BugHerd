@@ -1186,7 +1186,21 @@
                 if (exportOptions) {
                     exportOptions.style.display = 'none';
                 }
+                
+                // Reset main export button
                 exportBtn.style.display = 'block';
+                exportBtn.disabled = false;
+                
+                // Reset all export option buttons
+                const exportButtons = document.querySelectorAll('#exportOptions button');
+                exportButtons.forEach(btn => {
+                    btn.disabled = false;
+                    if (btn.querySelector('i.bi-file-earmark-spreadsheet')) {
+                        btn.innerHTML = '<i class="bi bi-file-earmark-spreadsheet"></i> Export as CSV';
+                    } else if (btn.querySelector('i.bi-file-earmark-richtext')) {
+                        btn.innerHTML = '<i class="bi bi-file-earmark-richtext"></i> Generate HTML Report';
+                    }
+                });
             }
 
             async function exportBugs(format = 'csv') {

@@ -260,8 +260,6 @@ table tbody tr:hover {
   max-width: 60%;
 }
 
-
-
 .cover-subtitle {
   font-size: 12pt;
   font-family: var(--font-family-primary);
@@ -389,8 +387,11 @@ table tbody tr:hover {
 .executive-overview {
   margin-bottom: var(--spacing-xl);
   padding: var(--spacing-lg);
-  background: var(--background-light);
+  background: var(--background-light) !important;
   border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
   border-left: 4px solid var(--primary-color);
 }
 
@@ -999,6 +1000,12 @@ table tbody tr:hover {
 
 /* Print Optimizations */
 @media print {
+  /* Ensure background colors print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
   /* Table header styles for print */
   table {
     border-collapse: collapse;
@@ -1286,7 +1293,7 @@ table tbody tr:hover {
 
   .overview-description {
     font-size: 11pt !important;
-    color: #666666 !important;
+    color: #000!important;
     print-color-adjust: exact;
   }
 
@@ -1323,8 +1330,6 @@ table tbody tr:hover {
     border-color: var(--primary-color) !important;
     print-color-adjust: exact;
   }
-
-
 
   .summary-content h3 {
     font-size: 12pt !important;
@@ -1773,37 +1778,6 @@ table tbody tr:hover {
 /* Ensure no extra space on subsequent pages */
 .page-section:not(:first-child) .chart-container {
   display: none;
-}
-
-/* Print styles for simple tags */
-@media print {
-
-  .tags-section {
-    page-break-inside: avoid;
-    margin: 10mm 0;
-    padding: 5mm;
-    background: white !important;
-    border: 1px solid #e0e0e0;
-  }
-  
-  .tags-section h2 {
-    color: #000000 !important;
-    font-size: 16pt;
-    margin-bottom: 3mm;
-  }
-  
-  .tags-container {
-    gap: 2mm;
-  }
-  
-  .tag {
-    background: #f5f5f5 !important;
-    color: #666666 !important;
-    border: 1px solid #e0e0e0;
-    padding: 2mm 4mm;
-    font-size: 9pt;
-    print-color-adjust: exact;
-  }
 }
 
 /* Screen Styles (for preview) */

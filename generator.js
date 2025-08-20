@@ -15,7 +15,6 @@ class ReportGenerator {
             console.error('Error: BUGHERD_API_KEY environment variable is not set');
             process.exit(1);
         }
-        
     }
 
     async generateReport(projectId, filters = {}) {
@@ -49,12 +48,8 @@ class ReportGenerator {
             console.log('Rendering HTML...');
             const html = await this.renderHtml(project, tasks, charts);
             
-            // Step 5: Save the report
-            console.log('Saving report...');
-            await this.saveReport(html);
-            
-            console.log(`Report generated successfully: ${this.outputPath}`);
-            return this.outputPath;
+            console.log('Report generated successfully in memory');
+            return html;
         } catch (error) {
             console.error('Error generating report:');
             
@@ -1221,14 +1216,6 @@ class ReportGenerator {
         return html.replace('', statusHtml);
     }
 
-    async saveReport(html) {
-        return new Promise((resolve, reject) => {
-            fs.writeFile(this.outputPath, html, 'utf8', (err) => {
-                if (err) reject(err);
-                else resolve();
-            });
-        });
-    }
 }
 
 // Export the class for use in other files
