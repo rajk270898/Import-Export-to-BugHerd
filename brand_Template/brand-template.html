@@ -17,7 +17,9 @@
           <div class="header-logo">
             <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="256" height="47" />
           </div>
-          <div class="cover-date" id="currentDate"></div>
+          <div class="cover-date">
+            Created <span id="currentDate"></span>
+          </div>
         </div>
       </div>
       
@@ -167,7 +169,7 @@
         <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="256" height="47" />
       </div>
       <div class="end-date">
-        <span>Report Generated: August 20, 2025</span>
+        <span>Report Generated: <span id="generatedDate"></span></span>
       </div>
     </div>
 
@@ -182,7 +184,6 @@
         
         <p>We recommend prioritizing the critical and high-severity issues identified, as these have the most significant impact on software functionality and user satisfaction. The medium-severity issues, while less urgent, should also be addressed to achieve full quality assurance.</p>
       </div>
-
 
       <div class="end-footer">
         <p>Thank you for choosing White Label IQ for your QA Audit needs. We're committed to helping you create inclusive digital experiences.</p>
@@ -819,14 +820,24 @@ function formatDate(date) {
   const day = date.getDate().toString().padStart(2, '0');
   const month = months[date.getMonth()];
   const year = date.getFullYear();
-  return `Created ${day}, ${month} ${year}`;
+  return `${day}, ${month} ${year}`;
 }
 
-// Set the current date in the cover
+
+
+// Set the current date in the cover and end section
+const currentDate = new Date();
 const dateElement = document.getElementById('currentDate');
+const generatedDateElement = document.getElementById('generatedDate');
+
 if (dateElement) {
-  dateElement.textContent = formatDate(new Date());
+  dateElement.textContent = formatDate(currentDate);
 }
+
+if (generatedDateElement) {
+  generatedDateElement.textContent = formatDate(currentDate);
+}
+
 
 // Generate all tables when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
