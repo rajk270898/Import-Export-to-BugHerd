@@ -17,7 +17,7 @@
           <div class="header-logo">
             <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="256" height="47" />
           </div>
-          <div class="cover-date">Created 20 Aug 2025</div>
+          <div class="cover-date" id="currentDate"></div>
         </div>
       </div>
       
@@ -811,6 +811,21 @@ console.log('Chart initialized successfully');
 console.error('Error initializing chart:', error);
 container.innerHTML = '<p>Error initializing chart. Please check console for details.</p>';
 }
+}
+
+// Function to format date as 'DD MMM YYYY'
+function formatDate(date) {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  return `Created ${day}, ${month} ${year}`;
+}
+
+// Set the current date in the cover
+const dateElement = document.getElementById('currentDate');
+if (dateElement) {
+  dateElement.textContent = formatDate(new Date());
 }
 
 // Generate all tables when the DOM is fully loaded

@@ -18,6 +18,9 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bo
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Serve static files from the brand_Template directory
+app.use('/brand_Template', express.static(path.join(__dirname, 'brand_Template')));
+
 // Initialize HTMLGenerator with API key
 
 // Configure multer for file uploads

@@ -1163,13 +1163,16 @@
                     htmlBtn.disabled = false;
                     buttonGroup.appendChild(htmlBtn);
 
-                    // Create Cancel Button
-                    const cancelBtn = document.createElement('button');
-                    cancelBtn.className = 'btn btn-outline-secondary';
-                    cancelBtn.style.borderRadius = '8px';
-                    cancelBtn.innerHTML = 'Cancel';
-                    cancelBtn.onclick = resetExportUI;
-                    buttonGroup.appendChild(cancelBtn);
+                    // PDF Report Button
+                    const pdfBtn = document.createElement('button');
+                    pdfBtn.id = 'exportPdfBtn';
+                    pdfBtn.className = 'btn btn-outline-danger';
+                    pdfBtn.style.borderRadius = '8px';
+                    pdfBtn.innerHTML = '<i class="bi bi-file-earmark-pdf"></i> Generate PDF Report';
+                    pdfBtn.onclick = function() {
+                        window.open('./brand_Template/brand-template.html', '_blank');
+                    };
+                    buttonGroup.appendChild(pdfBtn);
                     
                     // Add button group to container
                     exportOptions.appendChild(buttonGroup);
