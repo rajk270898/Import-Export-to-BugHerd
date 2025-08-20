@@ -320,18 +320,20 @@
     
     // Add severity content only on the last page, after the table
     if (isLastPage) {
+      const severityContent = document.createElement('div');
+      severityContent.className = 'severity-definitions';
       severityContent.innerHTML = `
        <div class="executive-overview">
-      <div class="overview-content">
-        <h2>Severity Definitions</h2>
-        <ul class="space" style="margin-top: 10px;">
-          <li><strong>Critical: </strong> Needs urgent fix before launch</li>
-          <li><strong>Important: </strong> High priority. Should be addressed promptly as it can impact user experience or business goals.</li>
-          <li><strong>Normal: </strong>Should be fixed soon, but not launch-blocking</li>
-          <li><strong>Minor: </strong>Small issues that won't impact function, but polish the experience</li>
-          <li><strong>Not Set: </strong>No priority assigned yet. Needs review and categorization.</li>
-        </ul>
-      </div>
+        <div class="overview-content">
+          <h2>Severity Definitions</h2>
+          <ul class="space" style="margin-top: 10px;">
+            <li><strong>Critical: </strong> Needs urgent fix before launch</li>
+            <li><strong>Important: </strong> High priority. Should be addressed promptly as it can impact user experience or business goals.</li>
+            <li><strong>Normal: </strong>Should be fixed soon, but not launch-blocking</li>
+            <li><strong>Minor: </strong>Small issues that won't impact function, but polish the experience</li>
+            <li><strong>Not Set: </strong>No priority assigned yet. Needs review and categorization.</li>
+          </ul>
+        </div>
       </div>
       `;
       container.appendChild(severityContent);
@@ -529,19 +531,26 @@
 
   // Function to generate audit log tables with pagination
   function generateAuditLogTables() {
+    console.log('generateAuditLogTables called');
     const container = document.getElementById('auditLogContainer');
-    if (!container) return;
-
+    if (!container) {
+      console.error('auditLogContainer not found');
+      return;
+    }
+    console.log('auditLogData length:', auditLogData.length);
+    
     container.innerHTML = ''; // Clear existing content
     
     const rowsPerPage = 5; // Show 5 rows per page
     const totalPages = Math.ceil(auditLogData.length / rowsPerPage);
+    console.log('Total pages:', totalPages);
     
     for (let i = 0; i < totalPages; i++) {
       const start = i * rowsPerPage;
       const end = start + rowsPerPage;
       const pageData = auditLogData.slice(start, end);
       const isLastPage = (i === totalPages - 1);
+      console.log('Creating page', i, 'with data:', pageData);
       createAuditLogPage(i, pageData, container, isLastPage);
     }
   }
@@ -564,122 +573,9 @@
       counts.minor += item.minor || 0;
       counts.notset += item.notSet || 0;
     });
-
-// Create header for the section
-const header = document.createElement('div');
-header.className = 'page-header';
-header.innerHTML = `
-<div class="header-brand">
-<div class="header-title">
-<h1>Detailed Audit Log</h1>
-<p class="header-subtitle">QA Audit Report</p>
-</div>
-<div class="header-logo-small">
-<img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
-</div>
-</div>
-`;
-
-// Create table container
-const container = document.createElement('div');
-container.className = 'findings-container';
-container.innerHTML = `
-<h2>Detailed Audit Log</h2>
-<table class="findings-table">
-<thead>
-<tr>
-<th>Page URL</th>
-<th>Page Name</th>
-<th>Issue Type</th>
-<th>Description</th>
-<th>Priority</th>
-<th>Status</th>
-<th>Screenshot</th>
-</tr>
-</thead>
-<tbody id="auditLogTableBody-${pageNumber}"></tbody>
-</table>
-`;
-
-// Populate the table with data
-const tbody = container.querySelector(`#auditLogTableBody-${pageNumber}`);
-data.forEach(item => {
-const row = document.createElement('tr');
-row.innerHTML = `
-<td>${item.pageUrl || ''}</td>
-<td>${item.pageName || ''}</td>
-<td>${item.issueType || ''}</td>
-<td>${item.description || ''}</td>
-<td><span class="priority-${(item.priority || '').toLowerCase().replace(' ', '-')}">${item.priority || ''}</span></td>
-<td><span class="status-${(item.status || '').toLowerCase().replace(' ', '-')}">${item.status || ''}</span></td>
-<td>${item.screenshot || ''}</td>
-`;
-tbody.appendChild(row);
-});
-
-// Add the audit log note only on the last page, after the table
-if (isLastPage) {
-const note = document.createElement('p');
-note.className = 'audit-log-note';
-// note.style.textAlign = 'center';
-// note.style.marginTop = '20px';
-// note.style.padding = '10px';
-// note.style.fontSize = '16px';
-// note.style.color = '#666';
-note.innerHTML = `
-<em>(Full table is available in the original 
-<a target="_blank" href="https://docs.google.com/spreadsheets/d/1qdvBcAQzfZ7uWuYJtdGbr13a4fSYYr_GT5aCzaKVtpo/edit?gid=1217729186#gid=1217729186">sheet</a> for reference.)</em>
-`;
-container.appendChild(note);
-}
-
-// Append header and container with table
-section.appendChild(header);
-section.appendChild(container);
-
-targetElement.appendChild(section);
-}
-
-// Function to generate audit log tables with pagination
-function generateAuditLogTables() {
-const container = document.getElementById('auditLogContainer');
-if (!container) return;
-
-container.innerHTML = ''; // Clear existing content
-
-const rowsPerPage = 5; // Show 5 rows per page
-const totalPages = Math.ceil(auditLogData.length / rowsPerPage);
-
-for (let i = 0; i < totalPages; i++) {
-const start = i * rowsPerPage;
-const end = start + rowsPerPage;
-const pageData = auditLogData.slice(start, end);
-const isLastPage = (i === totalPages - 1);
-createAuditLogPage(i, pageData, container, isLastPage);
-}
-}
-
-// Function to count issues by severity
-function countIssuesBySeverity() {
-const counts = {
-critical: 0,
-important: 0,
-normal: 0,
-minor: 0,
-notset: 0
-};
-
-// Count issues from the findings data
-findingsData.forEach(item => {
-counts.critical += item.critical || 0;
-counts.important += item.important || 0;
-counts.normal += item.normal || 0;
-counts.minor += item.minor || 0;
-counts.notset += item.notSet || 0;
-});
-
-return counts;
-}
+    
+    return counts;
+  }
 
 // Initialize the pie chart
 function initSeverityChart() {
@@ -841,33 +737,66 @@ if (generatedDateElement) {
 
 // Generate all tables when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Find the Key Highlights section
-    const keyHighlightsSection = Array.from(document.querySelectorAll('.page-section')).find(section => {
-        return section.querySelector('h1')?.textContent === 'Key Highlights';
-    });
+  console.log('DOM fully loaded');
+  console.log('findingsData:', findingsData);
+  console.log('auditLogData:', auditLogData);
+  
+  // Find the Key Highlights section
+  const keyHighlightsSection = Array.from(document.querySelectorAll('.page-section')).find(section => {
+    const h1 = section.querySelector('h1');
+    return h1 && h1.textContent.trim() === 'Key Highlights';
+  });
+  
+  if (!keyHighlightsSection) {
+    console.error('Key Highlights section not found');
+    return;
+  }
+  
+  console.log('Key Highlights section found:', keyHighlightsSection);
+  
+  // Create a container for both findings and audit log sections
+  const sectionsContainer = document.createElement('div');
+  sectionsContainer.style.marginBottom = '40px'; // Add some spacing
+  
+  // Create and append the findings container
+  const findingsContainer = document.createElement('div');
+  findingsContainer.id = 'findingsContainer';
+  findingsContainer.style.marginBottom = '40px'; // Add spacing between sections
+  sectionsContainer.appendChild(findingsContainer);
+  
+  // Create and append the audit log container below findings
+  const auditLogContainer = document.createElement('div');
+  auditLogContainer.id = 'auditLogContainer';
+  auditLogContainer.style.marginTop = '60px'; // Add more space before audit log
+  sectionsContainer.appendChild(auditLogContainer);
+  
+  // Add a heading for the audit log
+  const auditLogHeading = document.createElement('h1');
+  auditLogHeading.textContent = 'Detailed Audit Log';
+  auditLogHeading.style.marginTop = '40px';
+  auditLogHeading.style.marginBottom = '20px';
+  auditLogContainer.appendChild(auditLogHeading);
+  
+  try {
+    // Insert the combined container before Key Highlights
+    keyHighlightsSection.parentNode.insertBefore(sectionsContainer, keyHighlightsSection);
+    console.log('Sections container inserted before Key Highlights');
     
-    if (keyHighlightsSection) {
-        // Create a container for both findings and audit log sections
-        const sectionsContainer = document.createElement('div');
-        
-        // Create and append the findings container
-        const findingsContainer = document.createElement('div');
-        findingsContainer.id = 'findingsContainer';
-        sectionsContainer.appendChild(findingsContainer);
-        
-        // Create and append the audit log container below findings
-        const auditLogContainer = document.createElement('div');
-        auditLogContainer.id = 'auditLogContainer';
-        sectionsContainer.appendChild(auditLogContainer);
-
-        // Insert the combined container before Key Highlights
-        keyHighlightsSection.parentNode.insertBefore(sectionsContainer, keyHighlightsSection);
-
-        // Initialize the content
-        initSeverityChart();  // Initialize chart first
-        generateTables();     // Then generate findings tables
-        generateAuditLogTables(); // Finally generate audit log tables
-    }
+    // Initialize the content
+    console.log('Initializing severity chart...');
+    initSeverityChart();  // Initialize chart first
+    
+    console.log('Generating findings tables...');
+    generateTables();     // Then generate findings tables
+    
+    console.log('Generating audit log tables...');
+    generateAuditLogTables(); // Finally generate audit log tables
+    
+    // Force debug output to console
+    console.log('Audit log container after generation:', document.getElementById('auditLogContainer').innerHTML);
+  } catch (error) {
+    console.error('Error during initialization:', error);
+  }
   });
 </script>
 </body>
