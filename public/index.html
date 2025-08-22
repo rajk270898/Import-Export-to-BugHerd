@@ -1169,9 +1169,6 @@
                     pdfBtn.className = 'btn btn-outline-danger';
                     pdfBtn.style.borderRadius = '8px';
                     pdfBtn.innerHTML = '<i class="bi bi-file-earmark-pdf"></i> Generate PDF Report';
-                    pdfBtn.onclick = function() {
-                        window.open('./brand_Template/brand-template.html', '_blank');
-                    };
                     buttonGroup.appendChild(pdfBtn);
                     
                     // Add button group to container
@@ -1293,12 +1290,17 @@
                 }
             }
 
-            // Handle HTML report button click using event delegation
+            // Handle HTML/PDF report button click using event delegation
+            let isProcessing = false;
             document.addEventListener('click', async (e) => {
-                // Check if the clicked element is the export HTML button or a child of it
+                // Check if the clicked element is the export HTML/PDF button or a child of it
                 const exportHtmlBtn = e.target.closest('#exportHtmlBtn');
-                if (!exportHtmlBtn) return;
+                const exportPdfBtn = e.target.closest('#exportPdfBtn');
                 
+                if ((!exportHtmlBtn && !exportPdfBtn) || isProcessing) return;
+                isProcessing = true;
+                
+                const isPdf = !!exportPdfBtn;
                 const selectedProject = projectSelect.value;
                 if (!selectedProject) {
                     showError('Please select a project first');
@@ -1313,70 +1315,83 @@
                 };
 
                 // Get the button elements
-                const exportHtmlBtnText = document.getElementById('exportHtmlBtnText');
-                const exportHtmlBtnSpinner = document.getElementById('exportHtmlBtnSpinner');
+                const button = isPdf ? exportPdfBtn : exportHtmlBtn;
+                const buttonText = button.querySelector('.btn-text');
+                const buttonSpinner = button.querySelector('.spinner-border');
                 
                 // Update button to show loading state
-                exportHtmlBtn.disabled = true;
-                if (exportHtmlBtnText) {
-                    exportHtmlBtnText.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating...';
+                button.disabled = true;
+                if (buttonText) {
+                    buttonText.innerHTML = isPdf ? 'Generating PDF...' : 'Generating HTML...';
                 }
-                if (exportHtmlBtnSpinner) {
-                    exportHtmlBtnSpinner.style.display = 'inline-block';
+                if (buttonSpinner) {
+                    buttonSpinner.style.display = 'inline-block';
                 }
 
                 try {
-                    const response = await fetch('/api/generate-html-report', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            projectId: selectedProject,
-                            filters: filters
-                        })
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({}));
-                        throw new Error(errorData.error || 'Failed to generate HTML report');
-                    }
-
-                    // Get the HTML content
-                    const html = await response.text();
+                    let url = isPdf ? 
+                        `/api/generate-brand-report?projectId=${selectedProject}` : 
+                        '/api/generate-html-report';
                     
-                    // Create a new window first
-                    const newWindow = window.open('about:blank', '_blank');
-                    
-                    if (newWindow) {
-                        try {
-                            // Write the HTML content to the new window
-                            newWindow.document.write(html);
-                            newWindow.document.close();
-                            
-                            // Focus the new window
-                            newWindow.focus();
-                            
-                            // Show success message
-                            showSuccess('HTML report opened in a new tab.');
-                        } catch (e) {
-                            // If there was an error writing to the window, close it and show error
-                            newWindow.close();
-                            throw new Error('Failed to generate report. Please try again.');
-                        }
+                    // For PDF, we'll open in a new tab
+                    if (isPdf) {
+                        // Add filters to URL for GET request
+                        const params = new URLSearchParams();
+                        if (filters.feedback) params.append('feedback', 'true');
+                        if (filters.taskBoard) params.append('taskBoard', 'true');
+                        if (filters.archive) params.append('archive', 'true');
+                        
+                        // Check if URL already has query parameters
+                        const separator = url.includes('?') ? '&' : '?';
+                        const fullUrl = `${url}${separator}${params.toString()}`;
+                        console.log('Opening PDF report URL:', fullUrl);
+                        window.open(fullUrl, '_blank');
+                        showSuccess('Opening PDF report in a new tab...');
                     } else {
-                        // If window.open was blocked, guide user to allow popups
-                        showError('Could not open report. Please allow popups for this site and try again.');
+                        // For HTML, use the existing POST request
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                projectId: selectedProject,
+                                filters: filters
+                            })
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}));
+                            throw new Error(errorData.error || 'Failed to generate HTML report');
+                        }
+
+                        // Get the HTML content
+                        const html = await response.text();
+                        
+                        // Create a new window and write the content
+                        const newWindow = window.open('about:blank', '_blank');
+                        newWindow.document.write(html);
+                        newWindow.document.close();
+                        
+                        showSuccess('HTML report generated successfully!');
                     }
-                    
-                    showSuccess('HTML report generated successfully!');
                 } catch (error) {
-                    showError(`Failed to generate HTML report: ${error.message}`);
+                    console.error(`Error generating ${isPdf ? 'PDF' : 'HTML'} report:`, error);
+                    showError(`Failed to generate ${isPdf ? 'PDF' : 'HTML'} report: ${error.message}`);
                 } finally {
                     // Reset button state
-                    exportHtmlBtn.disabled = false;
-                    exportHtmlBtnText.innerHTML = '<i class="bi bi-file-earmark-richtext"></i> Generate HTML Report';
-                    exportHtmlBtnSpinner.style.display = 'none';
+                    if (button) {
+                        button.disabled = false;
+                        if (buttonText) {
+                            buttonText.innerHTML = isPdf ? 
+                                '<i class="bi bi-file-earmark-pdf"></i> Generate PDF Report' : 
+                                '<i class="bi bi-file-earmark-richtext"></i> Generate HTML Report';
+                        }
+                        if (buttonSpinner) {
+                            buttonSpinner.style.display = 'none';
+                        }
+                    }
+                    isProcessing = false;
                 }
             });
 
