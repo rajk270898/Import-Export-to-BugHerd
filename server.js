@@ -8,6 +8,7 @@ const csv = require('csv-parser');
 const xlsx = require('xlsx');
 const fs = require('fs');
 const ReportGenerator = require('./generator');
+const BrandReportGenerator = require('./brand-generator');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -15,11 +16,42 @@ const port = process.env.PORT || 3000;
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
 
+// Configure static file serving with proper MIME types
+const staticOptions = {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    } else if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (path.endsWith('.png')) {
+      res.setHeader('Content-Type', 'image/png');
+    } else if (path.endsWith('.svg')) {
+      res.setHeader('Content-Type', 'image/svg+xml');
+    } else if (path.endsWith('.woff2') || path.endsWith('.woff') || path.endsWith('.ttf')) {
+      res.setHeader('Content-Type', 'application/font-woff2');
+    }
+  }
+};
+
 // Serve static files from the public directory
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), staticOptions));
 
 // Serve static files from the brand_Template directory
-app.use('/brand_Template', express.static(path.join(__dirname, 'brand_Template')));
+app.use('/brand_Template', express.static(path.join(__dirname, 'brand_Template'), staticOptions));
+
+// Serve brand template assets
+app.use('/api/assets', express.static(path.join(__dirname, 'brand_Template', 'assets'), staticOptions));
+
+// Serve styles.css from the correct location with proper caching
+app.get('/api/styles.css', (req, res) => {
+  const cssPath = path.join(__dirname, 'brand_Template', 'styles.css');
+  res.sendFile(cssPath, {
+    headers: {
+      'Content-Type': 'text/css',
+      'Cache-Control': 'public, max-age=3600' // Cache for 1 hour
+    }
+  });
+});
 
 // Initialize HTMLGenerator with API key
 
@@ -60,8 +92,9 @@ const bugherdApi = axios.create({
   }
 });
 
-// Initialize Report Generator
+// Initialize Report Generators
 const reportGenerator = new ReportGenerator();
+const brandReportGenerator = new BrandReportGenerator();
 
 // Helper function to handle API errors
 const handleApiError = (error, res) => {
@@ -315,7 +348,48 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
   }
 });
 
-// Generate HTML Report
+// Generate brand report (GET endpoint)
+app.get('/api/generate-brand-report', async (req, res) => {
+  try {
+    const { projectId, ...filters } = req.query;
+    
+    if (!projectId) {
+      return res.status(400).json({ error: 'Project ID is required' });
+    }
+
+    console.log('Generating brand report for project:', projectId);
+    console.log('Using filters:', filters);
+    
+    // First fetch the project data
+    const project = await brandReportGenerator.fetchProject(projectId);
+    console.log('Fetched project data:', JSON.stringify(project, null, 2));
+    
+    // Then generate the report with the project data
+    let html = await brandReportGenerator.generateReport(projectId, filters);
+    
+    // Debug: Check if siteDisplay was replaced
+    if (html.includes('{{siteDisplay}}')) {
+        console.warn('Warning: siteDisplay placeholder was not replaced in the template');
+        // Try to get the site URL from the project data
+        if (project && project.site && project.site.url) {
+            console.log('Found site URL in project data, forcing replacement');
+            const siteDisplay = project.site.url.replace(/^https?:\/\//, '').replace(/^www\./, '');
+            html = html.replace('{{siteDisplay}}', siteDisplay);
+        }
+    }
+    
+    res.set('Content-Type', 'text/html');
+    res.send(html);
+  } catch (error) {
+    console.error('Error generating brand report:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate brand report',
+      details: error.message 
+    });
+  }
+});
+
+// Generate HTML report
 app.post('/api/generate-html-report', async (req, res) => {
   try {
     const { projectId, filters = {} } = req.body;

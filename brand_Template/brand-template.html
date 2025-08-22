@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QA Audit Report</title>
-  <link rel="icon" type="image/svg+xml" href="./assets/favicon.png" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/svg+xml" href="/api/assets/favicon.png" />
+  <link rel="stylesheet" href="/api/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 </head>
@@ -15,7 +15,7 @@
       <div class="cover-header">
     <div class="header-content">
           <div class="header-logo">
-            <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="256" height="47" />
+            <img src="/api/assets/whitelogo.png" alt="White Label IQ Logo" width="256" height="47" />
           </div>
           <div class="cover-date">
             Created <span id="currentDate"></span>
@@ -27,7 +27,7 @@
         <div class="cover-title">
           <h1 class="cover-subtitle">REPORT</h1>
           <h2 class="cover-main-title">QA Audit</h2>
-          <p class="cover-url">www.google.com</p>
+          <p class="cover-url">{{siteDisplay}}</p>
         </div>
       </div>
       <div class="cover-footer">
@@ -55,7 +55,7 @@
           <p class="header-subtitle">QA Audit Report</p>
         </div>
         <div class="header-logo-small">
-          <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
+          <img src="/api/assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
         </div>
       </div>
     </div>
@@ -93,7 +93,7 @@
           <p class="header-subtitle">QA Audit Report</p>
         </div>
         <div class="header-logo-small">
-          <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
+          <img src="/api/assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
         </div>
       </div>
     </div>
@@ -119,7 +119,7 @@
         <p class="header-subtitle">QA Audit Report</p>
       </div>
       <div class="header-logo-small">
-        <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
+        <img src="/api/assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
       </div>
     </div>
   </div>
@@ -144,7 +144,7 @@
         <p class="header-subtitle">Key Performance Indicators</p>
       </div>
       <div class="header-logo-small">
-        <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
+        <img src="/api/assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
       </div>
     </div>
   </div>
@@ -166,7 +166,7 @@
   <div class="end-cover">
     <div class="end-header">
       <div class="end-logo">
-        <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="256" height="47" />
+        <img src="/api/assets/whitelogo.png" alt="White Label IQ Logo" width="256" height="47" />
       </div>
       <div class="end-date">
         <span>Report Generated: <span id="generatedDate"></span></span>
@@ -189,7 +189,7 @@
         <p>Thank you for choosing White Label IQ for your QA Audit needs. We're committed to helping you create inclusive digital experiences.</p>
         <div class="signature">
             <div class="end-logo">
-              <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="256" height="47" />
+              <img src="/api/assets/whitelogo.png" alt="White Label IQ Logo" width="256" height="47" />
             </div>
         </div>
       </div>
@@ -265,7 +265,7 @@
           <p class="header-subtitle">QA Audit Report</p>
         </div>
         <div class="header-logo-small">
-          <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
+          <img src="/api/assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
         </div>
       </div>
     `;
@@ -292,9 +292,25 @@
       chartContainer.appendChild(canvas);
       container.appendChild(chartContainer);
       
-      // Initialize the chart only on first page after a small delay
+          // Initialize the chart only on first page after a small delay
       // to ensure the canvas is in the DOM and has dimensions
-      setTimeout(initSeverityChart, 100);
+      const initChart = () => {
+        const canvas = document.getElementById('severityChart');
+        if (canvas) {
+          // Ensure the canvas has dimensions
+          if (canvas.offsetWidth > 0 && canvas.offsetHeight > 0) {
+            initSeverityChart();
+          } else {
+            // If dimensions aren't ready, try again after a short delay
+            setTimeout(initChart, 100);
+          }
+        } else {
+          console.error('Canvas element not found for chart initialization');
+        }
+      };
+      
+      // Start the initialization process
+      setTimeout(initChart, 100);
     }
     
     // Only add the table if there are rows to display
@@ -464,7 +480,7 @@
           <p class="header-subtitle">QA Audit Report</p>
         </div>
         <div class="header-logo-small">
-          <img src="assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
+          <img src="/api/assets/whitelogo.png" alt="White Label IQ Logo" width="120" height="22" />
         </div>
       </div>
     `;
