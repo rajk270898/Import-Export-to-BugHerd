@@ -191,6 +191,29 @@ table tbody tr:hover {
   }
 }
 
+/* Make sure the link looks like regular text */
+.cover-url a:link,
+.cover-url a:visited,
+.cover-url a:active {
+  color: inherit !important;
+  text-decoration: none !important;
+  cursor: default !important;
+}
+
+/* Only show underline on hover */
+.cover-url a:hover {
+  text-decoration: underline !important;
+  cursor: pointer !important;
+}
+
+/* Reset any inherited link styles */
+.cover-url a,
+.cover-url a:focus {
+  all: unset;
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
 /* Findings Table */
 .findings-table {
   margin-bottom: var(--spacing-xl);

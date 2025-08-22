@@ -162,7 +162,8 @@ class BrandReportGenerator {
             console.log('Project object:', JSON.stringify(project, null, 2));
             
             // Get site URL from project or tasks
-            let siteDisplay = project.devurl || project.sites?.[0] || project.name || 'Project';
+            const siteUrl = project.site?.url || project.devurl || project.sites?.[0] || project.name || 'Project';
+            let siteDisplay = siteUrl;
             let projectName = project.name || 'Project';
             
             // Clean up the site display URL
@@ -194,6 +195,7 @@ class BrandReportGenerator {
                 '{{currentDate}}': currentDate,
                 '{{totalIssues}}': tasks.length,
                 '{{siteDisplay}}': siteDisplay,
+                '{{siteUrl}}': siteUrl ? BrandReportGenerator.ensureProtocol(siteUrl) : '#',
                 'findingsData: Array(42)': `findingsData: ${JSON.stringify(findingsData)}`,
                 'auditLogData: Array(8)': `auditLogData: ${JSON.stringify(findingsData.slice(0, 8))}`
             };
@@ -212,6 +214,11 @@ class BrandReportGenerator {
     }
 
     // Helper method to escape special regex characters
+    static ensureProtocol(url) {
+        if (!url) return url;
+        return url.match(/^https?:\/\//) ? url : `https://${url}`;
+    }
+
     static escapeRegExp(string) {
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
