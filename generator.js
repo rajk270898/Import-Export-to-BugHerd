@@ -263,55 +263,71 @@ class ReportGenerator {
             return [];
         }
 
-        console.log(`Filtering ${tasks.length} tasks with filters:`, JSON.stringify(filters, null, 2));
+        console.log(`\n=== Applying Filters ===`);
+        console.log('Active filters:', JSON.stringify(filters, null, 2));
+        console.log(`Total tasks before filtering: ${tasks.length}`);
+        
+        // Count how many filters are active
+        const activeFilters = Object.values(filters).filter(v => v !== undefined).length;
         
         const filtered = tasks.filter(task => {
-            // Debug log for each task
-            console.log('\nProcessing task:', {
-                id: task.id,
-                status: task.status,
-                column_id: task.column_id,
-                description: task.description?.substring(0, 50) + '...',
-                priority_id: task.priority_id
-            });
-
-            // Get the task status (use status.name if available, otherwise status)
-            const status = task.status?.name || task.status || '';
-            const isArchived = status.toLowerCase() === 'closed' || status.toLowerCase() === 'resolved';
+            console.log('\n--- Processing Task ---');
+            console.log('Task ID:', task.id);
+            console.log('Status:', task.status);
+            console.log('Has column_id:', !!task.column_id);
             
-            // Debug log filters
-            console.log(`- Status: ${status}, isArchived: ${isArchived}`);
+            let matchesAnyFilter = activeFilters === 0; // If no filters, include all tasks
+            let matchesAllFilters = true;
+            let matchDetails = [];
             
-            // Apply archive filter
+            // Check archive filter
             if (filters.archive !== undefined) {
-                if (filters.archive && !isArchived) {
-                    console.log('- Filtered out: Task is not archived but archive filter is true');
-                    return false;
-                }
-                if (!filters.archive && isArchived) {
-                    console.log('- Filtered out: Task is archived but archive filter is false');
-                    return false;
-                }
+                const status = task.status?.name || task.status || '';
+                const statusLower = status.toLowerCase();
+                const isArchived = statusLower === 'closed' || statusLower === 'resolved' || statusLower === 'archived';
+                const archiveMatch = (filters.archive && isArchived) || (!filters.archive && !isArchived);
+                
+                matchDetails.push(`Archive: ${archiveMatch ? '✅' : '❌'}`);
+                matchesAnyFilter = matchesAnyFilter || (filters.archive && isArchived);
+                matchesAllFilters = matchesAllFilters && archiveMatch;
             }
             
-            // For task board filter, we'll check if the task has a column_id
+            // Check task board filter
             if (filters.taskBoard !== undefined) {
-                console.log(`- Task has column_id: ${!!task.column_id}, taskBoard filter: ${filters.taskBoard}`);
-                if (filters.taskBoard && !task.column_id) {
-                    console.log('- Filtered out: Task has no column_id but taskBoard filter is true');
-                    return false;
-                }
-                if (!filters.taskBoard && task.column_id) {
-                    console.log('- Filtered out: Task has column_id but taskBoard filter is false');
-                    return false;
-                }
+                const hasColumn = !!task.column_id;
+                const taskBoardMatch = (filters.taskBoard && hasColumn) || (!filters.taskBoard && !hasColumn);
+                
+                matchDetails.push(`Task Board: ${taskBoardMatch ? '✅' : '❌'}`);
+                matchesAnyFilter = matchesAnyFilter || (filters.taskBoard && hasColumn);
+                matchesAllFilters = matchesAllFilters && taskBoardMatch;
             }
             
-            console.log('- Task passed all filters');
-            return true;
+            // Check feedback filter (assuming feedback tasks have type 'feedback' or similar)
+            if (filters.feedback !== undefined) {
+                const isFeedback = task.type === 'feedback' || 
+                                 (task.tags && task.tags.some(tag => 
+                                     typeof tag === 'string' ? 
+                                     tag.toLowerCase().includes('feedback') : 
+                                     tag.name?.toLowerCase().includes('feedback')
+                                 ));
+                const feedbackMatch = (filters.feedback && isFeedback) || (!filters.feedback && !isFeedback);
+                
+                matchDetails.push(`Feedback: ${feedbackMatch ? '✅' : '❌'}`);
+                matchesAnyFilter = matchesAnyFilter || (filters.feedback && isFeedback);
+                matchesAllFilters = matchesAllFilters && feedbackMatch;
+            }
+            
+            // Always use OR logic between different filter types when they are true
+            const shouldInclude = matchesAnyFilter;
+            
+            console.log('Match Details:', matchDetails.join(' | '));
+            console.log(`Result: ${shouldInclude ? '✅ INCLUDED' : '❌ FILTERED OUT'}`);
+            
+            return shouldInclude;
         });
 
-        console.log(`Filtering complete. ${filtered.length} of ${tasks.length} tasks passed the filters.`);
+        console.log(`\n=== Filtering Complete ===`);
+        console.log(`Total tasks after filtering: ${filtered.length} of ${tasks.length}`);
         return filtered;
     }
 

@@ -176,14 +176,51 @@ class BrandReportGenerator {
                 siteDisplay = String(siteDisplay).replace(/^https?:\/\//, '').replace(/^\./, '');
             }
     
-            // Prepare data for the template
-            const findingsData = tasks.map(task => ({
+            // Group tasks by page and count severities
+            const pageData = {};
+            
+            tasks.forEach(task => {
+                const pageName = task.page_name || 'Uncategorized';
+                if (!pageData[pageName]) {
+                    pageData[pageName] = {
+                        pageName,
+                        total: 0,
+                        critical: 0,
+                        important: 0,
+                        normal: 0,
+                        minor: 0,
+                        notSet: 0
+                    };
+                }
+                
+                // Increment counters based on priority
+                const priority = (task.priority || 'notset').toLowerCase();
+                if (['critical', 'high'].includes(priority)) {
+                    pageData[pageName].critical++;
+                } else if (priority === 'important' || priority === 'moderate') {
+                    pageData[pageName].important++;
+                } else if (priority === 'normal') {
+                    pageData[pageName].normal++;
+                } else if (priority === 'low' || priority === 'minor') {
+                    pageData[pageName].minor++;
+                } else {
+                    pageData[pageName].notSet++;
+                }
+                
+                pageData[pageName].total++;
+            });
+            
+            // Convert to array and sort by total issues (descending)
+            const findingsData = Object.values(pageData).sort((a, b) => b.total - a.total);
+            
+            // Prepare data for the audit log
+            const auditLogData = tasks.map(task => ({
                 pageUrl: task.page_url || task.url || '',
                 pageName: task.page_name || 'N/A',
                 issueType: task.issue_type || 'N/A',
                 description: task.description || 'No description',
-                priority: task.priority || 'normal',
-                status: task.status || 'new',
+                priority: (task.priority || 'Not Set').charAt(0).toUpperCase() + (task.priority || '').slice(1).toLowerCase(),
+                status: (task.status || 'New').charAt(0).toUpperCase() + (task.status || '').slice(1).toLowerCase(),
                 screenshot: task.screenshot || 'View'
             }));
     
@@ -197,7 +234,7 @@ class BrandReportGenerator {
                 '{{siteDisplay}}': siteDisplay,
                 '{{siteUrl}}': siteUrl ? BrandReportGenerator.ensureProtocol(siteUrl) : '#',
                 'findingsData: Array(42)': `findingsData: ${JSON.stringify(findingsData)}`,
-                'auditLogData: Array(8)': `auditLogData: ${JSON.stringify(findingsData.slice(0, 8))}`
+                'auditLogData: Array(8)': `auditLogData: ${JSON.stringify(auditLogData)}`
             };
     
             // Apply all replacements
