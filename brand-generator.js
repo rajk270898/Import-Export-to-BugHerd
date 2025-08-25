@@ -175,15 +175,120 @@ class BrandReportGenerator {
             } catch (e) {
                 siteDisplay = String(siteDisplay).replace(/^https?:\/\//, '').replace(/^\./, '');
             }
-    
+
             // Group tasks by page and count severities
             const pageData = {};
             
+            // First, process all tasks to extract unique page URLs and names
             tasks.forEach(task => {
-                const pageName = task.page_name || 'Uncategorized';
+                // Get the site URL from project data first, then fall back to task data
+                const siteUrl = this.project?.sites?.[0] || this.project?.devurl || task.site || task.task?.site || '';
+                let pageUrl = task.page_url || task.task?.page_url || task.url || '';
+                
+                // Extract URL from description if it exists
+                let extractedUrlFromDesc = '';
+                if (task.description) {
+                    const urlMatch = task.description.match(/URL: (https?:\/\/[^\s\n]+)/i);
+                    if (urlMatch && urlMatch[1]) {
+                        extractedUrlFromDesc = urlMatch[1];
+                    }
+                }
+
+                // Normalize URLs for comparison (remove protocol, www, trailing slashes)
+                const normalizeUrl = (url) => {
+                    if (!url) return '';
+                    try {
+                        const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+                        let normalized = urlObj.hostname.replace(/^www\./i, '') + 
+                                      (urlObj.pathname === '/' ? '' : urlObj.pathname);
+                        return normalized.replace(/\/+$/, '');
+                    } catch (e) {
+                        return url;
+                    }
+                };
+
+                // Determine the final URL to use
+                if (extractedUrlFromDesc) {
+                    const normalizedSite = normalizeUrl(siteUrl);
+                    const normalizedExtracted = normalizeUrl(extractedUrlFromDesc);
+                    
+                    if (normalizedSite && normalizedExtracted.startsWith(normalizedSite)) {
+                        // If it's the same as site URL, it's the homepage
+                        if (normalizedExtracted === normalizedSite) {
+                            pageUrl = siteUrl.replace(/\/+$/, '');
+                        } else {
+                            // Otherwise use the extracted URL
+                            pageUrl = extractedUrlFromDesc;
+                        }
+                    } else if (!pageUrl || pageUrl === '/') {
+                        // Only use extracted URL if no pageUrl is set
+                        pageUrl = extractedUrlFromDesc;
+                    }
+                }
+
+                // Handle root path or empty URL
+                if ((!pageUrl || pageUrl === '/') && siteUrl) {
+                    pageUrl = siteUrl.replace(/\/+$/, '');
+                }
+                // Handle relative URLs
+                else if (pageUrl.startsWith('/') && siteUrl) {
+                    pageUrl = siteUrl.replace(/\/+$/, '') + pageUrl;
+                }
+                
+                // Extract page name from URL or use a default
+                let pageName = 'Homepage'; // Default page name
+                if (pageUrl) {
+                    try {
+                        const url = new URL(pageUrl.startsWith('http') ? pageUrl : `https://${pageUrl}`);
+                        const normalizedSite = siteUrl ? normalizeUrl(siteUrl) : '';
+                        const normalizedCurrent = normalizeUrl(pageUrl);
+                        
+                        // If this is the homepage URL, use 'Homepage' as the page name
+                        if (normalizedCurrent === normalizedSite || !url.pathname || url.pathname === '/') {
+                            pageName = 'Homepage';
+                        } else {
+                            // Get all non-empty path segments
+                            const segments = url.pathname.split('/').filter(segment => segment.trim() !== '');
+                            
+                            if (segments.length > 0) {
+                                // Use the last segment that's not empty and not a common file extension
+                                let lastSegment = '';
+                                for (let i = segments.length - 1; i >= 0; i--) {
+                                    const segment = segments[i];
+                                    // Skip common file extensions and numeric segments
+                                    if (!/\.[a-z0-9]{2,5}$/i.test(segment) && !/^\d+$/.test(segment)) {
+                                        lastSegment = segment;
+                                        break;
+                                    }
+                                }
+                                
+                                if (lastSegment) {
+                                    pageName = lastSegment
+                                        .split('?')[0]  // Remove query string
+                                        .split('#')[0]   // Remove hash
+                                        .replace(/\.[^/.]+$/, '')  // Remove file extension
+                                        .replace(/[-_]+/g, ' ')    // Replace underscores/hyphens with spaces
+                                        .replace(/\b\w/g, l => l.toUpperCase())  // Title case
+                                        .trim();
+                                    
+                                    // If we couldn't find a good segment name, use the full path
+                                    if (!pageName) {
+                                        pageName = segments.join(' > ');
+                                    }
+                                } else {
+                                    // If all segments were filtered out, use the full path
+                                    pageName = segments.join(' > ');
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.log('Error processing URL, using default page name for:', pageUrl, e);
+                    }
+                }
+                
+                // Initialize page data if not exists
                 if (!pageData[pageName]) {
                     pageData[pageName] = {
-                        pageName,
                         total: 0,
                         critical: 0,
                         important: 0,
@@ -193,60 +298,197 @@ class BrandReportGenerator {
                     };
                 }
                 
-                // Increment counters based on priority
-                const priority = (task.priority || 'notset').toLowerCase();
-                if (['critical', 'high'].includes(priority)) {
+                // Map BugHerd priorities to our categories
+                const priority = (task.priority || '').toLowerCase();
+                const status = (task.status || '').toLowerCase();
+                
+                // Update counts
+                pageData[pageName].total++;
+                
+                // Map status to priority if priority is not set
+                let effectivePriority = priority;
+                if (!effectivePriority) {
+                    if (status.includes('critical') || status.includes('high')) {
+                        effectivePriority = 'critical';
+                    } else if (status.includes('important') || status.includes('major')) {
+                        effectivePriority = 'important';
+                    } else if (status.includes('normal') || status.includes('medium')) {
+                        effectivePriority = 'normal';
+                    } else if (status.includes('low') || status.includes('minor')) {
+                        effectivePriority = 'minor';
+                    }
+                }
+                
+                // Categorize based on effective priority
+                if (['critical', 'high', 'blocker'].includes(effectivePriority)) {
                     pageData[pageName].critical++;
-                } else if (priority === 'important' || priority === 'moderate') {
+                } else if (['important', 'major', 'moderate'].includes(effectivePriority)) {
                     pageData[pageName].important++;
-                } else if (priority === 'normal') {
+                } else if (['normal', 'medium', 'average'].includes(effectivePriority)) {
                     pageData[pageName].normal++;
-                } else if (priority === 'low' || priority === 'minor') {
+                } else if (['low', 'minor', 'trivial'].includes(effectivePriority)) {
                     pageData[pageName].minor++;
                 } else {
                     pageData[pageName].notSet++;
                 }
-                
-                pageData[pageName].total++;
             });
             
-            // Convert to array and sort by total issues (descending)
-            const findingsData = Object.values(pageData).sort((a, b) => b.total - a.total);
+            // Convert to array with page names and sort by total issues (descending)
+            const findingsData = Object.entries(pageData).map(([pageName, counts]) => ({
+                pageName,
+                ...counts
+            })).sort((a, b) => b.total - a.total);
             
-            // Prepare data for the audit log
+            // Prepare data for the audit log with all required fields
             const auditLogData = tasks.map(task => ({
-                pageUrl: task.page_url || task.url || '',
-                pageName: task.page_name || 'N/A',
-                issueType: task.issue_type || 'N/A',
-                description: task.description || 'No description',
-                priority: (task.priority || 'Not Set').charAt(0).toUpperCase() + (task.priority || '').slice(1).toLowerCase(),
-                status: (task.status || 'New').charAt(0).toUpperCase() + (task.status || '').slice(1).toLowerCase(),
-                screenshot: task.screenshot || 'View'
+                id: task.id,
+                page_url: task.page_url || task.task?.page_url || task.url || '',
+                pageName: (() => {
+                    // Get the page URL from the task and handle relative URLs
+                    let pageUrl = task.page_url || task.task?.page_url || task.url || '';
+                    const siteUrl = task.site || task.task?.site || '';
+                    
+                    // If page URL is empty, try to extract it from the description
+                    if (!pageUrl && task.description) {
+                        const urlMatch = task.description.match(/URL: (https?:\/\/[^\s\n]+)/i);
+                        if (urlMatch && urlMatch[1]) {
+                            pageUrl = urlMatch[1];
+                        }
+                    }
+                    
+                    // Handle root path (/) - use the site URL as base
+                    if (pageUrl === '/' && siteUrl) {
+                        pageUrl = siteUrl.replace(/\/+$/, '');
+                    }
+                    // If the URL is relative (starts with /) and we have a site URL, combine them
+                    else if (pageUrl.startsWith('/') && siteUrl) {
+                        // Remove any trailing slashes from base URL and leading slashes from path
+                        pageUrl = siteUrl.replace(/\/+$/, '') + pageUrl;
+                    }
+                    
+                    let pageName = 'Homepage'; // Default page name
+                    if (pageUrl) {
+                        try {
+                            const url = new URL(pageUrl.startsWith('http') ? pageUrl : `https://${pageUrl}`);
+                            // Get the full path
+                            let path = url.pathname;
+                            
+                            // Always use the hostname for consistency
+                            pageName = url.hostname.replace(/^www\./i, '').split('.')[0];
+                            
+                            // If it's not the root path, append the last segment
+                            if (path !== '/' && path) {
+                                const segments = path.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
+                                if (segments.length > 0) {
+                                    const lastSegment = segments[segments.length - 1]
+                                        .replace(/[-_]/g, ' ')
+                                        .replace(/\.(html?|php|aspx?|jsp|cfm|cgi|pl)$/i, '')
+                                        .split(' ')
+                                        .filter(Boolean)
+                                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                                        .join(' ');
+                                    if (lastSegment) {
+                                        pageName = lastSegment;
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.log('Using default page name for URL:', pageUrl);
+                            return 'Page';
+                        }
+                    }
+                    return pageName;
+                })(),
+                issueType: task.task_type || 'bug',
+                description: task.description || task.text || 'No description',
+                priority: (task.priority || 'normal').toLowerCase(),
+                status: (task.status || 'new').toLowerCase(),
+                screenshot: task.screenshot_url || (task.attachments && task.attachments.length > 0 ? task.attachments[0].url : 'View'),
+                created_at: task.created_at || new Date().toISOString(),
+                updated_at: task.updated_at || new Date().toISOString(),
+                tags: task.tags || [],
+                requester_email: task.requester_email || '',
+                requester_name: task.requester_name || 'Anonymous',
+                assigned_to: task.assigned_to || null
             }));
-    
+
+            // Add debug logging
+            console.log('Findings data:', JSON.stringify(findingsData, null, 2));
+            console.log('Audit log data:', JSON.stringify(auditLogData, null, 2));
             console.log('Using siteDisplay:', siteDisplay);
             
-            // Apply all replacements
+            // Read the template file
+            let templateContent = fs.readFileSync(this.templatePath, 'utf8');
+            
+            // Create a script tag with the data that will be available immediately
+            const dataScript = `
+                <script>
+                    // Initialize data from server - available immediately
+                    window.findingsData = ${JSON.stringify(findingsData)};
+                    window.auditLogData = ${JSON.stringify(auditLogData)};
+                    console.log('Server-provided findingsData:', window.findingsData);
+                    console.log('Server-provided auditLogData:', window.auditLogData);
+                </script>`;
+                
+            // Add initialization script that runs after DOM is loaded
+            const initScript = `
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        console.log('DOM fully loaded, initializing report...');
+                        
+                        // Initialize the report
+                        if (typeof initializeReport === 'function') {
+                            initializeReport();
+                        }
+                        
+                        // Generate tables
+                        if (typeof generateTables === 'function') {
+                            generateTables();
+                        }
+                        
+                        // Generate audit log tables
+                        if (typeof generateAuditLogTables === 'function') {
+                            generateAuditLogTables();
+                        }
+                        
+                        // Initialize severity chart
+                        if (typeof initSeverityChart === 'function') {
+                            initSeverityChart();
+                        }
+                    });
+                </script>
+            `;
+            
+            // Insert the data script in the head section to ensure it's available early
+            templateContent = templateContent.replace('</head>', `
+                ${dataScript}
+            </head>`);
+            
+            // Insert the initialization script before the closing body tag
+            templateContent = templateContent.replace('</body>', `
+                ${initScript}
+            </body>`);
+            
+            // Define replacements for other template variables
             const replacements = {
                 '{{projectName}}': projectName,
                 '{{currentDate}}': currentDate,
                 '{{totalIssues}}': tasks.length,
                 '{{siteDisplay}}': siteDisplay,
-                '{{siteUrl}}': siteUrl ? BrandReportGenerator.ensureProtocol(siteUrl) : '#',
-                'findingsData: Array(42)': `findingsData: ${JSON.stringify(findingsData)}`,
-                'auditLogData: Array(8)': `auditLogData: ${JSON.stringify(auditLogData)}`
+                '{{siteUrl}}': siteUrl ? BrandReportGenerator.ensureProtocol(siteUrl) : '#'
             };
-    
+            
             // Apply all replacements
-            html = Object.entries(replacements).reduce(
-                (result, [key, value]) => result.replace(new RegExp(BrandReportGenerator.escapeRegExp(key), 'g'), value),
-                html
+            return Object.entries(replacements).reduce(
+                (result, [key, value]) => result.replace(
+                    new RegExp(BrandReportGenerator.escapeRegExp(key),), 
+                    String(value)
+                ),
+                templateContent
             );
-    
-            return html;
         } catch (error) {
             console.error('Error rendering HTML:', error);
-            throw error;
+            throw error;    
         }
     }
 
@@ -254,6 +496,41 @@ class BrandReportGenerator {
     static ensureProtocol(url) {
         if (!url) return url;
         return url.match(/^https?:\/\//) ? url : `https://${url}`;
+    }
+
+    // Static method to extract page name from URL with hierarchy
+    static getLastSlug(url) {
+        if (!url) return 'Home';
+        try {
+            // Handle full URLs
+            if (url.startsWith('http')) {
+                const parsed = new URL(url);
+                const path = parsed.pathname;
+                
+                // If it's a root path, return the domain name
+                if (path === '/' || !path) {
+                    return parsed.hostname.replace(/^www\./, '').split('.')[0] || 'Home';
+                }
+                
+                // Get the last non-empty segment of the path
+                const segments = path.split('/').filter(Boolean);
+                if (segments.length > 0) {
+                    // Return the last segment, or the domain if it's empty
+                    return segments[segments.length - 1] || 
+                           parsed.hostname.replace(/^www\./, '').split('.')[0] || 'Home';
+                }
+                return parsed.hostname.replace(/^www\./, '').split('.')[0] || 'Home';
+            } 
+            // Handle relative URLs
+            else {
+                const path = url.split('?')[0].split('#')[0];
+                const segments = path.split('/').filter(Boolean);
+                return segments[segments.length - 1] || 'Home';
+            }
+        } catch (e) {
+            console.error('Error extracting slug from URL:', url, e);
+            return 'Home';
+        }
     }
 
     static escapeRegExp(string) {

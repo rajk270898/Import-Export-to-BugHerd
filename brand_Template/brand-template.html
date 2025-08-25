@@ -199,61 +199,69 @@
   </div>
 </div>
 
+<div id="findingsContainer"></div>
+
 <script>
-  // Data for the findings table
-  const findingsData = [
-    { pageName: 'About', total: 15, critical: 4, important: 4, normal: 7, minor: 7, notSet: 7 },
-    { pageName: 'Contact Us', total: 5, critical: 3, important: 0, normal: 2, minor: 2, notSet: 2 },
-    { pageName: 'Residential Construction', total: 2, critical: 2, important: 0, normal: 0, minor: 0, notSet: 0 },
-    { pageName: 'Search', total: 1, critical: 1, important: 0, normal: 0, minor: 0, notSet: 0 },
-    { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
-    { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
-    { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
-    { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
-    { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
-    { pageName: 'Old-Blog / Blog', total: 1, critical: 0, important: 0, normal: 1, minor: 1, notSet: 1 },
-    // Additional test data
-    { pageName: 'Page 11', total: 3, critical: 1, important: 1, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 12', total: 2, critical: 0, important: 1, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 13', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 14', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 15', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 16', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 17', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 18', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 19', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 20', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 21', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 22', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 23', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 24', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 25', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 26', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 27', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 28', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 29', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 30', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 31', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 32', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 33', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 34', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 35', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 36', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 37', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 38', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 39', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 40', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 41', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    { pageName: 'Page 42', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    // { pageName: 'Page 43', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    // { pageName: 'Page 44', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    // { pageName: 'Page 45', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    // { pageName: 'Page 46', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
-    // { pageName: 'Page 47', total: 1, critical: 0, important: 0, normal: 1, minor: 0, notSet: 0 },
+  // Global variables to store the data
+  let findingsData = [];
+  let auditLogData = [];
+  
+  // Default data for audit log if not provided by server
+  const defaultAuditLogData = [
+    { pageUrl: '/', pageName: 'Home', issueType: 'Bug (UI)', description: 'Hero image not loading on mobile', priority: 'High', status: 'New', screenshot: 'View' },
+    { pageUrl: '/products', pageName: 'Products', issueType: 'Content', description: 'Missing product descriptions', priority: 'Moderate', status: 'In Progress', screenshot: 'View' },
+    { pageUrl: '/about-us', pageName: 'About', issueType: 'Bug (UI)', description: 'H1 tag is missing; affects SEO', priority: 'Moderate', status: 'New', screenshot: 'View' },
+    { pageUrl: '/about-us', pageName: 'About', issueType: 'Bug (UI)', description: 'H2 font size inconsistent across pages', priority: 'Critical', status: 'New', screenshot: 'View' },
+    { pageUrl: '/', pageName: 'Home', issueType: 'Bug (UI)', description: 'Logo link missing in footer', priority: 'Moderate', status: 'New', screenshot: 'View' },
+    { pageUrl: '/contact', pageName: 'Contact Us', issueType: 'Bug (Functionality)', description: 'Contact form button not working', priority: 'Critical', status: 'In Progress', screenshot: 'Link' },
+    { pageUrl: '/products', pageName: 'Products', issueType: 'Content', description: 'Product images not loading on mobile', priority: 'High', status: 'New', screenshot: 'View' },
+    { pageUrl: '/blog', pageName: 'Blog', issueType: 'Performance', description: 'Page load time exceeds 5 seconds', priority: 'High', status: 'New', screenshot: 'View' },
+    { pageUrl: '/checkout', pageName: 'Checkout', issueType: 'Bug (Functionality)', description: 'Coupon code field not accepting valid codes', priority: 'Critical', status: 'New', screenshot: 'View' },
+    { pageUrl: '/account', pageName: 'My Account', issueType: 'Security', description: 'Password strength meter not working', priority: 'High', status: 'New', screenshot: 'View' }
   ];
+  
+  // Function to initialize the report with data
+  function initializeReport() {
+    try {
+      console.log('Initializing report...');
+      
+      // Get data from window object (injected by server)
+      findingsData = window.findingsData || [];
+      auditLogData = window.auditLogData || [];
+      
+      console.log('Found findingsData with', findingsData.length, 'items');
+      console.log('Found auditLogData with', auditLogData.length, 'items');
+      
+      // Generate tables with the data
+      if (findingsData.length > 0) {
+        console.log('Generating findings tables...');
+        generateTables();
+      } else {
+        console.warn('No findings data available');
+      }
+      
+      if (auditLogData.length > 0) {
+        console.log('Generating audit log tables...');
+        generateAuditLogTables();
+      } else {
+        console.warn('No audit log data available');
+      }
+      
+      // Initialize charts if needed
+      if (findingsData.length > 0) {
+        console.log('Initializing severity chart...');
+        initSeverityChart();
+      }
+      
+      console.log('Report initialization complete');
+    } catch (error) {
+      console.error('Error initializing report:', error);
+    }
+  }
 
   // Function to create a page section with table
   function createPageSection(pageNumber, data, targetElement, isLastPage = false) {
+    console.log(`Creating page ${pageNumber} with ${data.length} rows`);
     const section = document.createElement('div');
     section.className = 'page-section';
     
@@ -336,8 +344,10 @@
       `;
     }
     
-    // Add severity content only on the last page, after the table
-    if (isLastPage) {
+    // Add severity content based on row count or if it's the last page
+    const shouldShowSeverity = (data.length <= 3 && pageNumber === 1) || isLastPage;
+    
+    if (shouldShowSeverity) {
       const severityContent = document.createElement('div');
       severityContent.className = 'severity-definitions';
       severityContent.innerHTML = `
@@ -345,15 +355,14 @@
         <div class="overview-content">
           <h2>Severity Definitions</h2>
           <ul class="space" style="margin-top: 10px;">
-            <li><strong>Critical: </strong> Needs urgent fix before launch</li>
-            <li><strong>Important: </strong> High priority. Should be addressed promptly as it can impact user experience or business goals.</li>
+            <li><strong>Critical: </strong>Needs urgent fix before launch</li>
+            <li><strong>Important: </strong>High priority. Should be addressed promptly as it can impact user experience or business goals.</li>
             <li><strong>Normal: </strong>Should be fixed soon, but not launch-blocking</li>
             <li><strong>Minor: </strong>Small issues that won't impact function, but polish the experience</li>
             <li><strong>Not Set: </strong>No priority assigned yet. Needs review and categorization.</li>
           </ul>
         </div>
-      </div>
-      `;
+      </div>`;
       container.appendChild(severityContent);
     }
     
@@ -365,19 +374,37 @@
     // Populate the table with data if there are rows
     if (data.length > 0) {
       const tbody = document.getElementById(`findingsTableBody-${pageNumber}`);
-      data.forEach(item => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${item.pageName}</td>
-          <td>${item.total}</td>
-          <td>${item.critical}</td>
-          <td>${item.important}</td>
-          <td>${item.normal}</td>
-          <td>${item.minor}</td>
-          <td>${item.notSet}</td>
-        `;
-        tbody.appendChild(row);
-      });
+      if (tbody) {  // Make sure tbody exists
+        data.forEach(item => {
+          const row = document.createElement('tr');
+          // Check the structure of the item to handle different data formats
+          if (item.pageName !== undefined) {
+            // This is the summary data
+            row.innerHTML = `
+              <td>${item.pageName || 'N/A'}</td>
+              <td>${item.total || 0}</td>
+              <td>${item.critical || 0}</td>
+              <td>${item.important || 0}</td>
+              <td>${item.normal || 0}</td>
+              <td>${item.minor || 0}</td>
+              <td>${item.notSet || 0}</td>
+            `;
+          } else if (item.url) {
+            // This is the detailed findings data
+            const severity = item.severity || 'Not Set';
+            row.innerHTML = `
+              <td>${item.pageName || item.url}</td>
+              <td>${item.total || 1}</td>
+              <td>${severity === 'Critical' ? 1 : 0}</td>
+              <td>${severity === 'Important' ? 1 : 0}</td>
+              <td>${severity === 'Normal' ? 1 : 0}</td>
+              <td>${severity === 'Minor' ? 1 : 0}</td>
+              <td>${severity === 'Not Set' ? 1 : 0}</td>
+            `;
+          }
+          tbody.appendChild(row);
+        });
+      }
     }
   }
 
@@ -393,18 +420,105 @@
     return rowsOnPage > 10;
   }
 
+  // Function to process findings data into a summary format
+  function processFindingsData(findings) {
+    const summary = {};
+    
+    findings.forEach(item => {
+      const pageName = item.pageName || 'Unknown Page';
+      const severity = item.severity || 'Not Set';
+      
+      if (!summary[pageName]) {
+        summary[pageName] = {
+          pageName: pageName,
+          total: 0,
+          critical: 0,
+          important: 0,
+          normal: 0,
+          minor: 0,
+          notSet: 0
+        };
+      }
+      
+      // Increment the appropriate counters
+      summary[pageName].total++;
+      switch(severity.toLowerCase()) {
+        case 'critical':
+          summary[pageName].critical++;
+          break;
+        case 'important':
+          summary[pageName].important++;
+          break;
+        case 'normal':
+          summary[pageName].normal++;
+          break;
+        case 'minor':
+          summary[pageName].minor++;
+          break;
+        default:
+          summary[pageName].notSet++;
+      }
+    });
+    
+    // Convert the summary object to an array
+    return Object.values(summary);
+  }
+
   // Function to generate tables with pagination
   function generateTables() {
+    console.log('Generating tables with findings data:', findingsData);
+    
+    // Process the findings data into a summary format
+    const processedData = processFindingsData(findingsData);
+    
+    // If no data, show a message
+    if (processedData.length === 0) {
+      const container = document.getElementById('findingsContainer');
+      if (container) {
+        container.innerHTML = '<p>No findings data available. Please check your BugHerd project for issues.</p>';
+      }
+      return;
+    }
+    
+    // Check if we should show everything on a single page with Severity Definitions
+    if (processedData.length <= 3) {
+      const findingsContainer = document.getElementById('findingsContainer');
+      if (!findingsContainer) return;
+      findingsContainer.innerHTML = '';
+      
+      // Create a single page with all data
+      createPageSection(1, processedData, findingsContainer, false);
+      
+      // Add Severity Definitions on the same page after the table
+      const severitySection = document.createElement('div');
+      severitySection.className = 'severity-definitions';
+      severitySection.innerHTML = `
+        <div class="executive-overview">
+          <div class="overview-content">
+            <h2>Severity Definitions</h2>
+            <ul class="space" style="margin-top: 10px;">
+              <li><strong>Critical: </strong>Needs urgent fix before launch</li>
+              <li><strong>Important: </strong>High priority. Should be addressed promptly as it can impact user experience or business goals.</li>
+              <li><strong>Normal: </strong>Should be fixed soon, but not launch-blocking</li>
+              <li><strong>Minor: </strong>Small issues that won't impact function, but polish the experience</li>
+              <li><strong>Not Set: </strong>No priority assigned yet. Needs review and categorization.</li>
+            </ul>
+          </div>
+        </div>`;
+      findingsContainer.appendChild(severitySection);
+      return;
+    }
+    
+    // For more than 3 rows, use the pagination logic
     const firstPageRows = 10; // First page shows 10 rows
     const subsequentPageRows = 18; // Middle pages show up to 18 rows
-    const maxLastPageRows = 10; // Maximum rows on last page before needing new page for Severity Definitions
     
     // Calculate total pages with different row counts
-    let remainingRows = findingsData.length;
+    let remainingRows = processedData.length;
     let totalPages = 0;
     let pageRowCounts = [];
     
-    // First page always gets exactly firstPageRows (10) rows if possible
+    // First page gets firstPageRows (10) rows if possible
     if (remainingRows > 0) {
       const rowsForFirstPage = Math.min(firstPageRows, remainingRows);
       pageRowCounts.push(rowsForFirstPage);
@@ -453,19 +567,7 @@
       createPageSection(i + 1, pageData, findingsContainer, isLastPage);
       currentIndex += rowsToTake;
     }
-  }
-
-  // Data for the detailed audit log
-  const auditLogData = [
-    { pageUrl: '/about-us', pageName: 'About', issueType: 'Bug (UI)', description: 'H1 tag is missing; affects SEO', priority: 'Moderate', status: 'New', screenshot: 'View' },
-    { pageUrl: '/about-us', pageName: 'About', issueType: 'Bug (UI)', description: 'H2 font size inconsistent across pages', priority: 'Critical', status: 'New', screenshot: 'View' },
-    { pageUrl: '/', pageName: 'Home', issueType: 'Bug (UI)', description: 'Logo link missing in footer', priority: 'Moderate', status: 'New', screenshot: 'View' },
-    { pageUrl: '/contact', pageName: 'Contact Us', issueType: 'Bug (Functionality)', description: 'Contact form button not working', priority: 'Critical', status: 'In Progress', screenshot: 'Link' },
-    { pageUrl: '/products', pageName: 'Products', issueType: 'Content', description: 'Product images not loading on mobile', priority: 'High', status: 'New', screenshot: 'View' },
-    { pageUrl: '/blog', pageName: 'Blog', issueType: 'Performance', description: 'Page load time exceeds 5 seconds', priority: 'High', status: 'New', screenshot: 'View' },
-    { pageUrl: '/checkout', pageName: 'Checkout', issueType: 'Bug (Functionality)', description: 'Coupon code field not accepting valid codes', priority: 'Critical', status: 'New', screenshot: 'View' },
-    { pageUrl: '/account', pageName: 'My Account', issueType: 'Security', description: 'Password strength meter not working', priority: 'High', status: 'New', screenshot: 'View' }
-  ];
+  } // End of generateTables function
 
   // Function to create audit log page section
   function createAuditLogPage(pageNumber, data, targetElement, isLastPage = false) {
@@ -524,14 +626,11 @@
       tbody.appendChild(row);
     });
 
-    // Add the audit log note only on the last page, after the table
-    if (isLastPage) {
+    // If this is the last page and we have rows, and there are more than 3 rows, 
+    // add Severity Definitions on a new page
+    if (isLastPage && data.length > 0 && processedData.length > 3) {
       const note = document.createElement('p');
       note.className = 'audit-log-note';
-      // note.style.textAlign = 'center';
-      // note.style.marginTop = '20px';
-      // note.style.padding = '10px';
-      // note.style.fontSize = '16px';
       // note.style.color = '#666';
       note.innerHTML = `
         <em>(Full table is available in the original 
@@ -751,13 +850,11 @@ if (dateElement) {
 if (generatedDateElement) {
   generatedDateElement.textContent = formatDate(currentDate);
 }
-
-
-// Generate all tables when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM fully loaded');
-  console.log('findingsData:', findingsData);
-  console.log('auditLogData:', auditLogData);
+  
+  // Initialize the report with data
+  initializeReport();
   
   // Find the Key Highlights section
   const keyHighlightsSection = Array.from(document.querySelectorAll('.page-section')).find(section => {
@@ -774,44 +871,46 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Create a container for both findings and audit log sections
   const sectionsContainer = document.createElement('div');
-  sectionsContainer.style.marginBottom = '40px'; // Add some spacing
+  sectionsContainer.className = 'sections-container';
+  sectionsContainer.style.marginBottom = '40px';
   
-  // Create and append the findings container
+  // Create and append the findings section with heading
+  const findingsSection = document.createElement('div');
+  
   const findingsContainer = document.createElement('div');
   findingsContainer.id = 'findingsContainer';
-  findingsContainer.style.marginBottom = '40px'; // Add spacing between sections
-  sectionsContainer.appendChild(findingsContainer);
+  findingsContainer.style.marginBottom = '40px';
+  findingsSection.appendChild(findingsContainer);
   
-  // Create and append the audit log container below findings
+  // Create and append the audit log section with heading
+  const auditLogSection = document.createElement('div');
+  auditLogSection.style.marginTop = '40px';
+  
   const auditLogContainer = document.createElement('div');
   auditLogContainer.id = 'auditLogContainer';
-  auditLogContainer.style.marginTop = '60px'; // Add more space before audit log
-  sectionsContainer.appendChild(auditLogContainer);
+  auditLogSection.appendChild(auditLogContainer);
   
-  // Add a heading for the audit log
-  const auditLogHeading = document.createElement('h1');
-  auditLogHeading.textContent = 'Detailed Audit Log';
-  auditLogHeading.style.marginTop = '40px';
-  auditLogHeading.style.marginBottom = '20px';
-  auditLogContainer.appendChild(auditLogHeading);
+  // Add both sections to the container
+  sectionsContainer.appendChild(findingsSection);
+  sectionsContainer.appendChild(auditLogSection);
+  
+  // Insert the container before the Key Highlights section
+  keyHighlightsSection.parentNode.insertBefore(sectionsContainer, keyHighlightsSection);
   
   try {
-    // Insert the combined container before Key Highlights
-    keyHighlightsSection.parentNode.insertBefore(sectionsContainer, keyHighlightsSection);
-    console.log('Sections container inserted before Key Highlights');
+    console.log('Initializing content...');
     
-    // Initialize the content
+    // Initialize the content in the correct order
     console.log('Initializing severity chart...');
-    initSeverityChart();  // Initialize chart first
+    initSeverityChart();
     
     console.log('Generating findings tables...');
-    generateTables();     // Then generate findings tables
+    generateTables();
     
     console.log('Generating audit log tables...');
-    generateAuditLogTables(); // Finally generate audit log tables
+    generateAuditLogTables();
     
-    // Force debug output to console
-    console.log('Audit log container after generation:', document.getElementById('auditLogContainer').innerHTML);
+    console.log('Initialization complete');
   } catch (error) {
     console.error('Error during initialization:', error);
   }
